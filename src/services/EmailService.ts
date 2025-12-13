@@ -1,13 +1,10 @@
-/**
- * Service d'envoi d'emails d'invitation
- * 
- * Note: Pour l'instant, ce service génère un lien d'invitation.
- * Pour envoyer de vrais emails, vous devrez:
- * 1. Configurer Firebase Cloud Functions
- * 2. Utiliser un service comme SendGrid, Mailgun, ou Resend
- * 3. Créer un template d'email HTML
- */
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
+const functions = getFunctions();
+
+/**
+ * Service d'envoi d'emails d'invitation via Firebase Cloud Functions + Resend
+ */
 export const EmailService = {
     /**
      * Génère un lien d'invitation
@@ -26,43 +23,7 @@ export const EmailService = {
     },
 
     /**
-     * Génère le contenu de l'email d'invitation
-     */
-    generateInvitationEmailContent(code: string, inviterName: string, farmName?: string): string {
-        const link = this.generateInvitationLink(code);
-
-        return `
-Bonjour,
-
-${inviterName} vous invite à rejoindre ${farmName ? `la ferme "${farmName}"` : 'son élevage'} sur Ladoum STD.
-
-Votre code d'invitation : ${code}
-
-Pour créer votre compte, cliquez sur le lien ci-dessous :
-${link}
-
-Ce code est valable pendant 7 jours.
-
-Cordialement,
-L'équipe Ladoum STD
-        `.trim();
-    },
-
-    /**
-     * Ouvre le client email avec un brouillon pré-rempli
-     */
-    openEmailClient(email: string, code: string, inviterName: string, farmName?: string): void {
-        const subject = encodeURIComponent('Invitation à rejoindre Ladoum STD');
-        const body = encodeURIComponent(this.generateInvitationEmailContent(code, inviterName, farmName));
-
-        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-    },
-
-    /**
-     * TODO: Envoyer un vrai email via Cloud Function
-     * 
-     * Cette fonction devra être implémentée côté serveur (Firebase Cloud Functions)
-     * pour envoyer de vrais emails via un service tiers.
+     * Envoie un email d'invitation via Cloud Function + Resend
      */
     async sendInvitationEmail(
         email: string,
@@ -71,22 +32,30 @@ L'équipe Ladoum STD
         farmName?: string
     ): Promise<{ success: boolean; error?: string }> {
         try {
-            // TODO: Appeler une Cloud Function qui envoie l'email
-            // const response = await fetch('https://your-cloud-function-url/sendInvitation', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ email, code, inviterName, farmName })
-            // });
+            const sendEmail = httpsCallable(functions, 'sendInvitationEmail');
 
-            // Pour l'instant, on ouvre juste le client email
-            this.openEmailClient(email, code, inviterName, farmName);
+            const result = await sendEmail({
+                email,
+                code,
+                inviterName,
+                farmName
+            });
 
-            return { success: true };
-        } catch (error) {
+            const data = result.data as { success: boolean; message?: string };
+
+            if (data.success) {
+                return { success: true };
+            } else {
+                return {
+                    success: false,
+                    error: data.message || 'Erreur lors de l\'envoi de l\'email'
+                };
+            }
+        } catch (error: any) {
             console.error('Error sending invitation email:', error);
             return {
                 success: false,
-                error: 'Erreur lors de l\'envoi de l\'email'
+                error: error.message || 'Erreur lors de l\'envoi de l\'email'
             };
         }
     }

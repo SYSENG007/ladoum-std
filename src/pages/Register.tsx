@@ -42,7 +42,9 @@ export const Register: React.FC = () => {
         setLocalError(null);
 
         try {
+            console.log('Validating code:', code);
             const result = await InvitationService.validateCode(code);
+            console.log('Validation result:', result);
 
             if (result.valid && result.invitation) {
                 setValidatedInvitation(result.invitation);
@@ -51,8 +53,9 @@ export const Register: React.FC = () => {
             } else {
                 setLocalError(result.error || 'Code d\'invitation invalide');
             }
-        } catch (err) {
-            setLocalError('Erreur lors de la validation du code');
+        } catch (err: any) {
+            console.error('Error validating code:', err);
+            setLocalError(err.message || 'Erreur lors de la validation du code');
         } finally {
             setValidatingCode(false);
         }
