@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { useAnimals } from '../../hooks/useAnimals';
 import type { Animal } from '../../types';
-import { Mars, Venus, Award, Ruler, Weight, Calendar } from 'lucide-react';
+import { Mars, Venus, Award } from 'lucide-react';
 import clsx from 'clsx';
 
 interface FamilyTreeProps {
@@ -27,9 +27,6 @@ const AnimalNode: React.FC<AnimalNodeProps> = ({ animal, generation }) => {
     const isMale = animal.gender === 'Male';
     const bgColor = isMale ? 'bg-blue-50' : 'bg-pink-50';
     const borderColor = isMale ? 'border-blue-200' : 'border-pink-200';
-
-    const birthDate = new Date(animal.birthDate);
-    const age = Math.floor((new Date().getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
 
     return (
         <div className={clsx(
