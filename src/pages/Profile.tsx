@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { UserService } from '../services/UserService';
 import { FarmService } from '../services/FarmService';
 import { InvitationService } from '../services/InvitationService';
+import { EmailService } from '../services/EmailService';
 import { AccountService } from '../services/AccountService';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -127,6 +128,15 @@ export const Profile: React.FC = () => {
                 userProfile.activeFarmId,
                 staffRole
             );
+
+            // Envoyer l'email d'invitation
+            await EmailService.sendInvitationEmail(
+                staffEmail,
+                invitation.code,
+                userProfile.displayName || 'Un membre de l\'équipe',
+                activeFarm?.name
+            );
+
             setNewInviteCode(invitation.code);
             setInvitations(prev => [...prev, invitation]);
             setStaffEmail('');
@@ -341,18 +351,32 @@ export const Profile: React.FC = () => {
                     {newInviteCode && (
                         <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
                             <p className="text-sm text-emerald-700 mb-2 font-medium">
-                                ✅ Invitation créée ! Partagez ce code :
+                                ✅ Invitation créée et envoyée par email !
                             </p>
-                            <div className="flex items-center gap-2">
-                                <code className="flex-1 px-3 py-2 bg-white rounded-lg font-mono text-lg tracking-wider text-center border border-emerald-200">
-                                    {newInviteCode}
-                                </code>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <code className="flex-1 px-3 py-2 bg-white rounded-lg font-mono text-lg tracking-wider text-center border border-emerald-200">
+                                        {newInviteCode}
+                                    </code>
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => copyInviteCode(newInviteCode)}
+                                    >
+                                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                    </Button>
+                                </div>
                                 <Button
                                     size="sm"
                                     variant="secondary"
-                                    onClick={() => copyInviteCode(newInviteCode)}
+                                    className="w-full"
+                                    onClick={async () => {
+                                        await EmailService.copyInvitationLink(newInviteCode);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
+                                    }}
                                 >
-                                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                    {copied ? '✓ Lien copié' : 'Copier le lien d\'inscription'}
                                 </Button>
                             </div>
                             <p className="text-xs text-emerald-600 mt-2">
@@ -494,23 +518,55 @@ export const Profile: React.FC = () => {
                                 {pendingInvitations.map(invitation => (
                                     <div
                                         key={invitation.id}
-                                        className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200"
+                                        className="p-3 rounded-lg bg-slate-50 border border-slate-200"
                                     >
-                                        <Mail className="w-5 h-5 text-slate-400" />
-                                        <div className="flex-1">
-                                            <p className="text-sm font-medium text-slate-700">
-                                                {invitation.email}
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                Code: {invitation.code}
-                                            </p>
+                                        <div className="flex items-start gap-3">
+                                            <Mail className="w-5 h-5 text-slate-400 mt-0.5" />
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium text-slate-700">
+                                                    {invitation.email}
+                                                </p>
+                                                <p className="text-xs text-slate-500">
+                                                    Code: {invitation.code}
+                                                </p>
+                                                <div className="flex gap-2 mt-2">
+                                                    <button
+                                                        onClick={() => copyInviteCode(invitation.code)}
+                                                        className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
+                                                    >
+                                                        <Copy className="w-3 h-3" />
+                                                        Copier le code
+                                                    </button>
+                                                    <span className="text-slate-300">•</span>
+                                                    <button
+                                                        onClick={async () => {
+                                                            await EmailService.copyInvitationLink(invitation.code);
+                                                            setCopied(true);
+                                                            setTimeout(() => setCopied(false), 2000);
+                                                        }}
+                                                        className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
+                                                    >
+                                                        <Copy className="w-3 h-3" />
+                                                        Copier le lien
+                                                    </button>
+                                                    <span className="text-slate-300">•</span>
+                                                    <button
+                                                        onClick={async () => {
+                                                            await EmailService.sendInvitationEmail(
+                                                                invitation.email,
+                                                                invitation.code,
+                                                                userProfile?.displayName || 'Un membre de l\'équipe',
+                                                                activeFarm?.name
+                                                            );
+                                                        }}
+                                                        className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                                                    >
+                                                        <Mail className="w-3 h-3" />
+                                                        Renvoyer l'email
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <button
-                                            onClick={() => copyInviteCode(invitation.code)}
-                                            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                                        >
-                                            <Copy className="w-4 h-4 text-slate-400" />
-                                        </button>
                                     </div>
                                 ))}
                             </div>
