@@ -564,6 +564,24 @@ export const Profile: React.FC = () => {
                                                         <Mail className="w-3 h-3" />
                                                         Renvoyer l'email
                                                     </button>
+                                                    <span className="text-slate-300">•</span>
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (window.confirm(`Voulez-vous vraiment supprimer l'invitation pour ${invitation.email} ?`)) {
+                                                                try {
+                                                                    await InvitationService.delete(invitation.id);
+                                                                    setInvitations(prev => prev.filter(i => i.id !== invitation.id));
+                                                                } catch (err) {
+                                                                    console.error('Error deleting invitation:', err);
+                                                                    alert('Erreur lors de la suppression');
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                        Supprimer
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

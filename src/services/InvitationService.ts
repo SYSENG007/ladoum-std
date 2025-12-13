@@ -5,6 +5,7 @@ import {
     getDocs,
     setDoc,
     updateDoc,
+    deleteDoc,
     query,
     where,
 } from 'firebase/firestore';
@@ -108,5 +109,13 @@ export const InvitationService = {
         const snapshot = await getDoc(docRef);
         if (!snapshot.exists()) return null;
         return { id: snapshot.id, ...snapshot.data() } as Invitation;
+    },
+
+    /**
+     * Supprimer une invitation
+     */
+    async delete(invitationId: string): Promise<void> {
+        const docRef = doc(db, COLLECTION_NAME, invitationId);
+        await deleteDoc(docRef);
     },
 };
