@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { useAnimals } from '../../hooks/useAnimals';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
 import { Calendar, ChevronLeft, ChevronRight, AlertCircle, Heart, Plus } from 'lucide-react';
 import { ReproductionEventModal } from './ReproductionEventModal';
 import clsx from 'clsx';

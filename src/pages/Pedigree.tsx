@@ -3,7 +3,7 @@ import { FamilyTree } from '../components/pedigree/FamilyTree';
 import { useAnimals } from '../hooks/useAnimals';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Search, Download, Share2, ZoomIn, ZoomOut, Maximize2, Printer } from 'lucide-react';
+import { Search, Download, ZoomIn, ZoomOut, Maximize2, Printer } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
