@@ -301,14 +301,20 @@ export const Marketplace: React.FC = () => {
             <AddListingModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
-                onSuccess={loadListings}
+                onSuccess={async () => {
+                    setIsAddModalOpen(false);
+                    await loadListings();
+                }}
             />
 
             {editingListing && (
                 <EditListingModal
                     isOpen={true}
                     onClose={() => setEditingListing(null)}
-                    onSuccess={loadListings}
+                    onSuccess={async () => {
+                        setEditingListing(null);
+                        await loadListings();
+                    }}
                     listing={editingListing}
                 />
             )}

@@ -63,20 +63,20 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
 
                         {/* Certification Badge */}
                         {animal.certification && (
-                            <div className="absolute top-3 right-14">
+                            <div className="absolute top-3 right-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <CertificationBadge level={animal.certification.level} size="sm" showLabel={false} className="bg-white/90 backdrop-blur-sm shadow-sm" />
                             </div>
                         )}
 
                         {/* Gender Badge */}
-                        <div className="absolute top-3 left-3">
+                        <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <Badge variant={animal.gender === 'Male' ? 'info' : 'success'} className="bg-white/90 backdrop-blur-sm shadow-sm">
                                 {animal.gender === 'Male' ? 'Mâle' : 'Femelle'}
                             </Badge>
                         </div>
 
                         {/* Action Menu */}
-                        <div className="absolute top-3 right-3 z-10">
+                        <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <div className="relative">
                                 <button
                                     onClick={(e) => {

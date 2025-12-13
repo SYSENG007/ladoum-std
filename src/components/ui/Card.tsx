@@ -11,7 +11,7 @@ export const Card: React.FC<CardProps> = ({ children, className, noPadding = fal
     return (
         <div
             className={clsx(
-                'bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden transition-all duration-200 hover:shadow-md',
+                'bg-white rounded-3xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md',
                 className
             )}
             {...props}

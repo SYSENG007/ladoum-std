@@ -259,7 +259,7 @@ export const Accounting: React.FC = () => {
             </div>
 
             {/* Transactions Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-slate-50 border-b border-slate-100">
@@ -344,7 +344,7 @@ export const Accounting: React.FC = () => {
                                                     <MoreVertical className="w-4 h-4 text-slate-600" />
                                                 </button>
                                                 {activeMenu === transaction.id && (
-                                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-10">
+                                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 z-50">
                                                         <button
                                                             onClick={() => {
                                                                 setEditingTransaction(transaction);

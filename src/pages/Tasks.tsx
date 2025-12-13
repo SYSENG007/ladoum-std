@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { MOCK_USERS } from '../utils/constants'; // Users still mock for now
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { List, Kanban, Calendar, Plus, CheckCircle, Clock, AlertCircle, Edit2, Trash2, MoreVertical } from 'lucide-react';
+import { List, Kanban, Calendar, Plus, CheckCircle, Clock, AlertCircle, Ban, Edit2, Trash2, MoreVertical } from 'lucide-react';
 import { TaskFilters, type TaskFilterState } from '../components/tasks/TaskFilters';
 import { TaskBoard } from '../components/tasks/TaskBoard';
 import { TaskCalendar } from '../components/tasks/TaskCalendar';
@@ -10,6 +9,7 @@ import { AddTaskModal } from '../components/tasks/AddTaskModal';
 import { EditTaskModal } from '../components/tasks/EditTaskModal';
 import { useTasks } from '../hooks/useTasks';
 import { useData } from '../context/DataContext';
+import { useFarm } from '../context/FarmContext';
 import { TaskService } from '../services/TaskService';
 import type { TaskStatus, Task } from '../types';
 import clsx from 'clsx';
@@ -18,6 +18,7 @@ export const Tasks: React.FC = () => {
     const [view, setView] = useState<'list' | 'kanban' | 'calendar'>('kanban');
     const { tasks, error } = useTasks();
     const { refreshData } = useData();
+    const { currentFarm } = useFarm();
     const [filters, setFilters] = useState<TaskFilterState>({
         search: '',
         assignee: '',
@@ -77,6 +78,7 @@ export const Tasks: React.FC = () => {
         switch (status) {
             case 'Done': return <CheckCircle className="w-5 h-5 text-green-500" />;
             case 'In Progress': return <Clock className="w-5 h-5 text-amber-500" />;
+            case 'Blocked': return <Ban className="w-5 h-5 text-red-500" />;
             case 'Todo': return <AlertCircle className="w-5 h-5 text-slate-400" />;
             default: return null;
         }
@@ -127,7 +129,7 @@ export const Tasks: React.FC = () => {
                 <Card noPadding>
                     <div className="divide-y divide-slate-100">
                         {filteredTasks.map(task => {
-                            const assignee = MOCK_USERS.find(u => u.id === task.assignedTo);
+                            const assignee = (currentFarm?.members || []).find(m => m.userId === task.assignedTo);
                             return (
                                 <div key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
                                     <div className="flex items-center gap-4 flex-1">
@@ -141,7 +143,7 @@ export const Tasks: React.FC = () => {
                                                 {getStatusIcon(task.status)}
                                             </button>
                                             {activeMenu === `status-${task.id}` && (
-                                                <div className="absolute left-0 top-8 w-40 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-20">
+                                                <div className="absolute left-0 top-8 w-40 bg-white rounded-xl shadow-xl border border-slate-200 z-50">
                                                     <button
                                                         onClick={() => {
                                                             handleTaskUpdate(task.id, 'Todo');
@@ -170,6 +172,19 @@ export const Tasks: React.FC = () => {
                                                     </button>
                                                     <button
                                                         onClick={() => {
+                                                            handleTaskUpdate(task.id, 'Blocked');
+                                                            setActiveMenu(null);
+                                                        }}
+                                                        className={clsx(
+                                                            "w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-sm",
+                                                            task.status === 'Blocked' && "bg-red-50 font-medium"
+                                                        )}
+                                                    >
+                                                        <Ban className="w-4 h-4 text-red-500" />
+                                                        Bloqué
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
                                                             handleTaskUpdate(task.id, 'Done');
                                                             setActiveMenu(null);
                                                         }}
@@ -194,8 +209,10 @@ export const Tasks: React.FC = () => {
                                                     <>
                                                         <span>•</span>
                                                         <span className="flex items-center gap-1">
-                                                            <img src={assignee.photoUrl} className="w-4 h-4 rounded-full" alt="" />
-                                                            {assignee.name}
+                                                            <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">
+                                                                {(assignee.displayName || assignee.name || 'U').charAt(0).toUpperCase()}
+                                                            </span>
+                                                            {assignee.displayName || assignee.name}
                                                         </span>
                                                     </>
                                                 )}
@@ -214,7 +231,7 @@ export const Tasks: React.FC = () => {
                                                 <MoreVertical className="w-4 h-4 text-slate-600" />
                                             </button>
                                             {activeMenu === task.id && (
-                                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-10">
+                                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 z-50">
                                                     <button
                                                         onClick={() => {
                                                             setEditingTask(task);
@@ -250,7 +267,12 @@ export const Tasks: React.FC = () => {
             )}
 
             {view === 'kanban' && (
-                <TaskBoard tasks={filteredTasks} onTaskUpdate={handleTaskUpdate} />
+                <TaskBoard
+                    tasks={filteredTasks}
+                    onTaskUpdate={handleTaskUpdate}
+                    onEditTask={(task) => setEditingTask(task)}
+                    onDeleteTask={(taskId) => handleDelete(taskId, filteredTasks.find(t => t.id === taskId)?.title || '')}
+                />
             )}
 
             {view === 'calendar' && (

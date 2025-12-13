@@ -3,7 +3,6 @@ import { X, Calendar as CalendarIcon, User as UserIcon, AlertCircle, Sparkles } 
 import { Button } from '../ui/Button';
 import { TaskService } from '../../services/TaskService';
 import { useFarm } from '../../context/FarmContext';
-import { MOCK_USERS } from '../../utils/constants';
 import { useAnimals } from '../../hooks/useAnimals';
 import type { Task, TaskPriority, TaskStatus, TaskType } from '../../types';
 import clsx from 'clsx';
@@ -325,9 +324,9 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                         className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none"
                                     >
                                         <option value="">Non assigné</option>
-                                        {MOCK_USERS.map(user => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.name} ({user.role === 'Owner' ? 'Propriétaire' : user.role === 'Shepherd' ? 'Berger' : 'Vétérinaire'})
+                                        {(currentFarm?.members || []).map(member => (
+                                            <option key={member.userId} value={member.userId}>
+                                                {member.displayName || member.name} ({member.role === 'owner' ? 'Propriétaire' : member.role === 'manager' ? 'Gérant' : 'Employé'})
                                             </option>
                                         ))}
                                     </select>

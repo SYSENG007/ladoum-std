@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { ImageUpload } from '../ui/ImageUpload';
 import { MarketplaceService } from '../../services/MarketplaceService';
 import { useAnimals } from '../../hooks/useAnimals';
+import { useFarm } from '../../context/FarmContext';
 import type {
     Listing, ListingCategory, ListingStatus, ServiceType,
     SenegalRegion, ListingAnimalData
@@ -42,6 +43,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
     onSuccess
 }) => {
     const { animals } = useAnimals();
+    const { currentFarm } = useFarm();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -166,6 +168,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                 sellerName: sellerName.trim(),
                 sellerPhone: sellerPhone.trim() || undefined,
                 sellerWhatsapp: sellerWhatsapp.trim() || undefined,
+                farmId: currentFarm?.id || '',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 createdBy: 'current-user', // TODO: Get from auth context
@@ -183,8 +186,7 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
             }
 
             await MarketplaceService.add(listingData);
-            onSuccess();
-            onClose();
+            onSuccess(); // Parent will handle closing and refreshing
         } catch (err) {
             console.error('Error creating listing:', err);
             setError('Erreur lors de la création de l\'annonce');
@@ -227,8 +229,8 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                                     type="button"
                                     onClick={() => setCategory(cat.value)}
                                     className={`flex flex - col items - center gap - 2 p - 4 rounded - xl border - 2 transition - all ${category === cat.value
-                                            ? 'border-primary-500 bg-primary-50 text-primary-700'
-                                            : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                        : 'border-slate-200 hover:border-slate-300 text-slate-600'
                                         } `}
                                 >
                                     {cat.icon}

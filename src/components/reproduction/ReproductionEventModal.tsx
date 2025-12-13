@@ -11,6 +11,7 @@ interface ReproductionEventModalProps {
     isOpen: boolean;
     onClose: () => void;
     preselectedAnimal?: Animal;
+    initialDate?: Date | null;
 }
 
 const EVENT_TYPES: Array<{
@@ -32,14 +33,17 @@ const EVENT_TYPES: Array<{
 export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
     isOpen,
     onClose,
-    preselectedAnimal
+    preselectedAnimal,
+    initialDate
 }) => {
     const { animals } = useAnimals();
     const { refreshData } = useData();
 
     const [selectedAnimalId, setSelectedAnimalId] = useState(preselectedAnimal?.id || '');
     const [eventType, setEventType] = useState<ReproductionEventType | ''>('');
-    const [eventDate, setEventDate] = useState(new Date().toISOString().split('T')[0]);
+    const [eventDate, setEventDate] = useState(
+        initialDate ? initialDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+    );
     const [mateId, setMateId] = useState('');
     const [notes, setNotes] = useState('');
     const [heatIntensity, setHeatIntensity] = useState<'Low' | 'Medium' | 'High'>('Medium');

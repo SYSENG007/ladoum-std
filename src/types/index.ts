@@ -148,7 +148,7 @@ export interface Animal {
 }
 
 export type TaskPriority = 'High' | 'Medium' | 'Low';
-export type TaskStatus = 'Todo' | 'In Progress' | 'Done';
+export type TaskStatus = 'Todo' | 'In Progress' | 'Blocked' | 'Done';
 export type TaskType = 'Health' | 'Feeding' | 'Reproduction' | 'General';
 
 export interface Task {
@@ -246,6 +246,7 @@ export interface Listing {
     serviceType?: ServiceType;
 
     // Metadata
+    farmId?: string;
     createdAt: string;
     updatedAt: string;
     createdBy: string;

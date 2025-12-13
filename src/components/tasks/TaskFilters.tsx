@@ -1,6 +1,6 @@
 import React from 'react';
 import { Search, X } from 'lucide-react';
-import { MOCK_USERS } from '../../utils/constants';
+import { useFarm } from '../../context/FarmContext';
 import { Button } from '../ui/Button';
 
 export interface TaskFilterState {
@@ -16,6 +16,9 @@ interface TaskFiltersProps {
 }
 
 export const TaskFilters: React.FC<TaskFiltersProps> = ({ filters, onChange }) => {
+    const { currentFarm } = useFarm();
+    const farmMembers = currentFarm?.members || [];
+
     const handleChange = (key: keyof TaskFilterState, value: string) => {
         onChange({ ...filters, [key]: value });
     };
@@ -48,8 +51,8 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({ filters, onChange }) =
                     className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                     <option value="">Tous les membres</option>
-                    {MOCK_USERS.map(user => (
-                        <option key={user.id} value={user.id}>{user.name}</option>
+                    {farmMembers.map(member => (
+                        <option key={member.userId} value={member.userId}>{member.displayName || member.name}</option>
                     ))}
                 </select>
 
@@ -61,6 +64,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({ filters, onChange }) =
                     <option value="">Tous statuts</option>
                     <option value="Todo">À faire</option>
                     <option value="In Progress">En cours</option>
+                    <option value="Blocked">Bloqué</option>
                     <option value="Done">Terminé</option>
                 </select>
 

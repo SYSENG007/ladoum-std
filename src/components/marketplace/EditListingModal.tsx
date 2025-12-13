@@ -183,8 +183,7 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
             }
 
             await MarketplaceService.update(listing.id, updates);
-            onSuccess();
-            onClose();
+            onSuccess(); // Parent will handle closing and refreshing
         } catch (err) {
             console.error('Error updating listing:', err);
             setError('Erreur lors de la mise à jour de l\'annonce');
@@ -241,8 +240,8 @@ export const EditListingModal: React.FC<EditListingModalProps> = ({
                                     type="button"
                                     onClick={() => setCategory(cat.value)}
                                     className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${category === cat.value
-                                            ? 'border-primary-500 bg-primary-50 text-primary-700'
-                                            : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                        : 'border-slate-200 hover:border-slate-300 text-slate-600'
                                         }`}
                                 >
                                     {cat.icon}

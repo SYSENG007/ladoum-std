@@ -135,7 +135,7 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Right - Reminders & Alerts */}
-                <div className="w-[320px] flex-shrink-0 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+                <div className="w-[400px] flex-shrink-0 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
                     <RemindersCard animals={animals} />
                 </div>
             </div>
