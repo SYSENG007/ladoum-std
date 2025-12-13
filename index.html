@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <!-- App Info -->
+  <title>Ladoum STD - Gestion d'élevage</title>
+  <meta name="description"
+    content="Application de gestion d'élevage de moutons Ladoum - Suivi du cheptel, reproduction, santé et comptabilité" />
+  <meta name="author" content="Ladoum STD" />
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#10b981" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Ladoum STD" />
+
+  <!-- Icons -->
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+
+  <!-- Splash screens for iOS -->
+  <link rel="apple-touch-startup-image" href="/icons/icon-512x512.png" />
+
+  <!-- Preconnect to external resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Loading spinner before app loads */
+    #root:empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    }
+
+    #root:empty::after {
+      content: '';
+      width: 40px;
+      height: 40px;
+      border: 3px solid #10b981;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>
+    <div style="padding: 20px; text-align: center; font-family: sans-serif;">
+      <h1>JavaScript requis</h1>
+      <p>Cette application nécessite JavaScript pour fonctionner.</p>
+    </div>
+  </noscript>
+
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

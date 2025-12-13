@@ -1,0 +1,281 @@
+import React, { useState } from 'react';
+import { X, User, Hash, Calendar as CalendarIcon } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { ImageUpload } from '../ui/ImageUpload';
+import { AnimalService } from '../../services/AnimalService';
+import type { Animal, Gender } from '../../types';
+
+interface EditAnimalModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSuccess: () => void;
+    animal: Animal;
+}
+
+export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClose, onSuccess, animal }) => {
+    // Get latest measurements if available
+    const latestMeasurement = animal.measurements && animal.measurements.length > 0
+        ? animal.measurements[animal.measurements.length - 1]
+        : null;
+
+    const [formData, setFormData] = useState({
+        name: animal.name,
+        tagId: animal.tagId,
+        gender: animal.gender,
+        birthDate: animal.birthDate,
+        status: animal.status,
+        weight: latestMeasurement?.weight?.toString() || '',
+        height_hg: latestMeasurement?.height_hg?.toString() || '',
+        length_lcs: latestMeasurement?.length_lcs?.toString() || '',
+        chest_tp: latestMeasurement?.chest_tp?.toString() || '',
+        photoUrl: animal.photoUrl || ''
+    });
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        try {
+            // Prepare update data
+            const updates: Partial<Animal> = {
+                name: formData.name,
+                tagId: formData.tagId,
+                gender: formData.gender,
+                birthDate: formData.birthDate,
+                status: formData.status,
+                photoUrl: formData.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'
+            };
+
+            // Add new measurement if any values changed
+            if (formData.weight || formData.height_hg || formData.length_lcs || formData.chest_tp) {
+                const newMeasurement = {
+                    date: new Date().toISOString().split('T')[0],
+                    weight: formData.weight ? parseFloat(formData.weight) : 0,
+                    height_hg: formData.height_hg ? parseFloat(formData.height_hg) : 0,
+                    length_lcs: formData.length_lcs ? parseFloat(formData.length_lcs) : 0,
+                    chest_tp: formData.chest_tp ? parseFloat(formData.chest_tp) : 0
+                };
+                updates.measurements = [...(animal.measurements || []), newMeasurement];
+            }
+
+            await AnimalService.update(animal.id, updates);
+            onSuccess();
+            onClose();
+        } catch (err) {
+            console.error('Error updating animal:', err);
+            setError('Erreur lors de la modification de l\'animal. Veuillez réessayer.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex items-center justify-between rounded-t-3xl">
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-900">Modifier l'animal</h2>
+                        <p className="text-sm text-slate-500">Mettez à jour les informations de {animal.name}</p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+                    >
+                        <X className="w-6 h-6 text-slate-400" />
+                    </button>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                            {error}
+                        </div>
+                    )}
+
+                    {/* Basic Information */}
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-slate-900">Informations de base</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Nom <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Numéro d'identification <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.tagId}
+                                        onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Sexe <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    required
+                                    value={formData.gender}
+                                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                >
+                                    <option value="Male">Mâle</option>
+                                    <option value="Female">Femelle</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Date de naissance <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <input
+                                        type="date"
+                                        required
+                                        value={formData.birthDate}
+                                        onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Statut <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                required
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Sold' | 'Deceased' })}
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                            >
+                                <option value="Active">Actif</option>
+                                <option value="Sold">Vendu</option>
+                                <option value="Deceased">Décédé</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Measurements */}
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-slate-900">Mensurations (optionnel)</h3>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Poids (kg)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    value={formData.weight}
+                                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Hauteur au garrot (cm)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    value={formData.height_hg}
+                                    onChange={(e) => setFormData({ ...formData, height_hg: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Longueur corps (cm)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    value={formData.length_lcs}
+                                    onChange={(e) => setFormData({ ...formData, length_lcs: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Tour de poitrine (cm)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    value={formData.chest_tp}
+                                    onChange={(e) => setFormData({ ...formData, chest_tp: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Photo */}
+                    <ImageUpload
+                        value={formData.photoUrl}
+                        onChange={(url) => setFormData({ ...formData, photoUrl: url })}
+                        label="Photo de l'animal"
+                        required={false}
+                    />
+
+                    {/* Actions */}
+                    <div className="flex gap-3 pt-4 border-t border-slate-100">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={onClose}
+                            className="flex-1"
+                            disabled={loading}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            type="submit"
+                            className="flex-1"
+                            disabled={loading}
+                        >
+                            {loading ? 'Modification en cours...' : 'Enregistrer'}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
