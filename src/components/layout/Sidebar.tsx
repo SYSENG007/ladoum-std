@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, PawPrint, GitFork, CalendarCheck, Package, LogOut, Menu, Store, Wallet, Stethoscope, User } from 'lucide-react';
+import { LayoutDashboard, PawPrint, GitFork, CalendarCheck, Package, LogOut, Menu, Store, Wallet, Stethoscope, Settings } from 'lucide-react';
 import logo from '../../assets/logo.jpg';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
@@ -24,7 +24,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
-    const { logout, userProfile } = useAuth();
+    const { logout } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -80,10 +80,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                 </nav>
 
                 <div className="p-4 border-t border-slate-100 space-y-2">
-                    {/* Profile Link */}
+                    {/* Settings Link */}
                     <NavLink
-                        to="/profile"
-                        title={isCollapsed ? "Mon Profil" : undefined}
+                        to="/settings"
+                        title={isCollapsed ? "Paramètres" : undefined}
                         className={({ isActive }) =>
                             clsx(
                                 "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200",
@@ -94,15 +94,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                             )
                         }
                     >
-                        <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0">
-                            {userProfile?.displayName?.charAt(0).toUpperCase() || <User className="w-4 h-4" />}
-                        </div>
-                        {!isCollapsed && (
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{userProfile?.displayName || 'Mon Profil'}</p>
-                                <p className="text-xs text-slate-400 truncate">Voir le profil</p>
-                            </div>
-                        )}
+                        <Settings className="w-5 h-5 shrink-0" />
+                        {!isCollapsed && <span>Paramètres</span>}
                     </NavLink>
 
                     {/* Logout Button */}

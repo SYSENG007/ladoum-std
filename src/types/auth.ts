@@ -22,6 +22,7 @@ export interface UserProfile {
     id: string;
     email: string;
     displayName: string;
+    role?: string; // Rôle de l'utilisateur (ex: "Éleveur", "Vétérinaire", "Manager")
     photoUrl?: string;
     phone?: string;
     farms: string[]; // Liste des farmIds
