@@ -11,6 +11,7 @@ import {
     Users,
     Bell,
     ChevronRight,
+    ChevronLeft,
     AlertCircle,
     Heart,
     DollarSign,
@@ -233,6 +234,7 @@ export const Dashboard: React.FC = () => {
 
     // Carousel state
     const [carouselFilter, setCarouselFilter] = useState<CarouselFilter>('all');
+    const [carouselIndex, setCarouselIndex] = useState(0);
 
     // Get user initials
     const userInitials = useMemo(() => {
@@ -429,7 +431,7 @@ export const Dashboard: React.FC = () => {
                     {/* Left Side */}
                     <div className="flex-1 space-y-4 md:space-y-6">
                         {/* Stats Grid - 2 cols on mobile, 3 on desktop */}
-                        <div className="grid grid-cols-2 gap-3 md:gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                             <StatCard
                                 title="Total Sujets"
                                 value={stats.total}
@@ -459,7 +461,7 @@ export const Dashboard: React.FC = () => {
                                 iconBg="bg-amber-100"
                                 iconColor="text-amber-600"
                                 onClick={() => navigate('/accounting')}
-                                fullWidth={true}
+                                fullWidth={false}
                             />
                         </div>
 
@@ -522,8 +524,30 @@ export const Dashboard: React.FC = () => {
 
                         {/* Sujets en Vedette */}
                         <div>
-                            <div className="flex items-center justify-between mb-3 md:mb-4">
-                                <h2 className="text-base md:text-lg font-bold text-slate-900">Sujets en Vedette</h2>
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-3 md:mb-4">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <h2 className="text-base md:text-lg font-bold text-slate-900">Sujets en Vedette</h2>
+                                    {/* Tabs inline with title */}
+                                    <div className="flex gap-2 overflow-x-auto">
+                                        {(['all', 'males', 'females', 'certified', 'recent'] as CarouselFilter[]).map(filter => (
+                                            <button
+                                                key={filter}
+                                                onClick={() => setCarouselFilter(filter)}
+                                                className={clsx(
+                                                    "px-3 py-1 text-xs md:text-sm rounded-md transition-colors whitespace-nowrap",
+                                                    carouselFilter === filter
+                                                        ? "bg-slate-100 font-medium text-slate-900"
+                                                        : "text-slate-500 hover:bg-slate-50"
+                                                )}
+                                            >
+                                                {filter === 'all' ? 'Tous' :
+                                                    filter === 'males' ? 'Mâles' :
+                                                        filter === 'females' ? 'Femelles' :
+                                                            filter === 'certified' ? 'Certifiés' : 'Récents'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                                 <button
                                     onClick={() => navigate('/herd')}
                                     className="text-xs md:text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
@@ -533,49 +557,59 @@ export const Dashboard: React.FC = () => {
                                 </button>
                             </div>
 
-                            {/* Tabs - Scrollable on mobile */}
-                            <div className="flex gap-2 mb-3 md:mb-4 overflow-x-auto pb-2 -mx-1 px-1">
-                                {(['all', 'males', 'females', 'certified'] as CarouselFilter[]).map(filter => (
-                                    <button
-                                        key={filter}
-                                        onClick={() => setCarouselFilter(filter)}
-                                        className={clsx(
-                                            "px-3 py-1.5 text-xs md:text-sm rounded-full transition-colors whitespace-nowrap",
-                                            carouselFilter === filter
-                                                ? "bg-slate-900 text-white"
-                                                : "bg-slate-100 text-slate-600"
-                                        )}
-                                    >
-                                        {filter === 'all' ? 'Tous' :
-                                            filter === 'males' ? 'Mâles' :
-                                                filter === 'females' ? 'Femelles' : 'Certifiés'}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Carousel - Horizontal scroll */}
-                            <div className="overflow-x-auto pb-2 -mx-1 px-1">
-                                <div className="flex gap-3 md:gap-4">
-                                    {filteredAnimals.length > 0 ? (
-                                        filteredAnimals.map(animal => (
-                                            <AnimalCard
-                                                key={animal.id}
-                                                name={animal.name}
-                                                tagId={animal.tagId || `LAD-${animal.id?.slice(-3)}`}
-                                                photoUrl={animal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'}
-                                                hg={animal.height}
-                                                lcs={animal.length}
-                                                tp={animal.chestGirth}
-                                                onClick={() => navigate(`/herd/${animal.id}`)}
-                                            />
-                                        ))
-                                    ) : (
-                                        <div className="w-full text-center py-8 text-slate-400">
-                                            <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                                            <p className="text-sm">Aucun animal trouvé</p>
-                                        </div>
+                            {/* Carousel with arrows on sides */}
+                            <div className="relative flex items-center gap-2">
+                                {/* Left Arrow */}
+                                <button
+                                    onClick={() => setCarouselIndex(prev => Math.max(0, prev - 1))}
+                                    disabled={carouselIndex === 0}
+                                    className={clsx(
+                                        "hidden md:flex w-8 h-8 rounded-lg border items-center justify-center transition-colors flex-shrink-0",
+                                        carouselIndex > 0 ? "border-slate-300 hover:bg-slate-100" : "border-slate-200 text-slate-300"
                                     )}
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+
+                                {/* Carousel */}
+                                <div className="flex-1 overflow-x-auto pb-2">
+                                    <div
+                                        className="flex gap-3 md:gap-4 transition-transform duration-300"
+                                        style={{ transform: `translateX(-${carouselIndex * 184}px)` }}
+                                    >
+                                        {filteredAnimals.length > 0 ? (
+                                            filteredAnimals.map(animal => (
+                                                <AnimalCard
+                                                    key={animal.id}
+                                                    name={animal.name}
+                                                    tagId={animal.tagId || `LAD-${animal.id?.slice(-3)}`}
+                                                    photoUrl={animal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'}
+                                                    hg={animal.height}
+                                                    lcs={animal.length}
+                                                    tp={animal.chestGirth}
+                                                    onClick={() => navigate(`/herd/${animal.id}`)}
+                                                />
+                                            ))
+                                        ) : (
+                                            <div className="w-full text-center py-8 text-slate-400">
+                                                <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                                                <p className="text-sm">Aucun animal trouvé</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+
+                                {/* Right Arrow */}
+                                <button
+                                    onClick={() => setCarouselIndex(prev => Math.min(filteredAnimals.length - 4, prev + 1))}
+                                    disabled={carouselIndex >= filteredAnimals.length - 4}
+                                    className={clsx(
+                                        "hidden md:flex w-8 h-8 rounded-lg border items-center justify-center transition-colors flex-shrink-0",
+                                        carouselIndex < filteredAnimals.length - 4 ? "border-slate-300 hover:bg-slate-100" : "border-slate-200 text-slate-300"
+                                    )}
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
                             </div>
                         </div>
                     </div>
