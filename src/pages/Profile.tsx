@@ -45,7 +45,7 @@ const roleLabels: Record<StaffRole, { label: string; icon: React.ElementType; co
 export const Profile: React.FC = () => {
     const navigate = useNavigate();
     const { user, userProfile, logout, refreshUserProfile } = useAuth();
-    const { refreshData } = useData();
+    useData(); // Keep hook for context but data refresh handled elsewhere
 
     const [farms, setFarms] = useState<Farm[]>([]);
     const [invitations, setInvitations] = useState<Invitation[]>([]);
@@ -78,9 +78,9 @@ export const Profile: React.FC = () => {
                 const userFarms = await FarmService.getByUserId(user.uid);
                 setFarms(userFarms);
 
-                // Charger les membres de la ferme active
-                if (userProfile?.activeFarmId) {
-                    const activeFarm = userFarms.find(f => f.id === userProfile.activeFarmId);
+                // Charger les membres de la bergerie
+                if (userProfile?.farmId) {
+                    const activeFarm = userFarms.find(f => f.id === userProfile.farmId);
                     if (activeFarm?.members) {
                         setFarmMembers(activeFarm.members);
                     }
@@ -94,7 +94,7 @@ export const Profile: React.FC = () => {
             }
         };
         loadData();
-    }, [user, userProfile?.activeFarmId]);
+    }, [user, userProfile?.farmId]);
 
     // Set edit form values
     useEffect(() => {
@@ -104,28 +104,17 @@ export const Profile: React.FC = () => {
         }
     }, [userProfile]);
 
-    const handleSwitchFarm = async (farmId: string) => {
-        if (!user) return;
-        setLoading(true);
-        try {
-            await UserService.setActiveFarm(user.uid, farmId);
-            await refreshUserProfile();
-            await refreshData();
-        } catch (err) {
-            console.error('Error switching farm:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // En mode mono-bergerie, pas de changement de ferme
+    // La fonction reste pour compatibilité mais ne fait rien
 
     const handleInviteStaff = async () => {
-        if (!user || !staffEmail || !userProfile?.activeFarmId) return;
+        if (!user || !staffEmail || !userProfile?.farmId) return;
         setLoading(true);
         try {
             const invitation = await InvitationService.create(
                 staffEmail,
                 user.uid,
-                userProfile.activeFarmId,
+                userProfile.farmId,
                 staffRole
             );
 
@@ -197,7 +186,7 @@ export const Profile: React.FC = () => {
         }
     };
 
-    const activeFarm = farms.find(f => f.id === userProfile?.activeFarmId);
+    const activeFarm = farms.find(f => f.id === userProfile?.farmId);
     const isOwner = activeFarm?.ownerId === user?.uid;
     const pendingInvitations = invitations.filter(i => !i.usedAt);
 
@@ -310,27 +299,7 @@ export const Profile: React.FC = () => {
                 )}
 
                 {/* Other Farms */}
-                {farms.filter(f => f.id !== userProfile?.activeFarmId).length > 0 && (
-                    <div className="mt-4 space-y-2">
-                        <h4 className="text-sm font-medium text-slate-700">Autres bergeries</h4>
-                        {farms
-                            .filter(f => f.id !== userProfile?.activeFarmId)
-                            .map(farm => (
-                                <button
-                                    key={farm.id}
-                                    onClick={() => handleSwitchFarm(farm.id)}
-                                    disabled={loading}
-                                    className="w-full flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
-                                >
-                                    <Building2 className="w-5 h-5 text-slate-400" />
-                                    <span className="flex-1 text-left font-medium text-slate-700">
-                                        {farm.name}
-                                    </span>
-                                    <ChevronRight className="w-5 h-5 text-slate-400" />
-                                </button>
-                            ))}
-                    </div>
-                )}
+                {/* Mode mono-bergerie: pas d'autres bergeries affichées */}
             </Card>
 
             {/* Staff Management - Only for owners/managers */}

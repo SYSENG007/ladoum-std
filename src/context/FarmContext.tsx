@@ -5,11 +5,9 @@ import type { Farm } from '../types/farm';
 
 interface FarmContextType {
     currentFarm: Farm | null;
-    farms: Farm[];
     loading: boolean;
     error: string | null;
-    switchFarm: (farmId: string) => Promise<void>;
-    refreshFarms: () => Promise<void>;
+    refreshFarm: () => Promise<void>;
 }
 
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
@@ -17,14 +15,12 @@ const FarmContext = createContext<FarmContextType | undefined>(undefined);
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user, userProfile } = useAuth();
     const [currentFarm, setCurrentFarm] = useState<Farm | null>(null);
-    const [farms, setFarms] = useState<Farm[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Charger les fermes de l'utilisateur
-    const loadFarms = async () => {
+    // Charger la bergerie de l'utilisateur (mono-bergerie)
+    const loadFarm = async () => {
         if (!user || !userProfile) {
-            setFarms([]);
             setCurrentFarm(null);
             setLoading(false);
             return;
@@ -34,55 +30,43 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setError(null);
 
         try {
-            // Charger toutes les fermes de l'utilisateur
-            const userFarms = await FarmService.getByUserId(user.uid);
-            setFarms(userFarms);
+            // Support rétrocompatibilité: farmId ou activeFarmId (ancien format)
+            const farmIdToLoad = userProfile.farmId || (userProfile as any).activeFarmId;
 
-            // Déterminer la ferme active
-            let activeFarm: Farm | null = null;
-
-            if (userProfile.activeFarmId) {
-                activeFarm = userFarms.find(f => f.id === userProfile.activeFarmId) || null;
+            if (farmIdToLoad) {
+                const farm = await FarmService.getById(farmIdToLoad);
+                setCurrentFarm(farm);
+            } else {
+                // Pas de bergerie associée, essayer de trouver une par userId
+                const userFarms = await FarmService.getByUserId(user.uid);
+                if (userFarms.length > 0) {
+                    setCurrentFarm(userFarms[0]);
+                } else {
+                    setCurrentFarm(null);
+                }
             }
-
-            // Si pas de ferme active mais l'utilisateur a des fermes, prendre la première
-            if (!activeFarm && userFarms.length > 0) {
-                activeFarm = userFarms[0];
-            }
-
-            setCurrentFarm(activeFarm);
         } catch (err: any) {
-            console.error('Error loading farms:', err);
-            setError(err.message || 'Erreur lors du chargement des fermes');
+            console.error('Error loading farm:', err);
+            setError(err.message || 'Erreur lors du chargement de la bergerie');
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        loadFarms();
-    }, [user, userProfile?.activeFarmId]);
+        loadFarm();
+    }, [user, userProfile?.farmId, (userProfile as any)?.activeFarmId]);
 
-    const switchFarm = async (farmId: string) => {
-        const farm = farms.find(f => f.id === farmId);
-        if (farm) {
-            setCurrentFarm(farm);
-            // Note: La mise à jour du profil utilisateur est gérée dans Profile.tsx
-        }
-    };
-
-    const refreshFarms = async () => {
-        await loadFarms();
+    const refreshFarm = async () => {
+        await loadFarm();
     };
 
     return (
         <FarmContext.Provider value={{
             currentFarm,
-            farms,
             loading,
             error,
-            switchFarm,
-            refreshFarms
+            refreshFarm
         }}>
             {children}
         </FarmContext.Provider>

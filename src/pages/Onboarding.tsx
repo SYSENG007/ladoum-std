@@ -133,8 +133,8 @@ export const Onboarding: React.FC = () => {
 
             setCreatedFarmId(farm.id);
 
-            // 3. Associer la ferme à l'utilisateur
-            await UserService.addFarm(user.uid, farm.id, true);
+            // 3. Associer la bergerie à l'utilisateur (mono-bergerie)
+            await UserService.setFarm(user.uid, farm.id, 'owner');
 
             // 4. Rafraîchir le profil pour avoir accès au farmId
             await refreshUserProfile();

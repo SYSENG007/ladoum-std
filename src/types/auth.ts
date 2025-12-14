@@ -22,11 +22,10 @@ export interface UserProfile {
     id: string;
     email: string;
     displayName: string;
-    role?: string; // Rôle de l'utilisateur (ex: "Éleveur", "Vétérinaire", "Manager")
+    role?: 'owner' | 'manager' | 'worker'; // Rôle dans la bergerie
     photoUrl?: string;
     phone?: string;
-    farms: string[]; // Liste des farmIds
-    activeFarmId: string;
+    farmId: string; // Mono-bergerie: un seul farmId
     onboardingCompleted: boolean;
     settings: UserSettings;
     createdAt: string;

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAnimals } from '../hooks/useAnimals';
 import { useTasks } from '../hooks/useTasks';
@@ -7,122 +7,134 @@ import { Card } from '../components/ui/Card';
 import { NotificationCenter } from '../components/notifications/NotificationCenter';
 import {
     Users,
-    CheckSquare,
-    Package,
-    Award,
     TrendingUp,
-    TrendingDown,
     Bell,
     ChevronRight,
+    ChevronLeft,
     AlertCircle,
-    Activity,
     Heart,
-    Stethoscope
+    DollarSign,
+    Baby
 } from 'lucide-react';
 import clsx from 'clsx';
 
-
+// New simplified StatCard
 interface StatCardProps {
     title: string;
     value: string | number;
-    subtitle?: string;
-    comparison?: {
-        type: 'increased' | 'decreased' | 'neutral';
-        period?: string;
-    };
+    trend?: string;
+    trendPositive?: boolean;
     icon: React.ElementType;
-    color: 'blue' | 'green' | 'purple' | 'amber';
+    iconBg: string;
+    iconColor: string;
     onClick?: () => void;
-    highlight?: boolean;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
     title,
     value,
-    subtitle,
-    comparison,
+    trend,
+    trendPositive = true,
     icon: Icon,
-    color,
-    onClick,
-    highlight
+    iconBg,
+    iconColor,
+    onClick
 }) => {
-    const colorClasses = {
-        blue: 'from-blue-500 to-blue-600',
-        green: 'from-emerald-500 to-emerald-600',
-        purple: 'from-purple-500 to-purple-600',
-        amber: 'from-amber-500 to-amber-600',
-    };
-
-    const getComparisonIcon = () => {
-        if (comparison?.type === 'increased') return TrendingUp;
-        if (comparison?.type === 'decreased') return TrendingDown;
-        return Activity;
-    };
-
-    const getComparisonText = () => {
-        const period = comparison?.period || 'last month';
-        if (comparison?.type === 'increased') return `Increased from ${period} `;
-        if (comparison?.type === 'decreased') return `Decreased from ${period} `;
-        return `On Discuss`;
-    };
-
-    const ComparisonIcon = getComparisonIcon();
-
     return (
         <Card
-            className={clsx(
-                "p-6 cursor-pointer transition-all duration-200 hover:shadow-lg",
-                highlight && "ring-2 ring-amber-400 ring-offset-2"
-            )}
+            className="p-5 cursor-pointer hover:shadow-md transition-shadow"
             onClick={onClick}
         >
-            <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-600 mb-1">{title}</p>
-                    <h3 className="text-3xl font-bold text-slate-900">{value}</h3>
+            <div className="flex items-start justify-between">
+                <div className={clsx("w-12 h-12 rounded-xl flex items-center justify-center", iconBg)}>
+                    <Icon className={clsx("w-6 h-6", iconColor)} />
                 </div>
-                <div className={clsx(
-                    "w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center",
-                    colorClasses[color]
-                )}>
-                    <Icon className="w-6 h-6 text-white" />
-                </div>
-            </div>
-
-            {comparison && (
-                <div className="flex items-center gap-2">
-                    <div className={clsx(
-                        "w-6 h-6 rounded-full flex items-center justify-center",
-                        comparison.type === 'increased' && "bg-emerald-100",
-                        comparison.type === 'decreased' && "bg-red-100",
-                        comparison.type === 'neutral' && "bg-slate-100"
+                {trend && (
+                    <span className={clsx(
+                        "text-sm font-semibold",
+                        trendPositive ? "text-emerald-500" : "text-red-500"
                     )}>
-                        <ComparisonIcon className={clsx(
-                            "w-3.5 h-3.5",
-                            comparison.type === 'increased' && "text-emerald-600",
-                            comparison.type === 'decreased' && "text-red-600",
-                            comparison.type === 'neutral' && "text-slate-600"
-                        )} />
-                    </div>
-                    <span className="text-xs text-slate-500">
-                        {getComparisonText()}
+                        {trend}
                     </span>
-                </div>
-            )}
-
-            {subtitle && !comparison && (
-                <p className="text-xs text-slate-500 mt-2">{subtitle}</p>
-            )}
+                )}
+            </div>
+            <div className="mt-4">
+                <h3 className="text-3xl font-bold text-slate-900">{value}</h3>
+                <p className="text-sm text-slate-500 mt-1">{title}</p>
+            </div>
         </Card>
     );
 };
 
+// Animal Card for carousel
+interface AnimalCardProps {
+    name: string;
+    tagId: string;
+    photoUrl: string;
+    hg?: number;
+    lcs?: number;
+    tp?: number;
+    weight?: number;
+    onClick?: () => void;
+}
+
+const AnimalCard: React.FC<AnimalCardProps> = ({
+    name,
+    tagId,
+    photoUrl,
+    hg,
+    lcs,
+    tp,
+    weight,
+    onClick
+}) => {
+    return (
+        <div
+            className="w-44 flex-shrink-0 bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={onClick}
+        >
+            <div className="h-32 relative overflow-hidden">
+                <img
+                    src={photoUrl}
+                    alt={name}
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                    <p className="text-white font-semibold text-sm">{name}</p>
+                    <p className="text-white/70 text-xs">{tagId}</p>
+                </div>
+            </div>
+            <div className="p-3 grid grid-cols-4 gap-1 text-center">
+                <div>
+                    <p className="text-[10px] text-slate-400">HG</p>
+                    <p className="text-xs font-medium text-slate-700">{hg || '-'}</p>
+                </div>
+                <div>
+                    <p className="text-[10px] text-slate-400">LCS</p>
+                    <p className="text-xs font-medium text-slate-700">{lcs || '-'}</p>
+                </div>
+                <div>
+                    <p className="text-[10px] text-slate-400">TP</p>
+                    <p className="text-xs font-medium text-slate-700">{tp || '-'}</p>
+                </div>
+                <div>
+                    <p className="text-[10px] text-slate-400">Masse</p>
+                    <p className="text-xs font-medium text-slate-700">{weight || '-'}</p>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     const { animals } = useAnimals();
-    const { tasks } = useTasks();
+    useTasks(); // Keep for potential future use
     const { user, userProfile } = useAuth();
+
+    // Carousel state
+    const [carouselFilter, setCarouselFilter] = useState<'all' | 'certified' | 'recent'>('all');
+    const [carouselIndex, setCarouselIndex] = useState(0);
 
     // Get user initials
     const userInitials = useMemo(() => {
@@ -137,42 +149,44 @@ export const Dashboard: React.FC = () => {
     // Calculate statistics
     const stats = useMemo(() => {
         const totalAnimals = animals.length;
-        const activeAnimals = animals.filter(a => a.status === 'Active').length;
-        const certifiedAnimals = animals.filter(a => a.certification).length;
-
-        const totalTasks = tasks.length;
-        const pendingTasks = tasks.filter(t => t.status === 'Todo' || t.status === 'In Progress').length;
-        const completedTasks = tasks.filter(t => t.status === 'Done').length;
-
-        // Mock inventory data for now
-        const totalItems = 0;
-        const lowStockItems = 0;
+        const recentBirths = animals.filter(a => {
+            const birthDate = new Date(a.birthDate);
+            const now = new Date();
+            const diffDays = (now.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24);
+            return diffDays <= 90;
+        }).length;
 
         return {
-            animals: {
-                total: totalAnimals,
-                active: activeAnimals,
-                certified: certifiedAnimals,
-                trend: totalAnimals > 0 ? '+12%' : '0%',
-            },
-            tasks: {
-                total: totalTasks,
-                pending: pendingTasks,
-                completed: completedTasks,
-                trend: pendingTasks > 0 ? `${pendingTasks} en attente` : 'Tout complété',
-            },
-            inventory: {
-                total: totalItems,
-                lowStock: lowStockItems,
-                trend: lowStockItems > 0 ? `${lowStockItems} en rupture` : 'Stock OK',
-            },
-            certification: {
-                total: certifiedAnimals,
-                percentage: totalAnimals > 0 ? Math.round((certifiedAnimals / totalAnimals) * 100) : 0,
-                trend: certifiedAnimals > 0 ? '+5%' : '0%',
-            }
+            total: totalAnimals,
+            births: recentBirths,
+            sales: 0,
+            revenue: 0
         };
-    }, [animals, tasks]);
+    }, [animals]);
+
+    // Filter animals for carousel
+    const filteredAnimals = useMemo(() => {
+        let result = [...animals];
+        if (carouselFilter === 'certified') {
+            result = result.filter(a => a.certification);
+        } else if (carouselFilter === 'recent') {
+            result = result.sort((a, b) =>
+                new Date(b.birthDate).getTime() - new Date(a.birthDate).getTime()
+            ).slice(0, 10);
+        }
+        return result;
+    }, [animals, carouselFilter]);
+
+    const canScrollLeft = carouselIndex > 0;
+    const canScrollRight = carouselIndex < filteredAnimals.length - 3;
+
+    const scrollCarousel = (direction: 'left' | 'right') => {
+        if (direction === 'left' && canScrollLeft) {
+            setCarouselIndex(prev => prev - 1);
+        } else if (direction === 'right' && canScrollRight) {
+            setCarouselIndex(prev => prev + 1);
+        }
+    };
 
     return (
         <div className="h-full flex flex-col">
@@ -193,10 +207,7 @@ export const Dashboard: React.FC = () => {
 
                 {/* Right - Notifications + User Profile */}
                 <div className="flex items-center gap-4">
-                    {/* Notifications */}
                     <NotificationCenter />
-
-                    {/* User Profile */}
                     <button
                         onClick={() => navigate('/profile')}
                         className="flex items-center gap-3 hover:bg-white/50 rounded-xl px-3 py-2 transition-colors"
@@ -206,7 +217,9 @@ export const Dashboard: React.FC = () => {
                                 {userProfile?.displayName || 'Utilisateur'}
                             </p>
                             <p className="text-xs text-slate-500">
-                                {userProfile?.role || 'Utilisateur'}
+                                {userProfile?.role === 'owner' ? 'Propriétaire' :
+                                    userProfile?.role === 'manager' ? 'Manager' :
+                                        userProfile?.role === 'worker' ? 'Employé' : 'Utilisateur'}
                             </p>
                         </div>
                         <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
@@ -218,141 +231,210 @@ export const Dashboard: React.FC = () => {
 
             {/* Main Content */}
             <div className="flex gap-6 flex-1 min-h-0">
-                {/* Left Side - Stats Cards */}
-                <div className="flex-1 space-y-6">
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Troupeau */}
+                {/* Left Side */}
+                <div className="flex-1 space-y-6 overflow-y-auto">
+                    {/* Stats Grid - New Style */}
+                    <div className="grid grid-cols-4 gap-4">
                         <StatCard
-                            title="Troupeau"
-                            value={stats.animals.total}
-                            comparison={{
-                                type: 'increased',
-                                period: 'last month'
-                            }}
+                            title="Total Sujets"
+                            value={stats.total}
+                            trend="+12%"
+                            trendPositive={true}
                             icon={Users}
-                            color="blue"
+                            iconBg="bg-blue-100"
+                            iconColor="text-blue-600"
                             onClick={() => navigate('/herd')}
                         />
-
-                        {/* Tâches */}
                         <StatCard
-                            title="Tâches"
-                            value={stats.tasks.pending}
-                            comparison={{
-                                type: stats.tasks.pending === 0 ? 'neutral' : 'increased',
-                                period: 'last week'
-                            }}
-                            icon={CheckSquare}
-                            color="green"
-                            onClick={() => navigate('/tasks')}
-                        />
-
-                        {/* Inventaire */}
-                        <StatCard
-                            title="Inventaire"
-                            value={stats.inventory.total}
-                            comparison={{
-                                type: stats.inventory.lowStock > 0 ? 'decreased' : 'increased',
-                                period: 'last month'
-                            }}
-                            icon={Package}
-                            color="purple"
-                            onClick={() => navigate('/inventory')}
-                        />
-
-                        {/* Certification */}
-                        <StatCard
-                            title="Certification"
-                            value={`${stats.certification.percentage}% `}
-                            comparison={{
-                                type: 'increased',
-                                period: 'last month'
-                            }}
-                            icon={Award}
-                            color="amber"
+                            title="Naissances (90j)"
+                            value={stats.births}
+                            trend="+12%"
+                            trendPositive={true}
+                            icon={Baby}
+                            iconBg="bg-purple-100"
+                            iconColor="text-purple-600"
                             onClick={() => navigate('/herd')}
-                            highlight={true}
+                        />
+                        <StatCard
+                            title="Ventes"
+                            value={stats.sales}
+                            icon={TrendingUp}
+                            iconBg="bg-emerald-100"
+                            iconColor="text-emerald-600"
+                            onClick={() => navigate('/accounting')}
+                        />
+                        <StatCard
+                            title="Revenus"
+                            value={stats.revenue}
+                            trend="0%"
+                            trendPositive={false}
+                            icon={DollarSign}
+                            iconBg="bg-amber-100"
+                            iconColor="text-amber-600"
+                            onClick={() => navigate('/accounting')}
                         />
                     </div>
 
-                    {/* Additional content can go here */}
-                    <Card className="p-6">
+                    {/* Sujets en Vedette */}
+                    <div>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-slate-900">Activité Récente</h3>
-                            <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1">
-                                Voir tout
-                                <ChevronRight className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-lg font-bold text-slate-900">Sujets en Vedette</h2>
+                                <div className="flex bg-slate-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => { setCarouselFilter('all'); setCarouselIndex(0); }}
+                                        className={clsx(
+                                            "px-3 py-1 text-sm rounded-md transition-colors",
+                                            carouselFilter === 'all' ? "bg-white shadow-sm font-medium" : "text-slate-600"
+                                        )}
+                                    >
+                                        Tous
+                                    </button>
+                                    <button
+                                        onClick={() => { setCarouselFilter('certified'); setCarouselIndex(0); }}
+                                        className={clsx(
+                                            "px-3 py-1 text-sm rounded-md transition-colors",
+                                            carouselFilter === 'certified' ? "bg-white shadow-sm font-medium" : "text-slate-600"
+                                        )}
+                                    >
+                                        Certifiés
+                                    </button>
+                                    <button
+                                        onClick={() => { setCarouselFilter('recent'); setCarouselIndex(0); }}
+                                        className={clsx(
+                                            "px-3 py-1 text-sm rounded-md transition-colors",
+                                            carouselFilter === 'recent' ? "bg-white shadow-sm font-medium" : "text-slate-600"
+                                        )}
+                                    >
+                                        Récents
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => scrollCarousel('left')}
+                                    disabled={!canScrollLeft}
+                                    className={clsx(
+                                        "w-8 h-8 rounded-lg border flex items-center justify-center transition-colors",
+                                        canScrollLeft ? "border-slate-300 hover:bg-slate-100" : "border-slate-200 text-slate-300"
+                                    )}
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => scrollCarousel('right')}
+                                    disabled={!canScrollRight}
+                                    className={clsx(
+                                        "w-8 h-8 rounded-lg border flex items-center justify-center transition-colors",
+                                        canScrollRight ? "border-slate-300 hover:bg-slate-100" : "border-slate-200 text-slate-300"
+                                    )}
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => navigate('/herd')}
+                                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 ml-2"
+                                >
+                                    Voir tout
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
-                        <div className="text-center py-12 text-slate-400">
-                            <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                            <p className="text-sm">Aucune activité récente</p>
+
+                        {/* Carousel */}
+                        <div className="overflow-hidden">
+                            <div
+                                className="flex gap-4 transition-transform duration-300"
+                                style={{ transform: `translateX(-${carouselIndex * 184}px)` }}
+                            >
+                                {filteredAnimals.length > 0 ? (
+                                    filteredAnimals.map(animal => (
+                                        <AnimalCard
+                                            key={animal.id}
+                                            name={animal.name}
+                                            tagId={animal.tagId || `LAD-${animal.id?.slice(-3)}`}
+                                            photoUrl={animal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'}
+                                            hg={animal.height}
+                                            lcs={animal.length}
+                                            tp={animal.chestGirth}
+                                            weight={animal.weight}
+                                            onClick={() => navigate(`/herd/${animal.id}`)}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="w-full text-center py-12 text-slate-400">
+                                        <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                                        <p>Aucun animal trouvé</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </Card>
+                    </div>
                 </div>
 
-                {/* Right Side - Reminders & Alerts */}
-                <div className="w-96 flex-shrink-0">
-                    <Card className="h-full flex flex-col overflow-hidden">
-                        {/* Header */}
-                        <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50">
+                {/* Right Side - Rappels & Alertes (Simplified) */}
+                <div className="w-80 flex-shrink-0">
+                    <Card className="h-full flex flex-col">
+                        {/* Header - Simplified */}
+                        <div className="p-5 border-b border-slate-100">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-400 rounded-2xl flex items-center justify-center shadow-lg">
-                                        <Bell className="w-7 h-7 text-white" />
+                                    <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                                        <Bell className="w-5 h-5 text-red-500" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-slate-900">Rappels & Alertes</h3>
-                                        <p className="text-sm text-slate-600">Santé, Reproduction et Stock</p>
+                                        <h3 className="font-bold text-slate-900">Rappels & Alertes</h3>
+                                        <p className="text-xs text-slate-500">Santé, Reproduction et Stock</p>
                                     </div>
                                 </div>
-                                <span className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold rounded-full shadow-md">
+                                <span className="text-sm font-semibold text-red-500">
                                     4 Actifs
                                 </span>
                             </div>
                         </div>
 
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        {/* Content - Simple list style */}
+                        <div className="flex-1 overflow-y-auto p-5 space-y-5">
                             {/* CHALEURS À SURVEILLER */}
                             <div>
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                     Chaleurs à surveiller
                                 </h4>
-                                <div className="space-y-2">
-                                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-100 rounded-xl p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3 flex-1">
-                                                <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                                                    <Heart className="w-5 h-5 text-pink-600" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-slate-900">Bella</p>
-                                                    <p className="text-xs text-pink-600 font-medium">Fenêtre: 19 déc. - 23 déc.</p>
-                                                </div>
-                                            </div>
-                                            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full whitespace-nowrap">
-                                                Dans 7j
-                                            </span>
+                                <div className="space-y-3">
+                                    {/* Item 1 */}
+                                    <div className="flex items-center gap-3">
+                                        <Heart className="w-5 h-5 text-pink-500" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-slate-900 text-sm">Bella</p>
+                                            <p className="text-xs text-slate-500">Fenêtre: 19 déc. - 23 déc.</p>
                                         </div>
+                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                                            Dans 7j
+                                        </span>
                                     </div>
 
-                                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-100 rounded-xl p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3 flex-1">
-                                                <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                                                    <Heart className="w-5 h-5 text-pink-600" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-slate-900">Fatoumata Binetou</p>
-                                                    <p className="text-xs text-pink-600 font-medium">Fenêtre: 19 déc. - 23 déc.</p>
-                                                </div>
-                                            </div>
-                                            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full whitespace-nowrap">
-                                                Dans 7j
-                                            </span>
+                                    {/* Item 2 */}
+                                    <div className="flex items-center gap-3">
+                                        <Heart className="w-5 h-5 text-pink-500" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-slate-900 text-sm">Fatoumata Binetou</p>
+                                            <p className="text-xs text-slate-500">Fenêtre: 19 déc. - 23 déc.</p>
                                         </div>
+                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                                            Dans 7j
+                                        </span>
+                                    </div>
+
+                                    {/* Item 3 */}
+                                    <div className="flex items-center gap-3">
+                                        <Heart className="w-5 h-5 text-pink-500" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-slate-900 text-sm">PIX</p>
+                                            <p className="text-xs text-slate-500">Fenêtre: 19 déc. - 23 déc.</p>
+                                        </div>
+                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                                            Dans 7j
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -362,10 +444,9 @@ export const Dashboard: React.FC = () => {
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                     Santé à venir
                                 </h4>
-                                <div className="text-center py-8">
-                                    <Stethoscope className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                                    <p className="text-sm italic text-slate-400">Aucun rappel sanitaire.</p>
-                                </div>
+                                <p className="text-sm text-slate-400 italic text-center py-4">
+                                    Aucun rappel sanitaire.
+                                </p>
                             </div>
 
                             {/* ALERTES STOCK */}
@@ -373,23 +454,15 @@ export const Dashboard: React.FC = () => {
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                     Alertes stock
                                 </h4>
-                                <div className="space-y-2">
-                                    <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-100 rounded-xl p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3 flex-1">
-                                                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                                                    <AlertCircle className="w-5 h-5 text-red-600" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-slate-900">Aliment Concentré</p>
-                                                    <p className="text-xs text-red-600 font-medium">Stock critique: 50 kg (Min: 100)</p>
-                                                </div>
-                                            </div>
-                                            <button className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full hover:bg-emerald-200 transition-colors whitespace-nowrap">
-                                                Voir
-                                            </button>
-                                        </div>
+                                <div className="flex items-center gap-3">
+                                    <AlertCircle className="w-5 h-5 text-red-500" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-slate-900 text-sm">Aliment Concentré</p>
+                                        <p className="text-xs text-red-500">Stock critique: 50 kg (Min: 100)</p>
                                     </div>
+                                    <button className="px-3 py-1 border border-emerald-500 text-emerald-600 text-xs font-medium rounded-full hover:bg-emerald-50 transition-colors">
+                                        Voir
+                                    </button>
                                 </div>
                             </div>
                         </div>

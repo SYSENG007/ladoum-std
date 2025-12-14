@@ -25,8 +25,7 @@ export const UserService = {
             id: userId,
             email,
             displayName,
-            farms: [],
-            activeFarmId: '',
+            farmId: '',
             onboardingCompleted: false,
             settings,
             createdAt: now,
@@ -63,8 +62,7 @@ export const UserService = {
                 id: userId,
                 email: updates.email || '',
                 displayName: updates.displayName || '',
-                farms: [],
-                activeFarmId: '',
+                farmId: '',
                 onboardingCompleted: false,
                 settings: defaultUserSettings,
                 createdAt: now,
@@ -88,34 +86,10 @@ export const UserService = {
     },
 
     /**
-     * Ajouter une ferme à l'utilisateur
+     * Définir la bergerie de l'utilisateur (mono-bergerie)
      */
-    async addFarm(userId: string, farmId: string, setAsActive: boolean = true): Promise<void> {
-        const profile = await this.getById(userId);
-        if (!profile) throw new Error('User not found');
-
-        const farms = [...profile.farms, farmId];
-        const updates: Partial<UserProfile> = { farms };
-
-        if (setAsActive || !profile.activeFarmId) {
-            updates.activeFarmId = farmId;
-        }
-
-        await this.update(userId, updates);
-    },
-
-    /**
-     * Changer la ferme active
-     */
-    async setActiveFarm(userId: string, farmId: string): Promise<void> {
-        const profile = await this.getById(userId);
-        if (!profile) throw new Error('User not found');
-
-        if (!profile.farms.includes(farmId)) {
-            throw new Error('User is not a member of this farm');
-        }
-
-        await this.update(userId, { activeFarmId: farmId });
+    async setFarm(userId: string, farmId: string, role: 'owner' | 'manager' | 'worker' = 'owner'): Promise<void> {
+        await this.update(userId, { farmId, role });
     },
 
     /**
