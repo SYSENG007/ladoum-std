@@ -3,22 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { useAnimals } from '../hooks/useAnimals';
 import { useTasks } from '../hooks/useTasks';
 import { useAuth } from '../context/AuthContext';
+import { useFarm } from '../context/FarmContext';
+import { useData } from '../context/DataContext';
 import { Card } from '../components/ui/Card';
 import { NotificationCenter } from '../components/notifications/NotificationCenter';
 import {
     Users,
-    TrendingUp,
     Bell,
     ChevronRight,
     ChevronLeft,
     AlertCircle,
     Heart,
     DollarSign,
-    Baby
+    Baby,
+    Stethoscope
 } from 'lucide-react';
 import clsx from 'clsx';
 
-// New simplified StatCard
+// Simplified StatCard
 interface StatCardProps {
     title: string;
     value: string | number;
@@ -66,7 +68,7 @@ const StatCard: React.FC<StatCardProps> = ({
     );
 };
 
-// Animal Card for carousel
+// Animal Card for carousel (without weight)
 interface AnimalCardProps {
     name: string;
     tagId: string;
@@ -74,7 +76,6 @@ interface AnimalCardProps {
     hg?: number;
     lcs?: number;
     tp?: number;
-    weight?: number;
     onClick?: () => void;
 }
 
@@ -85,7 +86,6 @@ const AnimalCard: React.FC<AnimalCardProps> = ({
     hg,
     lcs,
     tp,
-    weight,
     onClick
 }) => {
     return (
@@ -104,7 +104,7 @@ const AnimalCard: React.FC<AnimalCardProps> = ({
                     <p className="text-white/70 text-xs">{tagId}</p>
                 </div>
             </div>
-            <div className="p-3 grid grid-cols-4 gap-1 text-center">
+            <div className="p-3 grid grid-cols-3 gap-1 text-center">
                 <div>
                     <p className="text-[10px] text-slate-400">HG</p>
                     <p className="text-xs font-medium text-slate-700">{hg || '-'}</p>
@@ -117,23 +117,68 @@ const AnimalCard: React.FC<AnimalCardProps> = ({
                     <p className="text-[10px] text-slate-400">TP</p>
                     <p className="text-xs font-medium text-slate-700">{tp || '-'}</p>
                 </div>
-                <div>
-                    <p className="text-[10px] text-slate-400">Masse</p>
-                    <p className="text-xs font-medium text-slate-700">{weight || '-'}</p>
-                </div>
             </div>
         </div>
     );
 };
 
+// Heat alert item
+interface HeatAlertProps {
+    name: string;
+    window: string;
+    daysUntil: number;
+}
+
+const HeatAlertItem: React.FC<HeatAlertProps> = ({ name, window, daysUntil }) => (
+    <div className="flex items-center gap-3">
+        <Heart className="w-5 h-5 text-pink-500" />
+        <div className="flex-1 min-w-0">
+            <p className="font-medium text-slate-900 text-sm">{name}</p>
+            <p className="text-xs text-slate-500">Fenêtre: {window}</p>
+        </div>
+        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+            Dans {daysUntil}j
+        </span>
+    </div>
+);
+
+// Stock alert item
+interface StockAlertProps {
+    name: string;
+    current: number;
+    minimum: number;
+    unit: string;
+    onClick?: () => void;
+}
+
+const StockAlertItem: React.FC<StockAlertProps> = ({ name, current, minimum, unit, onClick }) => (
+    <div className="flex items-center gap-3">
+        <AlertCircle className="w-5 h-5 text-red-500" />
+        <div className="flex-1 min-w-0">
+            <p className="font-medium text-slate-900 text-sm">{name}</p>
+            <p className="text-xs text-red-500">Stock critique: {current} {unit} (Min: {minimum})</p>
+        </div>
+        <button
+            onClick={onClick}
+            className="px-3 py-1 border border-emerald-500 text-emerald-600 text-xs font-medium rounded-full hover:bg-emerald-50 transition-colors"
+        >
+            Voir
+        </button>
+    </div>
+);
+
+type CarouselFilter = 'all' | 'males' | 'females' | 'certified' | 'recent';
+
 export const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     const { animals } = useAnimals();
-    useTasks(); // Keep for potential future use
+    const { tasks } = useTasks();
     const { user, userProfile } = useAuth();
+    const { currentFarm } = useFarm();
+    const { transactions } = useData();
 
     // Carousel state
-    const [carouselFilter, setCarouselFilter] = useState<'all' | 'certified' | 'recent'>('all');
+    const [carouselFilter, setCarouselFilter] = useState<CarouselFilter>('all');
     const [carouselIndex, setCarouselIndex] = useState(0);
 
     // Get user initials
@@ -156,29 +201,95 @@ export const Dashboard: React.FC = () => {
             return diffDays <= 90;
         }).length;
 
+        // Calculate revenue from transactions
+        const revenue = transactions
+            .filter(t => t.type === 'Income')
+            .reduce((sum, t) => sum + t.amount, 0);
+
         return {
             total: totalAnimals,
             births: recentBirths,
-            sales: 0,
-            revenue: 0
+            revenue: revenue
         };
-    }, [animals]);
+    }, [animals, transactions]);
 
     // Filter animals for carousel
     const filteredAnimals = useMemo(() => {
         let result = [...animals];
-        if (carouselFilter === 'certified') {
-            result = result.filter(a => a.certification);
-        } else if (carouselFilter === 'recent') {
-            result = result.sort((a, b) =>
-                new Date(b.birthDate).getTime() - new Date(a.birthDate).getTime()
-            ).slice(0, 10);
+        switch (carouselFilter) {
+            case 'males':
+                result = result.filter(a => a.gender === 'Male');
+                break;
+            case 'females':
+                result = result.filter(a => a.gender === 'Female');
+                break;
+            case 'certified':
+                result = result.filter(a => a.certification);
+                break;
+            case 'recent':
+                result = result.sort((a, b) =>
+                    new Date(b.birthDate).getTime() - new Date(a.birthDate).getTime()
+                ).slice(0, 10);
+                break;
         }
         return result;
     }, [animals, carouselFilter]);
 
+    // Calculate heat alerts from female animals
+    const heatAlerts = useMemo(() => {
+        const females = animals.filter(a => a.gender === 'Female');
+        const alerts: HeatAlertProps[] = [];
+
+        females.forEach(female => {
+            // If has reproduction records, calculate predicted heat
+            if (female.reproductionRecords && female.reproductionRecords.length > 0) {
+                const lastEvent = female.reproductionRecords
+                    .filter(r => r.type === 'Heat' || r.type === 'Mating')
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+
+                if (lastEvent) {
+                    const lastDate = new Date(lastEvent.date);
+                    const cycleLength = 17; // Average sheep cycle in days
+                    const nextHeatDate = new Date(lastDate.getTime() + cycleLength * 24 * 60 * 60 * 1000);
+                    const now = new Date();
+                    const daysUntil = Math.ceil((nextHeatDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+                    if (daysUntil > 0 && daysUntil <= 14) {
+                        const startDate = new Date(nextHeatDate.getTime() - 2 * 24 * 60 * 60 * 1000);
+                        const endDate = new Date(nextHeatDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+                        alerts.push({
+                            name: female.name,
+                            window: `${startDate.getDate()} ${startDate.toLocaleString('fr', { month: 'short' })} - ${endDate.getDate()} ${endDate.toLocaleString('fr', { month: 'short' })}`,
+                            daysUntil
+                        });
+                    }
+                }
+            }
+        });
+
+        return alerts.sort((a, b) => a.daysUntil - b.daysUntil).slice(0, 5);
+    }, [animals]);
+
+    // Calculate stock alerts from inventory (using tasks as proxy for now)
+    const stockAlerts = useMemo((): StockAlertProps[] => {
+        // TODO: Replace with real inventory data from context
+        return [];
+    }, []);
+
+    // Health reminders from tasks
+    const healthReminders = useMemo(() => {
+        return tasks.filter(t =>
+            t.type === 'Health' &&
+            t.status !== 'Done' &&
+            new Date(t.date) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        ).slice(0, 3);
+    }, [tasks]);
+
+    // Total active alerts count
+    const activeAlertsCount = heatAlerts.length + stockAlerts.length + healthReminders.length;
+
     const canScrollLeft = carouselIndex > 0;
-    const canScrollRight = carouselIndex < filteredAnimals.length - 3;
+    const canScrollRight = carouselIndex < Math.max(0, filteredAnimals.length - 3);
 
     const scrollCarousel = (direction: 'left' | 'right') => {
         if (direction === 'left' && canScrollLeft) {
@@ -188,6 +299,16 @@ export const Dashboard: React.FC = () => {
         }
     };
 
+    // Format currency
+    const formatCurrency = (amount: number) => {
+        if (amount >= 1000000) {
+            return `${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+            return `${(amount / 1000).toFixed(0)}K`;
+        }
+        return amount.toString();
+    };
+
     return (
         <div className="h-full flex flex-col">
             {/* Header - Farm Info + User Profile */}
@@ -195,10 +316,12 @@ export const Dashboard: React.FC = () => {
                 {/* Left - Farm Logo + Name */}
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-sm">
-                        B
+                        {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Ma Bergerie</h1>
+                        <h1 className="text-2xl font-bold text-slate-900">
+                            {currentFarm?.name || 'Ma Bergerie'}
+                        </h1>
                         <p className="text-sm text-slate-500">
                             Planifiez, priorisez et gérez votre élevage avec facilité.
                         </p>
@@ -233,12 +356,12 @@ export const Dashboard: React.FC = () => {
             <div className="flex gap-6 flex-1 min-h-0">
                 {/* Left Side */}
                 <div className="flex-1 space-y-6 overflow-y-auto">
-                    {/* Stats Grid - New Style */}
-                    <div className="grid grid-cols-4 gap-4">
+                    {/* Stats Grid - 3 cards (removed Ventes) */}
+                    <div className="grid grid-cols-3 gap-4">
                         <StatCard
                             title="Total Sujets"
                             value={stats.total}
-                            trend="+12%"
+                            trend={stats.total > 0 ? "+12%" : undefined}
                             trendPositive={true}
                             icon={Users}
                             iconBg="bg-blue-100"
@@ -248,7 +371,7 @@ export const Dashboard: React.FC = () => {
                         <StatCard
                             title="Naissances (90j)"
                             value={stats.births}
-                            trend="+12%"
+                            trend={stats.births > 0 ? "+12%" : undefined}
                             trendPositive={true}
                             icon={Baby}
                             iconBg="bg-purple-100"
@@ -256,18 +379,10 @@ export const Dashboard: React.FC = () => {
                             onClick={() => navigate('/herd')}
                         />
                         <StatCard
-                            title="Ventes"
-                            value={stats.sales}
-                            icon={TrendingUp}
-                            iconBg="bg-emerald-100"
-                            iconColor="text-emerald-600"
-                            onClick={() => navigate('/accounting')}
-                        />
-                        <StatCard
                             title="Revenus"
-                            value={stats.revenue}
-                            trend="0%"
-                            trendPositive={false}
+                            value={formatCurrency(stats.revenue)}
+                            trend={stats.revenue > 0 ? "+8%" : "0%"}
+                            trendPositive={stats.revenue > 0}
                             icon={DollarSign}
                             iconBg="bg-amber-100"
                             iconColor="text-amber-600"
@@ -281,101 +396,93 @@ export const Dashboard: React.FC = () => {
                             <div className="flex items-center gap-4">
                                 <h2 className="text-lg font-bold text-slate-900">Sujets en Vedette</h2>
                                 <div className="flex bg-slate-100 rounded-lg p-1">
-                                    <button
-                                        onClick={() => { setCarouselFilter('all'); setCarouselIndex(0); }}
-                                        className={clsx(
-                                            "px-3 py-1 text-sm rounded-md transition-colors",
-                                            carouselFilter === 'all' ? "bg-white shadow-sm font-medium" : "text-slate-600"
-                                        )}
-                                    >
-                                        Tous
-                                    </button>
-                                    <button
-                                        onClick={() => { setCarouselFilter('certified'); setCarouselIndex(0); }}
-                                        className={clsx(
-                                            "px-3 py-1 text-sm rounded-md transition-colors",
-                                            carouselFilter === 'certified' ? "bg-white shadow-sm font-medium" : "text-slate-600"
-                                        )}
-                                    >
-                                        Certifiés
-                                    </button>
-                                    <button
-                                        onClick={() => { setCarouselFilter('recent'); setCarouselIndex(0); }}
-                                        className={clsx(
-                                            "px-3 py-1 text-sm rounded-md transition-colors",
-                                            carouselFilter === 'recent' ? "bg-white shadow-sm font-medium" : "text-slate-600"
-                                        )}
-                                    >
-                                        Récents
-                                    </button>
+                                    {(['all', 'males', 'females', 'certified', 'recent'] as CarouselFilter[]).map(filter => (
+                                        <button
+                                            key={filter}
+                                            onClick={() => { setCarouselFilter(filter); setCarouselIndex(0); }}
+                                            className={clsx(
+                                                "px-3 py-1 text-sm rounded-md transition-colors",
+                                                carouselFilter === filter ? "bg-white shadow-sm font-medium" : "text-slate-600"
+                                            )}
+                                        >
+                                            {filter === 'all' ? 'Tous' :
+                                                filter === 'males' ? 'Mâles' :
+                                                    filter === 'females' ? 'Femelles' :
+                                                        filter === 'certified' ? 'Certifiés' : 'Récents'}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => scrollCarousel('left')}
-                                    disabled={!canScrollLeft}
-                                    className={clsx(
-                                        "w-8 h-8 rounded-lg border flex items-center justify-center transition-colors",
-                                        canScrollLeft ? "border-slate-300 hover:bg-slate-100" : "border-slate-200 text-slate-300"
-                                    )}
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => scrollCarousel('right')}
-                                    disabled={!canScrollRight}
-                                    className={clsx(
-                                        "w-8 h-8 rounded-lg border flex items-center justify-center transition-colors",
-                                        canScrollRight ? "border-slate-300 hover:bg-slate-100" : "border-slate-200 text-slate-300"
-                                    )}
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => navigate('/herd')}
-                                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 ml-2"
-                                >
-                                    Voir tout
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => navigate('/herd')}
+                                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
+                            >
+                                Voir tout
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
                         </div>
 
-                        {/* Carousel */}
-                        <div className="overflow-hidden">
-                            <div
-                                className="flex gap-4 transition-transform duration-300"
-                                style={{ transform: `translateX(-${carouselIndex * 184}px)` }}
-                            >
-                                {filteredAnimals.length > 0 ? (
-                                    filteredAnimals.map(animal => (
-                                        <AnimalCard
-                                            key={animal.id}
-                                            name={animal.name}
-                                            tagId={animal.tagId || `LAD-${animal.id?.slice(-3)}`}
-                                            photoUrl={animal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'}
-                                            hg={animal.height}
-                                            lcs={animal.length}
-                                            tp={animal.chestGirth}
-                                            weight={animal.weight}
-                                            onClick={() => navigate(`/herd/${animal.id}`)}
-                                        />
-                                    ))
-                                ) : (
-                                    <div className="w-full text-center py-12 text-slate-400">
-                                        <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                        <p>Aucun animal trouvé</p>
-                                    </div>
+                        {/* Carousel with arrows on sides */}
+                        <div className="relative flex items-center gap-2">
+                            {/* Left Arrow */}
+                            <button
+                                onClick={() => scrollCarousel('left')}
+                                disabled={!canScrollLeft}
+                                className={clsx(
+                                    "w-8 h-8 rounded-lg border flex items-center justify-center transition-colors flex-shrink-0",
+                                    canScrollLeft ? "border-slate-300 hover:bg-slate-100" : "border-slate-200 text-slate-300"
                                 )}
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+
+                            {/* Carousel */}
+                            <div className="flex-1 overflow-hidden">
+                                <div
+                                    className="flex gap-4 transition-transform duration-300"
+                                    style={{ transform: `translateX(-${carouselIndex * 184}px)` }}
+                                >
+                                    {filteredAnimals.length > 0 ? (
+                                        filteredAnimals.map(animal => (
+                                            <AnimalCard
+                                                key={animal.id}
+                                                name={animal.name}
+                                                tagId={animal.tagId || `LAD-${animal.id?.slice(-3)}`}
+                                                photoUrl={animal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'}
+                                                hg={animal.height}
+                                                lcs={animal.length}
+                                                tp={animal.chestGirth}
+                                                onClick={() => navigate(`/herd/${animal.id}`)}
+                                            />
+                                        ))
+                                    ) : (
+                                        <div className="w-full text-center py-12 text-slate-400">
+                                            <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                                            <p>Aucun animal trouvé</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+
+                            {/* Right Arrow */}
+                            <button
+                                onClick={() => scrollCarousel('right')}
+                                disabled={!canScrollRight}
+                                className={clsx(
+                                    "w-8 h-8 rounded-lg border flex items-center justify-center transition-colors flex-shrink-0",
+                                    canScrollRight ? "border-slate-300 hover:bg-slate-100" : "border-slate-200 text-slate-300"
+                                )}
+                            >
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Right Side - Rappels & Alertes (Simplified) */}
+                {/* Right Side - Rappels & Alertes */}
                 <div className="w-80 flex-shrink-0">
                     <Card className="h-full flex flex-col">
-                        {/* Header - Simplified */}
+                        {/* Header */}
                         <div className="p-5 border-b border-slate-100">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -388,55 +495,29 @@ export const Dashboard: React.FC = () => {
                                     </div>
                                 </div>
                                 <span className="text-sm font-semibold text-red-500">
-                                    4 Actifs
+                                    {activeAlertsCount} Actifs
                                 </span>
                             </div>
                         </div>
 
-                        {/* Content - Simple list style */}
+                        {/* Content */}
                         <div className="flex-1 overflow-y-auto p-5 space-y-5">
                             {/* CHALEURS À SURVEILLER */}
                             <div>
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                     Chaleurs à surveiller
                                 </h4>
-                                <div className="space-y-3">
-                                    {/* Item 1 */}
-                                    <div className="flex items-center gap-3">
-                                        <Heart className="w-5 h-5 text-pink-500" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-slate-900 text-sm">Bella</p>
-                                            <p className="text-xs text-slate-500">Fenêtre: 19 déc. - 23 déc.</p>
-                                        </div>
-                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-                                            Dans 7j
-                                        </span>
+                                {heatAlerts.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {heatAlerts.map((alert, idx) => (
+                                            <HeatAlertItem key={idx} {...alert} />
+                                        ))}
                                     </div>
-
-                                    {/* Item 2 */}
-                                    <div className="flex items-center gap-3">
-                                        <Heart className="w-5 h-5 text-pink-500" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-slate-900 text-sm">Fatoumata Binetou</p>
-                                            <p className="text-xs text-slate-500">Fenêtre: 19 déc. - 23 déc.</p>
-                                        </div>
-                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-                                            Dans 7j
-                                        </span>
-                                    </div>
-
-                                    {/* Item 3 */}
-                                    <div className="flex items-center gap-3">
-                                        <Heart className="w-5 h-5 text-pink-500" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-slate-900 text-sm">PIX</p>
-                                            <p className="text-xs text-slate-500">Fenêtre: 19 déc. - 23 déc.</p>
-                                        </div>
-                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-                                            Dans 7j
-                                        </span>
-                                    </div>
-                                </div>
+                                ) : (
+                                    <p className="text-sm text-slate-400 italic text-center py-4">
+                                        Aucune chaleur prévue.
+                                    </p>
+                                )}
                             </div>
 
                             {/* SANTÉ À VENIR */}
@@ -444,9 +525,23 @@ export const Dashboard: React.FC = () => {
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                     Santé à venir
                                 </h4>
-                                <p className="text-sm text-slate-400 italic text-center py-4">
-                                    Aucun rappel sanitaire.
-                                </p>
+                                {healthReminders.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {healthReminders.map(task => (
+                                            <div key={task.id} className="flex items-center gap-3">
+                                                <Stethoscope className="w-5 h-5 text-emerald-500" />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-medium text-slate-900 text-sm">{task.title}</p>
+                                                    <p className="text-xs text-slate-500">{new Date(task.date).toLocaleDateString('fr')}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-slate-400 italic text-center py-4">
+                                        Aucun rappel sanitaire.
+                                    </p>
+                                )}
                             </div>
 
                             {/* ALERTES STOCK */}
@@ -454,16 +549,24 @@ export const Dashboard: React.FC = () => {
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                     Alertes stock
                                 </h4>
-                                <div className="flex items-center gap-3">
-                                    <AlertCircle className="w-5 h-5 text-red-500" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-slate-900 text-sm">Aliment Concentré</p>
-                                        <p className="text-xs text-red-500">Stock critique: 50 kg (Min: 100)</p>
+                                {stockAlerts.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {stockAlerts.map((alert, idx) => (
+                                            <StockAlertItem
+                                                key={idx}
+                                                name={alert.name}
+                                                current={alert.current}
+                                                minimum={alert.minimum}
+                                                unit={alert.unit}
+                                                onClick={() => navigate('/inventory')}
+                                            />
+                                        ))}
                                     </div>
-                                    <button className="px-3 py-1 border border-emerald-500 text-emerald-600 text-xs font-medium rounded-full hover:bg-emerald-50 transition-colors">
-                                        Voir
-                                    </button>
-                                </div>
+                                ) : (
+                                    <p className="text-sm text-slate-400 italic text-center py-4">
+                                        Aucune alerte stock.
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </Card>
