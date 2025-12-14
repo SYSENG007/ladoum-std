@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { OnboardingTour } from '../onboarding/OnboardingTour';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../hooks/useNotifications';
 import { FarmService } from '../../services/FarmService';
 import type { Farm } from '../../types/farm';
 import clsx from 'clsx';
@@ -12,6 +13,7 @@ export const Layout: React.FC = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [farms, setFarms] = useState<Farm[]>([]);
     const { user, userProfile } = useAuth();
+    const { unreadCount } = useNotifications();
 
     // Load farms
     useEffect(() => {
@@ -49,14 +51,23 @@ export const Layout: React.FC = () => {
 
             {/* Desktop Header */}
             <div className={clsx(
-                "hidden md:flex fixed top-0 right-0 z-40 bg-white border-b border-slate-200 px-8 py-4 items-center justify-between transition-all duration-300",
+                "hidden md:flex fixed top-0 right-0 z-40 bg-white px-8 py-4 items-center justify-between transition-all duration-300",
                 isSidebarCollapsed ? "left-20" : "left-64"
             )}>
-                {/* Left - Farm Name */}
+                {/* Left - Welcome + Farm Name with Logo */}
                 <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-semibold text-slate-900">
-                        {activeFarm?.name || 'Ma Bergerie'}
-                    </h2>
+                    {/* Farm Logo */}
+                    <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                        {activeFarm?.name?.charAt(0).toUpperCase() || 'B'}
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900">
+                            {activeFarm?.name || 'Ma Bergerie'}
+                        </h2>
+                        <p className="text-xs text-slate-500">
+                            Vous avez <span className="text-emerald-600 font-medium">{unreadCount} notification{unreadCount > 1 ? 's' : ''}</span> non lue{unreadCount > 1 ? 's' : ''}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Right - Notifications + User Profile */}

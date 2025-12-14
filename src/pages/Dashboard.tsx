@@ -24,8 +24,8 @@ interface StatCardProps {
     value: string | number;
     subtitle?: string;
     comparison?: {
-        text: string;
-        isPositive: boolean;
+        type: 'increased' | 'decreased' | 'neutral';
+        period?: string;
     };
     icon: React.ElementType;
     color: 'blue' | 'green' | 'purple' | 'amber';
@@ -50,7 +50,20 @@ const StatCard: React.FC<StatCardProps> = ({
         amber: 'from-amber-500 to-amber-600',
     };
 
-    const ComparisonIcon = comparison?.isPositive ? TrendingUp : TrendingDown;
+    const getComparisonIcon = () => {
+        if (comparison?.type === 'increased') return TrendingUp;
+        if (comparison?.type === 'decreased') return TrendingDown;
+        return Activity;
+    };
+
+    const getComparisonText = () => {
+        const period = comparison?.period || 'last month';
+        if (comparison?.type === 'increased') return `Increased from ${period}`;
+        if (comparison?.type === 'decreased') return `Decreased from ${period}`;
+        return `On Discuss`;
+    };
+
+    const ComparisonIcon = getComparisonIcon();
 
     return (
         <Card
@@ -74,14 +87,23 @@ const StatCard: React.FC<StatCardProps> = ({
             </div>
 
             {comparison && (
-                <div className={clsx(
-                    "flex items-center gap-1.5 text-xs font-medium px-2 py-1.5 rounded-lg w-fit",
-                    comparison.isPositive
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-red-50 text-red-700"
-                )}>
-                    <ComparisonIcon className="w-3.5 h-3.5" />
-                    <span>{comparison.text}</span>
+                <div className="flex items-center gap-2">
+                    <div className={clsx(
+                        "w-6 h-6 rounded-full flex items-center justify-center",
+                        comparison.type === 'increased' && "bg-emerald-100",
+                        comparison.type === 'decreased' && "bg-red-100",
+                        comparison.type === 'neutral' && "bg-slate-100"
+                    )}>
+                        <ComparisonIcon className={clsx(
+                            "w-3.5 h-3.5",
+                            comparison.type === 'increased' && "text-emerald-600",
+                            comparison.type === 'decreased' && "text-red-600",
+                            comparison.type === 'neutral' && "text-slate-600"
+                        )} />
+                    </div>
+                    <span className="text-xs text-slate-500">
+                        {getComparisonText()}
+                    </span>
                 </div>
             )}
 
@@ -243,8 +265,8 @@ export const Dashboard: React.FC = () => {
                             title="Troupeau"
                             value={stats.animals.total}
                             comparison={{
-                                text: "Augmenté depuis le mois dernier",
-                                isPositive: true,
+                                type: 'increased',
+                                period: 'last month'
                             }}
                             icon={Users}
                             color="blue"
@@ -256,8 +278,8 @@ export const Dashboard: React.FC = () => {
                             title="Tâches"
                             value={stats.tasks.pending}
                             comparison={{
-                                text: stats.tasks.pending > 0 ? "En cours" : "Tout complété",
-                                isPositive: stats.tasks.pending === 0,
+                                type: stats.tasks.pending === 0 ? 'neutral' : 'increased',
+                                period: 'last week'
                             }}
                             icon={CheckSquare}
                             color="green"
@@ -268,12 +290,9 @@ export const Dashboard: React.FC = () => {
                         <StatCard
                             title="Inventaire"
                             value={stats.inventory.total}
-                            comparison={stats.inventory.lowStock > 0 ? {
-                                text: `${stats.inventory.lowStock} articles en rupture`,
-                                isPositive: false,
-                            } : {
-                                text: "Stock en bon état",
-                                isPositive: true,
+                            comparison={{
+                                type: stats.inventory.lowStock > 0 ? 'decreased' : 'increased',
+                                period: 'last month'
                             }}
                             icon={Package}
                             color="purple"
@@ -285,8 +304,8 @@ export const Dashboard: React.FC = () => {
                             title="Certification"
                             value={`${stats.certification.percentage}%`}
                             comparison={{
-                                text: "Augmenté depuis le mois dernier",
-                                isPositive: true,
+                                type: 'increased',
+                                period: 'last month'
                             }}
                             icon={Award}
                             color="amber"
