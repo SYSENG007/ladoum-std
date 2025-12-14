@@ -480,7 +480,7 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Right Side - Rappels & Alertes */}
-                <div className="w-80 flex-shrink-0">
+                <div className="w-96 flex-shrink-0">
                     <Card className="h-full flex flex-col">
                         {/* Header */}
                         <div className="p-5 border-b border-slate-100">
@@ -494,13 +494,16 @@ export const Dashboard: React.FC = () => {
                                         <p className="text-xs text-slate-500">Santé, Reproduction et Stock</p>
                                     </div>
                                 </div>
-                                <span className="text-sm font-semibold text-red-500">
+                                <span className={clsx(
+                                    "text-sm font-semibold px-2 py-1 rounded-full",
+                                    activeAlertsCount > 0
+                                        ? "text-red-500"
+                                        : "bg-emerald-100 text-emerald-600"
+                                )}>
                                     {activeAlertsCount} Actifs
                                 </span>
                             </div>
                         </div>
-
-                        {/* Content */}
                         <div className="flex-1 overflow-y-auto p-5 space-y-5">
                             {/* CHALEURS À SURVEILLER */}
                             <div>
