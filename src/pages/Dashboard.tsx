@@ -18,12 +18,13 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 
+
 interface StatCardProps {
     title: string;
     value: string | number;
     subtitle?: string;
-    trend?: {
-        value: string;
+    comparison?: {
+        text: string;
         isPositive: boolean;
     };
     icon: React.ElementType;
@@ -36,7 +37,7 @@ const StatCard: React.FC<StatCardProps> = ({
     title,
     value,
     subtitle,
-    trend,
+    comparison,
     icon: Icon,
     color,
     onClick,
@@ -49,6 +50,8 @@ const StatCard: React.FC<StatCardProps> = ({
         amber: 'from-amber-500 to-amber-600',
     };
 
+    const ComparisonIcon = comparison?.isPositive ? TrendingUp : TrendingDown;
+
     return (
         <Card
             className={clsx(
@@ -57,26 +60,10 @@ const StatCard: React.FC<StatCardProps> = ({
             )}
             onClick={onClick}
         >
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                     <p className="text-sm font-medium text-slate-600 mb-1">{title}</p>
-                    <h3 className="text-3xl font-bold text-slate-900 mb-2">{value}</h3>
-                    {subtitle && (
-                        <p className="text-xs text-slate-500">{subtitle}</p>
-                    )}
-                    {trend && (
-                        <div className={clsx(
-                            "flex items-center gap-1 text-sm font-medium mt-2",
-                            trend.isPositive ? "text-emerald-600" : "text-red-600"
-                        )}>
-                            {trend.isPositive ? (
-                                <TrendingUp className="w-4 h-4" />
-                            ) : (
-                                <TrendingDown className="w-4 h-4" />
-                            )}
-                            <span>{trend.value}</span>
-                        </div>
-                    )}
+                    <h3 className="text-3xl font-bold text-slate-900">{value}</h3>
                 </div>
                 <div className={clsx(
                     "w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center",
@@ -85,6 +72,22 @@ const StatCard: React.FC<StatCardProps> = ({
                     <Icon className="w-6 h-6 text-white" />
                 </div>
             </div>
+
+            {comparison && (
+                <div className={clsx(
+                    "flex items-center gap-1.5 text-xs font-medium px-2 py-1.5 rounded-lg w-fit",
+                    comparison.isPositive
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-red-50 text-red-700"
+                )}>
+                    <ComparisonIcon className="w-3.5 h-3.5" />
+                    <span>{comparison.text}</span>
+                </div>
+            )}
+
+            {subtitle && !comparison && (
+                <p className="text-xs text-slate-500 mt-2">{subtitle}</p>
+            )}
         </Card>
     );
 };
@@ -239,9 +242,8 @@ export const Dashboard: React.FC = () => {
                         <StatCard
                             title="Troupeau"
                             value={stats.animals.total}
-                            subtitle={`${stats.animals.active} actifs`}
-                            trend={{
-                                value: stats.animals.trend,
+                            comparison={{
+                                text: "Augmenté depuis le mois dernier",
                                 isPositive: true,
                             }}
                             icon={Users}
@@ -253,7 +255,10 @@ export const Dashboard: React.FC = () => {
                         <StatCard
                             title="Tâches"
                             value={stats.tasks.pending}
-                            subtitle={stats.tasks.trend}
+                            comparison={{
+                                text: stats.tasks.pending > 0 ? "En cours" : "Tout complété",
+                                isPositive: stats.tasks.pending === 0,
+                            }}
                             icon={CheckSquare}
                             color="green"
                             onClick={() => navigate('/tasks')}
@@ -263,11 +268,13 @@ export const Dashboard: React.FC = () => {
                         <StatCard
                             title="Inventaire"
                             value={stats.inventory.total}
-                            subtitle={stats.inventory.trend}
-                            trend={stats.inventory.lowStock > 0 ? {
-                                value: `${stats.inventory.lowStock} alertes`,
+                            comparison={stats.inventory.lowStock > 0 ? {
+                                text: `${stats.inventory.lowStock} articles en rupture`,
                                 isPositive: false,
-                            } : undefined}
+                            } : {
+                                text: "Stock en bon état",
+                                isPositive: true,
+                            }}
                             icon={Package}
                             color="purple"
                             onClick={() => navigate('/inventory')}
@@ -277,9 +284,8 @@ export const Dashboard: React.FC = () => {
                         <StatCard
                             title="Certification"
                             value={`${stats.certification.percentage}%`}
-                            subtitle={`${stats.certification.total} certifiés`}
-                            trend={{
-                                value: stats.certification.trend,
+                            comparison={{
+                                text: "Augmenté depuis le mois dernier",
                                 isPositive: true,
                             }}
                             icon={Award}

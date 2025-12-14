@@ -96,11 +96,9 @@ export const NotificationCenter: React.FC = () => {
                 onClick={() => setIsOpen(!isOpen)}
                 className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors"
             >
-                <Bell className="w-6 h-6 text-slate-600" />
+                <Bell className="w-5 h-5 text-slate-600" />
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                 )}
             </button>
 
