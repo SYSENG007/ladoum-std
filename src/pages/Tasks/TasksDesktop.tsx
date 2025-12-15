@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
 import { List, Kanban, Calendar, Plus, CheckCircle, Clock, AlertCircle, Ban, Edit2, Trash2, MoreVertical } from 'lucide-react';
-import { TaskFilters, type TaskFilterState } from '../components/tasks/TaskFilters';
-import { TaskBoard } from '../components/tasks/TaskBoard';
-import { TaskCalendar } from '../components/tasks/TaskCalendar';
-import { AddTaskModal } from '../components/tasks/AddTaskModal';
-import { EditTaskModal } from '../components/tasks/EditTaskModal';
-import { useTasks } from '../hooks/useTasks';
-import { useData } from '../context/DataContext';
-import { useFarm } from '../context/FarmContext';
-import { TaskService } from '../services/TaskService';
-import type { TaskStatus, Task } from '../types';
+import { TaskFilters, type TaskFilterState } from '../../components/tasks/TaskFilters';
+import { TaskBoard } from '../../components/tasks/TaskBoard';
+import { TaskCalendar } from '../../components/tasks/TaskCalendar';
+import { AddTaskModal } from '../../components/tasks/AddTaskModal';
+import { EditTaskModal } from '../../components/tasks/EditTaskModal';
+import { useTasks } from '../../hooks/useTasks';
+import { useData } from '../../context/DataContext';
+import { useFarm } from '../../context/FarmContext';
+import { TaskService } from '../../services/TaskService';
+import type { TaskStatus, Task } from '../../types';
 import clsx from 'clsx';
 
-export const Tasks: React.FC = () => {
+export const TasksDesktop: React.FC = () => {
     const [view, setView] = useState<'list' | 'kanban' | 'calendar'>('kanban');
     const { tasks, error } = useTasks();
     const { refreshData } = useData();

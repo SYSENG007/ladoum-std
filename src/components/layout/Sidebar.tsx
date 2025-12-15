@@ -112,25 +112,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                     </button>
                 </div>
             </aside>
-
-            {/* Mobile Bottom Nav */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-4 py-2 flex justify-between items-center safe-area-bottom">
-                {NAV_ITEMS.slice(0, 5).map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        className={({ isActive }) =>
-                            clsx(
-                                'flex flex-col items-center gap-1 p-2 rounded-lg transition-colors',
-                                isActive ? 'text-primary-600' : 'text-slate-400'
-                            )
-                        }
-                    >
-                        <item.icon className="w-6 h-6" />
-                        <span className="text-[10px] font-medium">{item.name}</span>
-                    </NavLink>
-                ))}
-            </nav>
         </>
     );
 };

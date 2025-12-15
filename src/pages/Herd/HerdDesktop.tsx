@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { AnimalCard } from '../components/herd/AnimalCard';
-import { AddAnimalModal } from '../components/herd/AddAnimalModal';
+import { AnimalCard } from '../../components/herd/AnimalCard';
+import { AddAnimalModal } from '../../components/herd/AddAnimalModal';
 import { Search, Plus } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { useAnimals } from '../hooks/useAnimals';
-import { useData } from '../context/DataContext';
+import { Button } from '../../components/ui/Button';
+import { useAnimals } from '../../hooks/useAnimals';
+import { useData } from '../../context/DataContext';
 
-export const Herd: React.FC = () => {
+export const HerdDesktop: React.FC = () => {
     const { animals, error } = useAnimals();
     const { refreshData } = useData();
     const [searchTerm, setSearchTerm] = useState('');
@@ -27,8 +27,9 @@ export const Herd: React.FC = () => {
     if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="h-full flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 flex-shrink-0">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Mon Cheptel</h1>
                     <p className="text-slate-500">Gérez vos moutons Ladoum</p>
@@ -39,7 +40,8 @@ export const Herd: React.FC = () => {
                 </Button>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+            {/* Search and Filters */}
+            <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6 flex-shrink-0">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
@@ -63,17 +65,20 @@ export const Herd: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredAnimals.map(animal => (
-                    <AnimalCard key={animal.id} animal={animal} onUpdate={handleAddSuccess} />
-                ))}
+            {/* Animal Grid */}
+            <div className="flex-1 overflow-y-auto">
+                {filteredAnimals.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredAnimals.map(animal => (
+                            <AnimalCard key={animal.id} animal={animal} onUpdate={handleAddSuccess} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-12 text-slate-500 bg-white rounded-xl border border-dashed border-slate-300">
+                        <p>Aucun animal trouvé.</p>
+                    </div>
+                )}
             </div>
-
-            {filteredAnimals.length === 0 && (
-                <div className="text-center py-12 text-slate-500 bg-white rounded-xl border border-dashed border-slate-300">
-                    <p>Aucun animal trouvé.</p>
-                </div>
-            )}
 
             <AddAnimalModal
                 isOpen={isAddModalOpen}
