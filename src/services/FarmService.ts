@@ -31,6 +31,8 @@ export const FarmService = {
             displayName: ownerName,
             email: ownerEmail,
             role: 'owner',
+            canAccessFinances: true,
+            status: 'active',
             joinedAt: now,
         };
 
@@ -83,30 +85,21 @@ export const FarmService = {
         });
     },
 
-    /**
-     * Ajouter un membre à une ferme
-     */
     async addMember(
         farmId: string,
-        userId: string,
-        displayName: string,
-        email: string,
-        role: 'manager' | 'worker'
+        member: Omit<FarmMember, 'id'>
     ): Promise<void> {
         const farm = await this.getById(farmId);
         if (!farm) throw new Error('Farm not found');
 
         // Vérifier si l'utilisateur est déjà membre
-        if (farm.members.some(m => m.userId === userId)) {
+        if (farm.members.some(m => m.userId === member.userId)) {
             throw new Error('User is already a member of this farm');
         }
 
         const newMember: FarmMember = {
-            userId,
-            displayName,
-            email,
-            role,
-            joinedAt: new Date().toISOString(),
+            ...member,
+            joinedAt: member.joinedAt || new Date().toISOString(),
         };
 
         const docRef = doc(db, COLLECTION_NAME, farmId);

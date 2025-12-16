@@ -8,14 +8,19 @@ import { useData } from '../../context/DataContext';
 import { Card } from '../../components/ui/Card';
 import { NotificationCenter } from '../../components/notifications/NotificationCenter';
 import { ExpertCard } from '../../components/dashboard/ExpertCard';
+// ========== PREVIEW IMPORTS (TEMPORARY - TO REMOVE) ==========
+import { GrowthChart } from '../../components/dashboard/GrowthChart';
+import { KPICard } from '../../components/dashboard/KPICard';
+import { StatCard } from '../../components/dashboard/StatCard';
+import { RemindersCard } from '../../components/dashboard/RemindersCard';
+import { FeaturedCarousel } from '../../components/dashboard/FeaturedCarousel';
+// ===============================================================
 import {
     Users,
     Bell,
     ChevronRight,
     ChevronLeft,
     Heart,
-    DollarSign,
-    Baby,
     Stethoscope
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -28,7 +33,7 @@ export const DashboardDesktop: React.FC = () => {
     const { tasks } = useTasks();
     const { user, userProfile } = useAuth();
     const { currentFarm } = useFarm();
-    const { transactions } = useData();
+    useData();
 
     const [carouselFilter, setCarouselFilter] = useState<CarouselFilter>('all');
     const [carouselIndex, setCarouselIndex] = useState(0);
@@ -44,19 +49,11 @@ export const DashboardDesktop: React.FC = () => {
 
     const stats = useMemo(() => {
         const totalAnimals = animals.length;
-        const recentBirths = animals.filter(a => {
-            const birthDate = new Date(a.birthDate);
-            const now = new Date();
-            const diffDays = (now.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24);
-            return diffDays <= 90;
-        }).length;
+        const males = animals.filter(a => a.gender === 'Male').length;
+        const females = animals.filter(a => a.gender === 'Female').length;
 
-        const revenue = transactions
-            .filter(t => t.type === 'Income')
-            .reduce((sum, t) => sum + t.amount, 0);
-
-        return { total: totalAnimals, births: recentBirths, revenue };
-    }, [animals, transactions]);
+        return { total: totalAnimals, males, females };
+    }, [animals]);
 
     const filteredAnimals = useMemo(() => {
         let result = [...animals];
@@ -111,11 +108,7 @@ export const DashboardDesktop: React.FC = () => {
 
     const activeAlertsCount = heatAlerts.length + healthReminders.length;
 
-    const formatCurrency = (amount: number) => {
-        if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}M`;
-        if (amount >= 1000) return `${(amount / 1000).toFixed(0)}K`;
-        return amount.toString();
-    };
+
 
     const canScrollLeft = carouselIndex > 0;
     const canScrollRight = carouselIndex < Math.max(0, filteredAnimals.length - 4);
@@ -153,26 +146,29 @@ export const DashboardDesktop: React.FC = () => {
             <div className="flex gap-6 flex-1 min-h-0 overflow-hidden">
                 {/* Left Side */}
                 <div className="flex-1 flex flex-col gap-5 min-w-0 overflow-hidden">
-                    {/* Stats Row - 3 cards */}
+                    {/* KPI Row - Total Sujets (1 col) + ExpertCard (2 cols) */}
                     <div className="grid grid-cols-3 gap-4 flex-shrink-0">
-                        {[
-                            { title: 'Total Sujets', value: stats.total, trend: '+12%', icon: Users, bg: 'bg-blue-100', color: 'text-blue-600' },
-                            { title: 'Naissances (90j)', value: stats.births, trend: '+12%', icon: Baby, bg: 'bg-purple-100', color: 'text-purple-600' },
-                            { title: 'Revenus', value: formatCurrency(stats.revenue), trend: stats.revenue > 0 ? '+8%' : '0%', icon: DollarSign, bg: 'bg-amber-100', color: 'text-amber-600', positive: stats.revenue > 0 },
-                        ].map((stat, idx) => (
-                            <Card key={idx} className="p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(idx < 2 ? '/herd' : '/accounting')}>
-                                <div className="flex items-start justify-between">
-                                    <div className={clsx("w-10 h-10 rounded-xl flex items-center justify-center", stat.bg)}>
-                                        <stat.icon className={clsx("w-5 h-5", stat.color)} />
-                                    </div>
-                                    <span className={clsx("text-sm font-semibold", stat.positive !== false ? "text-emerald-500" : "text-slate-400")}>{stat.trend}</span>
+                        {/* Total Sujets Card */}
+                        <Card className="p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/herd')}>
+                            <div className="flex items-start justify-between">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-100">
+                                    <Users className="w-5 h-5 text-blue-600" />
                                 </div>
-                                <div className="mt-3">
-                                    <h3 className="text-2xl font-bold text-slate-900">{stat.value}</h3>
-                                    <p className="text-sm text-slate-500 mt-1">{stat.title}</p>
+                            </div>
+                            <div className="mt-3">
+                                <h3 className="text-2xl font-bold text-slate-900">{stats.total}</h3>
+                                <p className="text-sm text-slate-500">Total Sujets</p>
+                                <div className="flex gap-3 mt-2 text-xs">
+                                    <span className="text-blue-600 font-medium">♂ {stats.males} Mâles</span>
+                                    <span className="text-pink-600 font-medium">♀ {stats.females} Femelles</span>
                                 </div>
-                            </Card>
-                        ))}
+                            </div>
+                        </Card>
+
+                        {/* ExpertCard - Certification Progress (spans 2 columns) */}
+                        <div className="col-span-2">
+                            <ExpertCard animals={animals} />
+                        </div>
                     </div>
 
                     {/* Sujets en Vedette - Fills remaining space */}
@@ -245,10 +241,47 @@ export const DashboardDesktop: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* Expert Card - Certification Progress */}
-                        <div className="mt-6">
-                            <ExpertCard animals={animals} />
+                        {/* ========== PREVIEW SECTION (TEMPORARY - TO REMOVE) ========== */}
+                        <div className="mt-8 p-4 border-2 border-dashed border-amber-400 rounded-2xl bg-amber-50">
+                            <h3 className="text-lg font-bold text-amber-800 mb-4">🔍 Prévisualisation des composants non utilisés</h3>
+
+                            {/* GrowthChart */}
+                            <div className="mb-6">
+                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">GrowthChart.tsx</p>
+                                <GrowthChart />
+                            </div>
+
+                            {/* KPICard */}
+                            <div className="mb-6">
+                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">KPICard.tsx</p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <KPICard label="Total Animaux" value={animals.length} icon={Users} trend={{ value: 12, isPositive: true }} color="primary" />
+                                    <KPICard label="Mâles" value={stats.males} icon={Users} trend={{ value: 5, isPositive: true }} color="blue" />
+                                </div>
+                            </div>
+
+                            {/* StatCard */}
+                            <div className="mb-6">
+                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">StatCard.tsx</p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <StatCard label="Total Sujets" value={String(animals.length)} trend="+12%" icon={Users} color="blue" />
+                                    <StatCard label="Femelles" value={String(stats.females)} trend="+8%" icon={Users} color="green" />
+                                </div>
+                            </div>
+
+                            {/* RemindersCard */}
+                            <div className="mb-6">
+                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">RemindersCard.tsx</p>
+                                <RemindersCard animals={animals} />
+                            </div>
+
+                            {/* FeaturedCarousel */}
+                            <div className="mb-4">
+                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">FeaturedCarousel.tsx</p>
+                                <FeaturedCarousel animals={animals.slice(0, 5)} />
+                            </div>
                         </div>
+                        {/* =============================================================== */}
                     </div>
                 </div>
 

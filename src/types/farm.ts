@@ -21,7 +21,11 @@ export interface FarmMember {
     displayName: string;
     name?: string;         // Alias pour displayName (compatibilité)
     email: string;
+    phone?: string;
+    photoUrl?: string;
     role: 'owner' | 'manager' | 'worker';
+    canAccessFinances: boolean; // Configurable pour managers
+    status: 'active' | 'inactive' | 'pending';
     joinedAt: string;
 }
 

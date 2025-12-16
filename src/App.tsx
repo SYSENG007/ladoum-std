@@ -19,6 +19,8 @@ import { Register } from './pages/Register';
 import { Onboarding } from './pages/Onboarding';
 import { Profile } from './pages/Profile';
 import { Settings } from './pages/Settings';
+import { Staff } from './pages/Staff';
+import { Join } from './pages/Join';
 
 // Providers
 import { AuthProvider } from './context/AuthContext';
@@ -56,7 +58,17 @@ function App() {
                   }
                 />
 
-                {/* Onboarding (requires auth but not completed onboarding) */}
+                {/* Join invitation (requires auth but bypasses onboarding) */}
+                <Route
+                  path="/join"
+                  element={
+                    <ProtectedRoute requireOnboarding={false}>
+                      <Join />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Protected Routes (require auth + completed onboarding) */}
                 <Route
                   path="/onboarding"
                   element={
@@ -87,6 +99,7 @@ function App() {
                   <Route path="/teleconsultation/:id" element={<ConsultationDetails />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/staff" element={<Staff />} />
                 </Route>
 
                 {/* Fallback */}

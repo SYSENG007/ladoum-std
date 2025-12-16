@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, PawPrint, GitFork, CalendarCheck, Package, LogOut, Menu, Store, Wallet, Stethoscope, Settings } from 'lucide-react';
+import { LayoutDashboard, PawPrint, GitFork, CalendarCheck, Package, LogOut, Menu, Store, Wallet, Stethoscope, Settings, Users } from 'lucide-react';
 import logo from '../../assets/logo.jpg';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
     { name: 'Reproduction', icon: CalendarCheck, path: '/reproduction', tourId: 'reproduction' },
     { name: 'Tâches', icon: CalendarCheck, path: '/tasks', tourId: 'tasks' },
     { name: 'Inventaire', icon: Package, path: '/inventory', tourId: 'inventory' },
+    { name: 'Personnel', icon: Users, path: '/staff', tourId: 'staff' },
     { name: 'Véto', icon: Stethoscope, path: '/teleconsultation', tourId: 'teleconsultation' },
     { name: 'Comptabilité', icon: Wallet, path: '/accounting', tourId: 'accounting' },
     { name: 'Marketplace', icon: Store, path: '/marketplace', tourId: 'marketplace' },
