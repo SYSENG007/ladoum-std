@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { MobileBottomNav } from './MobileBottomNav';
 import { OnboardingTour } from '../onboarding/OnboardingTour';
 import clsx from 'clsx';
 
@@ -17,6 +18,9 @@ export const Layout: React.FC = () => {
                     <Outlet />
                 </div>
             </main>
+
+            {/* Mobile Bottom Navigation - Fixed on all pages */}
+            <MobileBottomNav />
 
             {/* Onboarding Tour - appears after completing onboarding */}
             <OnboardingTour />

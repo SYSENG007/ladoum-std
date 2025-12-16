@@ -7,6 +7,7 @@ import { useFarm } from '../../context/FarmContext';
 import { useData } from '../../context/DataContext';
 import { Card } from '../../components/ui/Card';
 import { NotificationCenter } from '../../components/notifications/NotificationCenter';
+import { ExpertCard } from '../../components/dashboard/ExpertCard';
 import {
     Users,
     Bell,
@@ -242,6 +243,11 @@ export const DashboardDesktop: React.FC = () => {
                             >
                                 <ChevronRight className="w-4 h-4" />
                             </button>
+                        </div>
+
+                        {/* Expert Card - Certification Progress */}
+                        <div className="mt-6">
+                            <ExpertCard animals={animals} />
                         </div>
                     </div>
                 </div>

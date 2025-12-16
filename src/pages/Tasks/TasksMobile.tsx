@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTasks } from '../../hooks/useTasks';
 import { useData } from '../../context/DataContext';
 import { TaskService } from '../../services/TaskService';
 import { AddTaskModal } from '../../components/tasks/AddTaskModal';
-import { Plus, Home, PawPrint, CheckSquare, Settings, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Plus, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 import type { TaskStatus } from '../../types';
 
 export const TasksMobile: React.FC = () => {
-    const navigate = useNavigate();
     const { tasks, error } = useTasks();
     const { refreshData } = useData();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -102,30 +100,8 @@ export const TasksMobile: React.FC = () => {
                 )}
             </div>
 
-            {/* Bottom Navigation */}
-            <div className="flex-shrink-0 border-t border-slate-200 bg-white pt-2 pb-1 -mx-4 px-4 mt-2">
-                <div className="flex items-center justify-around">
-                    <button onClick={() => navigate('/')} className="flex flex-col items-center gap-0.5 text-slate-400">
-                        <Home className="w-5 h-5" />
-                        <span className="text-[10px]">Accueil</span>
-                    </button>
-                    <button onClick={() => navigate('/herd')} className="flex flex-col items-center gap-0.5 text-slate-400">
-                        <PawPrint className="w-5 h-5" />
-                        <span className="text-[10px]">Troupeau</span>
-                    </button>
-                    <button onClick={() => setIsAddModalOpen(true)} className="w-11 h-11 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg -mt-4">
-                        <Plus className="w-5 h-5 text-white" />
-                    </button>
-                    <button onClick={() => navigate('/tasks')} className="flex flex-col items-center gap-0.5 text-emerald-600">
-                        <CheckSquare className="w-5 h-5" />
-                        <span className="text-[10px]">Tâches</span>
-                    </button>
-                    <button onClick={() => navigate('/settings')} className="flex flex-col items-center gap-0.5 text-slate-400">
-                        <Settings className="w-5 h-5" />
-                        <span className="text-[10px]">Réglages</span>
-                    </button>
-                </div>
-            </div>
+            {/* Bottom padding for fixed nav */}
+            <div className="h-16 flex-shrink-0" />
 
             <AddTaskModal
                 isOpen={isAddModalOpen}
