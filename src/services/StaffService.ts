@@ -98,6 +98,7 @@ export const StaffService = {
      * Get invitation by token
      */
     async getByToken(token: string): Promise<StaffInvitation | null> {
+        console.log('[StaffService.getByToken] Searching for token:', token);
         const q = query(
             collection(db, INVITATIONS_COLLECTION),
             where('token', '==', token),
@@ -105,13 +106,21 @@ export const StaffService = {
         );
         const snapshot = await getDocs(q);
 
-        if (snapshot.empty) return null;
+        console.log('[StaffService.getByToken] Found docs:', snapshot.size);
+
+        if (snapshot.empty) {
+            console.log('[StaffService.getByToken] No invitation found for token:', token);
+            return null;
+        }
 
         const docData = snapshot.docs[0];
         const invitation = { id: docData.id, ...docData.data() } as StaffInvitation;
 
+        console.log('[StaffService.getByToken] Found invitation:', invitation);
+
         // Check if expired
         if (new Date(invitation.expiresAt) < new Date()) {
+            console.log('[StaffService.getByToken] Invitation expired:', invitation.expiresAt);
             await updateDoc(doc(db, INVITATIONS_COLLECTION, invitation.id), { status: 'expired' });
             return null;
         }
