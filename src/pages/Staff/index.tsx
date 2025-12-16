@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, Clock, Star, Plus, Crown, Wrench, Mail, MoreVertical, Check } from 'lucide-react';
+import { Users, Calendar, Clock, Star, Plus, Crown, Wrench, Mail, MoreVertical, Check, Copy, Share2, X } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { InviteMemberModal } from '../../components/staff/InviteMemberModal';
@@ -23,6 +23,7 @@ export const Staff: React.FC = () => {
     const [pendingInvitations, setPendingInvitations] = useState<StaffInvitation[]>([]);
     const [todayAttendance, setTodayAttendance] = useState<Attendance[]>([]);
     const [loading, setLoading] = useState(true);
+    const [shareInvitation, setShareInvitation] = useState<StaffInvitation | null>(null);
 
     // Check if current user can manage staff (based on their role in farm members)
     const currentUserMember = currentFarm?.members?.find(m => m.userId === user?.uid);
@@ -218,10 +219,10 @@ export const Staff: React.FC = () => {
                                                         {invitation.role === 'manager' ? 'Manager' : 'Employé'}
                                                     </span>
                                                     <button
-                                                        onClick={() => StaffService.extendInvitation(invitation.id)}
+                                                        onClick={() => setShareInvitation(invitation)}
                                                         className="text-xs text-emerald-600 hover:underline"
                                                     >
-                                                        Renvoyer
+                                                        Partager
                                                     </button>
                                                     <button
                                                         onClick={() => StaffService.cancelInvitation(invitation.id).then(loadData)}
@@ -314,6 +315,51 @@ export const Staff: React.FC = () => {
                 onClose={() => setShowInviteModal(false)}
                 onSuccess={loadData}
             />
+
+            {/* Share Invitation Modal */}
+            {shareInvitation && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">Partager l'invitation</h3>
+                            <button onClick={() => setShareInvitation(null)} className="p-1 hover:bg-slate-100 rounded-lg">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <p className="text-sm text-slate-600 mb-4">
+                            Invitation pour <strong>{shareInvitation.displayName}</strong> ({shareInvitation.email})
+                        </p>
+
+                        <div className="bg-slate-50 p-3 rounded-lg mb-4 font-mono text-xs break-all">
+                            {`${window.location.origin}/join?token=${shareInvitation.token}`}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(`${window.location.origin}/join?token=${shareInvitation.token}`);
+                                    alert('Lien copié !');
+                                }}
+                                className="flex items-center justify-center gap-2 p-3 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                            >
+                                <Copy className="w-5 h-5" />
+                                <span>Copier</span>
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const msg = encodeURIComponent(`Bonjour ${shareInvitation.displayName}, vous êtes invité(e) à rejoindre ${shareInvitation.farmName} sur Ladoum STD. Cliquez ici : ${window.location.origin}/join?token=${shareInvitation.token}`);
+                                    window.open(`https://wa.me/?text=${msg}`, '_blank');
+                                }}
+                                className="flex items-center justify-center gap-2 p-3 bg-green-100 hover:bg-green-200 text-green-700 rounded-xl transition-colors"
+                            >
+                                <Share2 className="w-5 h-5" />
+                                <span>WhatsApp</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

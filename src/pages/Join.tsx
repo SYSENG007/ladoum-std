@@ -160,6 +160,7 @@ export const Join: React.FC = () => {
     }
 
     if (!user) {
+        // Redirect to register with token - will auto-load invitation and prefill email
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
@@ -172,15 +173,12 @@ export const Join: React.FC = () => {
                         <strong> {invitation?.farmName}</strong> en tant que
                         <strong> {invitation?.role === 'manager' ? 'Manager' : 'Employé'}</strong>.
                     </p>
-                    <p className="text-sm text-slate-400 mb-6">
-                        Connectez-vous ou créez un compte pour accepter l'invitation.
-                    </p>
                     <div className="space-y-3">
-                        <Button onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/join?token=${token}`)}`)} className="w-full">
-                            Se connecter
-                        </Button>
-                        <Button onClick={() => navigate(`/register?redirect=${encodeURIComponent(`/join?token=${token}`)}`)} variant="outline" className="w-full">
+                        <Button onClick={() => navigate(`/register?token=${token}`)} className="w-full">
                             Créer un compte
+                        </Button>
+                        <Button onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/join?token=${token}`)}`)} variant="outline" className="w-full">
+                            J'ai déjà un compte
                         </Button>
                     </div>
                 </div>

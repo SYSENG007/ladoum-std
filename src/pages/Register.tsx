@@ -17,15 +17,17 @@ export const Register: React.FC = () => {
     const [searchParams] = useSearchParams();
     const { signUpWithEmail, signInWithGoogle, loading, error, clearError, refreshUserProfile } = useAuth();
 
-    // Check if coming from an invitation
+    // Check if coming from an invitation - token can be direct (?token=xxx) or in redirect param
+    const tokenDirect = searchParams.get('token');
     const redirectParam = searchParams.get('redirect');
     const tokenFromRedirect = redirectParam?.includes('token=')
         ? new URLSearchParams(redirectParam.split('?')[1]).get('token')
         : null;
+    const invitationToken = tokenDirect || tokenFromRedirect;
 
-    const [mode, setMode] = useState<RegistrationMode>(tokenFromRedirect ? 'staff' : 'choice');
+    const [mode, setMode] = useState<RegistrationMode>(invitationToken ? 'staff' : 'choice');
     const [invitation, setInvitation] = useState<StaffInvitation | null>(null);
-    const [loadingInvitation, setLoadingInvitation] = useState(!!tokenFromRedirect);
+    const [loadingInvitation, setLoadingInvitation] = useState(!!invitationToken);
     const [searchingByEmail, setSearchingByEmail] = useState(false);
     const [lookupEmail, setLookupEmail] = useState('');
     const [lookupToken, setLookupToken] = useState('');
@@ -39,10 +41,10 @@ export const Register: React.FC = () => {
 
     // Load invitation if token provided
     useEffect(() => {
-        if (tokenFromRedirect) {
-            loadInvitation(tokenFromRedirect);
+        if (invitationToken) {
+            loadInvitation(invitationToken);
         }
-    }, [tokenFromRedirect]);
+    }, [invitationToken]);
 
     const loadInvitation = async (token: string) => {
         setLoadingInvitation(true);
