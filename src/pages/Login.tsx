@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
@@ -7,7 +7,11 @@ import logo from '../assets/logo.jpg';
 
 export const Login: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { signInWithEmail, signInWithGoogle, loading, error, clearError } = useAuth();
+
+    // Get redirect URL if provided (for invitation flow)
+    const redirectUrl = searchParams.get('redirect');
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -26,7 +30,8 @@ export const Login: React.FC = () => {
 
         try {
             await signInWithEmail(email, password);
-            navigate('/');
+            // Redirect to specified URL or dashboard
+            navigate(redirectUrl || '/');
         } catch (err: any) {
             // L'erreur est déjà gérée dans le context
         }
@@ -38,7 +43,8 @@ export const Login: React.FC = () => {
 
         try {
             await signInWithGoogle();
-            navigate('/');
+            // Redirect to specified URL or dashboard
+            navigate(redirectUrl || '/');
         } catch (err: any) {
             // Si nouvel utilisateur sans code, rediriger vers inscription
             if (err.message?.includes('code d\'invitation')) {

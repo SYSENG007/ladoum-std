@@ -58,15 +58,8 @@ function App() {
                   }
                 />
 
-                {/* Join invitation (requires auth but bypasses onboarding) */}
-                <Route
-                  path="/join"
-                  element={
-                    <ProtectedRoute requireOnboarding={false}>
-                      <Join />
-                    </ProtectedRoute>
-                  }
-                />
+                {/* Join invitation (public - handles auth internally) */}
+                <Route path="/join" element={<Join />} />
 
                 {/* Protected Routes (require auth + completed onboarding) */}
                 <Route
