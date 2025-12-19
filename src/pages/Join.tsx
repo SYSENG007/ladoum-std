@@ -4,6 +4,7 @@ import { CheckCircle, XCircle, Loader2, Users } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { StaffService } from '../services/StaffService';
 import { FarmService } from '../services/FarmService';
+import { UserService } from '../services/UserService';
 import { useAuth } from '../context/AuthContext';
 import type { StaffInvitation } from '../types/staff';
 
@@ -74,6 +75,12 @@ export const Join: React.FC = () => {
 
             // Mark invitation as accepted
             await StaffService.acceptInvitation(invitation.id, user.uid);
+
+            // If user has no farm yet, set this one and complete onboarding
+            if (!userProfile.farmId) {
+                await UserService.setFarm(user.uid, invitation.farmId, invitation.role);
+                await UserService.completeOnboarding(user.uid);
+            }
 
             setSuccess(true);
 

@@ -1,27 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAnimals } from '../../hooks/useAnimals';
-import { useTasks } from '../../hooks/useTasks';
 import { useAuth } from '../../context/AuthContext';
 import { useFarm } from '../../context/FarmContext';
-import { useData } from '../../context/DataContext';
 import { Card } from '../../components/ui/Card';
 import { NotificationCenter } from '../../components/notifications/NotificationCenter';
 import { ExpertCard } from '../../components/dashboard/ExpertCard';
-// ========== PREVIEW IMPORTS (TEMPORARY - TO REMOVE) ==========
-import { GrowthChart } from '../../components/dashboard/GrowthChart';
-import { KPICard } from '../../components/dashboard/KPICard';
-import { StatCard } from '../../components/dashboard/StatCard';
 import { RemindersCard } from '../../components/dashboard/RemindersCard';
-import { FeaturedCarousel } from '../../components/dashboard/FeaturedCarousel';
-// ===============================================================
 import {
     Users,
-    Bell,
     ChevronRight,
-    ChevronLeft,
-    Heart,
-    Stethoscope
+    ChevronLeft
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -30,10 +19,8 @@ type CarouselFilter = 'all' | 'males' | 'females' | 'certified' | 'recent';
 export const DashboardDesktop: React.FC = () => {
     const navigate = useNavigate();
     const { animals } = useAnimals();
-    const { tasks } = useTasks();
     const { user, userProfile } = useAuth();
     const { currentFarm } = useFarm();
-    useData();
 
     const [carouselFilter, setCarouselFilter] = useState<CarouselFilter>('all');
     const [carouselIndex, setCarouselIndex] = useState(0);
@@ -65,48 +52,6 @@ export const DashboardDesktop: React.FC = () => {
         }
         return result;
     }, [animals, carouselFilter]);
-
-    const heatAlerts = useMemo(() => {
-        const females = animals.filter(a => a.gender === 'Female');
-        const alerts: { name: string; window: string; daysUntil: number }[] = [];
-
-        females.forEach(female => {
-            if (female.reproductionRecords?.length) {
-                const lastEvent = female.reproductionRecords
-                    .filter(r => r.type === 'Heat' || r.type === 'Mating')
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-
-                if (lastEvent) {
-                    const lastDate = new Date(lastEvent.date);
-                    const nextHeatDate = new Date(lastDate.getTime() + 17 * 24 * 60 * 60 * 1000);
-                    const now = new Date();
-                    const daysUntil = Math.ceil((nextHeatDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-                    if (daysUntil > 0 && daysUntil <= 14) {
-                        const startDate = new Date(nextHeatDate.getTime() - 2 * 24 * 60 * 60 * 1000);
-                        const endDate = new Date(nextHeatDate.getTime() + 2 * 24 * 60 * 60 * 1000);
-                        alerts.push({
-                            name: female.name,
-                            window: `${startDate.getDate()} ${startDate.toLocaleString('fr', { month: 'short' })} - ${endDate.getDate()} ${endDate.toLocaleString('fr', { month: 'short' })}`,
-                            daysUntil
-                        });
-                    }
-                }
-            }
-        });
-
-        return alerts.sort((a, b) => a.daysUntil - b.daysUntil).slice(0, 5);
-    }, [animals]);
-
-    const healthReminders = useMemo(() => {
-        return tasks.filter(t =>
-            t.type === 'Health' &&
-            t.status !== 'Done' &&
-            new Date(t.date) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        ).slice(0, 3);
-    }, [tasks]);
-
-    const activeAlertsCount = heatAlerts.length + healthReminders.length;
 
 
 
@@ -240,116 +185,12 @@ export const DashboardDesktop: React.FC = () => {
                                 <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
-
-                        {/* ========== PREVIEW SECTION (TEMPORARY - TO REMOVE) ========== */}
-                        <div className="mt-8 p-4 border-2 border-dashed border-amber-400 rounded-2xl bg-amber-50">
-                            <h3 className="text-lg font-bold text-amber-800 mb-4">🔍 Prévisualisation des composants non utilisés</h3>
-
-                            {/* GrowthChart */}
-                            <div className="mb-6">
-                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">GrowthChart.tsx</p>
-                                <GrowthChart />
-                            </div>
-
-                            {/* KPICard */}
-                            <div className="mb-6">
-                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">KPICard.tsx</p>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <KPICard label="Total Animaux" value={animals.length} icon={Users} trend={{ value: 12, isPositive: true }} color="primary" />
-                                    <KPICard label="Mâles" value={stats.males} icon={Users} trend={{ value: 5, isPositive: true }} color="blue" />
-                                </div>
-                            </div>
-
-                            {/* StatCard */}
-                            <div className="mb-6">
-                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">StatCard.tsx</p>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <StatCard label="Total Sujets" value={String(animals.length)} trend="+12%" icon={Users} color="blue" />
-                                    <StatCard label="Femelles" value={String(stats.females)} trend="+8%" icon={Users} color="green" />
-                                </div>
-                            </div>
-
-                            {/* RemindersCard */}
-                            <div className="mb-6">
-                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">RemindersCard.tsx</p>
-                                <RemindersCard animals={animals} />
-                            </div>
-
-                            {/* FeaturedCarousel */}
-                            <div className="mb-4">
-                                <p className="text-xs font-bold text-amber-600 mb-2 uppercase">FeaturedCarousel.tsx</p>
-                                <FeaturedCarousel animals={animals.slice(0, 5)} />
-                            </div>
-                        </div>
-                        {/* =============================================================== */}
                     </div>
                 </div>
 
-                {/* Right Side - Alerts Panel */}
+                {/* Right Side - RemindersCard */}
                 <div className="w-80 flex-shrink-0">
-                    <Card className="h-full flex flex-col overflow-hidden">
-                        <div className="p-4 border-b border-slate-100 flex-shrink-0">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center">
-                                        <Bell className="w-4 h-4 text-red-500" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-900 text-sm">Rappels & Alertes</h3>
-                                        <p className="text-xs text-slate-500">Santé, Reproduction et Stock</p>
-                                    </div>
-                                </div>
-                                <span className={clsx("text-xs font-semibold px-2 py-1 rounded-full", activeAlertsCount > 0 ? "text-red-500" : "bg-emerald-100 text-emerald-600")}>
-                                    {activeAlertsCount} Actifs
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                            {/* Chaleurs */}
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Chaleurs à surveiller</h4>
-                                {heatAlerts.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {heatAlerts.map((alert, idx) => (
-                                            <div key={idx} className="flex items-center gap-2">
-                                                <Heart className="w-4 h-4 text-pink-500 flex-shrink-0" />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-slate-900 text-sm truncate">{alert.name}</p>
-                                                    <p className="text-xs text-slate-500">{alert.window}</p>
-                                                </div>
-                                                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">{alert.daysUntil}j</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : <p className="text-sm text-slate-400 italic">Aucune chaleur prévue.</p>}
-                            </div>
-
-                            {/* Santé */}
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Santé à venir</h4>
-                                {healthReminders.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {healthReminders.map(task => (
-                                            <div key={task.id} className="flex items-center gap-2">
-                                                <Stethoscope className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-slate-900 text-sm truncate">{task.title}</p>
-                                                    <p className="text-xs text-slate-500">{new Date(task.date).toLocaleDateString('fr')}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : <p className="text-sm text-slate-400 italic">Aucun rappel sanitaire.</p>}
-                            </div>
-
-                            {/* Stock */}
-                            <div>
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Alertes stock</h4>
-                                <p className="text-sm text-slate-400 italic">Aucune alerte stock.</p>
-                            </div>
-                        </div>
-                    </Card>
+                    <RemindersCard animals={animals} />
                 </div>
             </div>
         </div>

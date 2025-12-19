@@ -33,8 +33,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     // Authenticated but onboarding not completed
     if (requireOnboarding && userProfile && !userProfile.onboardingCompleted) {
-        // Don't redirect if already on onboarding page
-        if (location.pathname !== '/onboarding') {
+        // Don't redirect if already on onboarding page or join page
+        if (location.pathname !== '/onboarding' && location.pathname !== '/join') {
             return <Navigate to="/onboarding" replace />;
         }
     }
@@ -60,8 +60,12 @@ export const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // If authenticated but onboarding not completed, redirect to onboarding
+    // BUT only if they are not already on a path that handles their status (like /join)
     if (user && userProfile && !userProfile.onboardingCompleted) {
-        return <Navigate to="/onboarding" replace />;
+        const allowedPaths = ['/onboarding', '/join', '/register'];
+        if (!allowedPaths.includes(window.location.pathname)) {
+            return <Navigate to="/onboarding" replace />;
+        }
     }
 
     return <>{children}</>;

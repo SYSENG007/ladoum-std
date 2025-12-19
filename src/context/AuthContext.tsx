@@ -12,6 +12,8 @@ import {
 import { auth, googleProvider } from '../lib/firebase';
 import { UserService } from '../services/UserService';
 import { InvitationService } from '../services/InvitationService';
+import { StaffService } from '../services/StaffService';
+import { FarmService } from '../services/FarmService';
 import type { UserProfile } from '../types/auth';
 
 interface AuthContextType {
@@ -20,8 +22,8 @@ interface AuthContextType {
     loading: boolean;
     error: string | null;
     signInWithEmail: (email: string, password: string) => Promise<void>;
-    signUpWithEmail: (email: string, password: string, displayName: string, invitationCode: string) => Promise<void>;
-    signInWithGoogle: (invitationCode?: string) => Promise<void>;
+    signUpWithEmail: (email: string, password: string, displayName: string, invitationCode?: string, staffToken?: string) => Promise<void>;
+    signInWithGoogle: (invitationCode?: string, staffToken?: string) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
     clearError: () => void;
@@ -80,41 +82,85 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: string,
         password: string,
         displayName: string,
-        invitationCode: string = ''
+        invitationCode: string = '',
+        staffToken: string = ''
     ) => {
         setLoading(true);
         setError(null);
         try {
             let invitation = null;
+            let staffInv = null;
 
-            // Si un code d'invitation est fourni, le valider
+            // 1. Valider le code d'invitation (ancien système)
             if (invitationCode && invitationCode.trim()) {
                 const validation = await InvitationService.validateCode(invitationCode);
                 if (!validation.valid || !validation.invitation) {
                     throw new Error(validation.error || 'Code d\'invitation invalide');
                 }
-
-                // Vérifier que l'email correspond (si spécifié dans l'invitation)
                 if (validation.invitation.email && validation.invitation.email !== email.toLowerCase()) {
                     throw new Error('Cet email ne correspond pas à l\'invitation');
                 }
-
                 invitation = validation.invitation;
             }
 
-            // Créer le compte Firebase
+            // 2. Valider le token staff (nouveau système)
+            if (staffToken && staffToken.trim()) {
+                const inv = await StaffService.getByToken(staffToken);
+                if (!inv) {
+                    throw new Error('Lien d\'invitation invalide ou expiré');
+                }
+                if (inv.email.toLowerCase() !== email.toLowerCase()) {
+                    throw new Error('Cet email ne correspond pas à l\'invitation');
+                }
+                staffInv = inv;
+            }
+
+            // 3. Créer le compte Firebase
             const credential = await createUserWithEmailAndPassword(auth, email, password);
 
-            // Mettre à jour le profil Firebase
+            // 4. Mettre à jour le profil Firebase
             await updateProfile(credential.user, { displayName });
 
-            // Créer le profil utilisateur dans Firestore
-            await UserService.create(credential.user.uid, email, displayName);
+            // 5. Créer le profil utilisateur dans Firestore
+            const userId = credential.user.uid;
 
-            // Marquer l'invitation comme utilisée (si fournie)
-            if (invitation) {
-                await InvitationService.markAsUsed(invitation.id);
+            if (staffInv) {
+                // Flow Staff: Rejoindre directement la ferme et passer l'onboarding
+                await UserService.create(userId, email, displayName);
+
+                // Ajouter à la ferme
+                await FarmService.addMember(staffInv.farmId, {
+                    userId,
+                    displayName,
+                    email: staffInv.email,
+                    role: staffInv.role,
+                    canAccessFinances: staffInv.canAccessFinances,
+                    status: 'active',
+                    joinedAt: new Date().toISOString()
+                });
+
+                // Marquer l'invitation comme acceptée
+                await StaffService.acceptInvitation(staffInv.id, userId);
+
+                // Configurer la ferme de l'utilisateur et marquer l'onboarding terminé
+                await UserService.setFarm(userId, staffInv.farmId, staffInv.role);
+                await UserService.completeOnboarding(userId);
+            } else {
+                // Flow Normal / Owner
+                await UserService.create(userId, email, displayName);
+
+                if (invitation) {
+                    await InvitationService.markAsUsed(invitation.id);
+                    // Si l'invitation contient un farmId, on l'associe
+                    if (invitation.farmId) {
+                        await UserService.setFarm(userId, invitation.farmId, invitation.role || 'worker');
+                        await UserService.completeOnboarding(userId);
+                    }
+                }
             }
+
+            // Rafraîchir le profil
+            await loadUserProfile(credential.user);
 
         } catch (err: any) {
             const errorMessage = err.message || getFirebaseErrorMessage(err.code);
@@ -126,12 +172,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // Connexion avec Google
-    const signInWithGoogle = async (invitationCode?: string) => {
+    const signInWithGoogle = async (invitationCode?: string, staffToken?: string) => {
         setLoading(true);
         setError(null);
         try {
-            // Si un code est fourni, le valider d'abord
+            // 1. Valider les invitations si codes fournis
             let invitation = null;
+            let staffInv = null;
+
             if (invitationCode) {
                 const validation = await InvitationService.validateCode(invitationCode);
                 if (!validation.valid || !validation.invitation) {
@@ -140,32 +188,93 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 invitation = validation.invitation;
             }
 
+            if (staffToken) {
+                const inv = await StaffService.getByToken(staffToken);
+                if (!inv) {
+                    throw new Error('Lien d\'invitation invalide ou expiré');
+                }
+                staffInv = inv;
+            }
+
             const result = await signInWithPopup(auth, googleProvider);
             const { user: googleUser } = result;
 
-            // Vérifier si l'utilisateur existe déjà
+            // 2. Vérifier si l'utilisateur existe déjà
             let profile = await UserService.getById(googleUser.uid);
 
             if (!profile) {
                 // Nouvel utilisateur - créer le profil
+                const email = googleUser.email?.toLowerCase() || '';
+                const displayName = googleUser.displayName || 'Utilisateur';
+
                 // Si une invitation est fournie, vérifier l'email
-                if (invitation && invitation.email && invitation.email !== googleUser.email?.toLowerCase()) {
+                if (invitation && invitation.email && invitation.email !== email) {
                     await signOut(auth);
                     throw new Error('Cet email ne correspond pas à l\'invitation');
                 }
 
-                // Créer le profil
-                await UserService.create(
-                    googleUser.uid,
-                    googleUser.email || '',
-                    googleUser.displayName || 'Utilisateur'
-                );
+                if (staffInv && staffInv.email.toLowerCase() !== email) {
+                    await signOut(auth);
+                    throw new Error('Cet email ne correspond pas à l\'invitation');
+                }
 
-                // Marquer l'invitation comme utilisée (si fournie)
-                if (invitation) {
-                    await InvitationService.markAsUsed(invitation.id);
+                if (staffInv) {
+                    // Flow Staff direct
+                    await UserService.create(googleUser.uid, email, displayName);
+                    await FarmService.addMember(staffInv.farmId, {
+                        userId: googleUser.uid,
+                        displayName,
+                        email,
+                        role: staffInv.role,
+                        canAccessFinances: staffInv.canAccessFinances,
+                        status: 'active',
+                        joinedAt: new Date().toISOString()
+                    });
+                    await StaffService.acceptInvitation(staffInv.id, googleUser.uid);
+                    await UserService.setFarm(googleUser.uid, staffInv.farmId, staffInv.role);
+                    await UserService.completeOnboarding(googleUser.uid);
+                } else {
+                    // Créer le profil normal
+                    await UserService.create(googleUser.uid, email, displayName);
+
+                    if (invitation) {
+                        await InvitationService.markAsUsed(invitation.id);
+                        if (invitation.farmId) {
+                            await UserService.setFarm(googleUser.uid, invitation.farmId, invitation.role || 'worker');
+                            await UserService.completeOnboarding(googleUser.uid);
+                        }
+                    }
+                }
+            } else if (staffInv) {
+                // Utilisateur existant rejoignant une ferme via token
+                const userId = googleUser.uid;
+
+                // Vérifier s'il est déjà membre (doublon possible si on ne check pas)
+                const farm = await FarmService.getById(staffInv.farmId);
+                const alreadyMember = farm?.members.some(m => m.userId === userId);
+
+                if (!alreadyMember) {
+                    await FarmService.addMember(staffInv.farmId, {
+                        userId,
+                        displayName: profile.displayName,
+                        email: profile.email,
+                        role: staffInv.role,
+                        canAccessFinances: staffInv.canAccessFinances,
+                        status: 'active',
+                        joinedAt: new Date().toISOString()
+                    });
+                    await StaffService.acceptInvitation(staffInv.id, userId);
+
+                    // Si l'utilisateur n'avait pas de ferme, lui mettre celle-ci
+                    if (!profile.farmId) {
+                        await UserService.setFarm(userId, staffInv.farmId, staffInv.role);
+                        await UserService.completeOnboarding(userId);
+                    }
                 }
             }
+
+            // Recharger le profil
+            await loadUserProfile(googleUser);
 
         } catch (err: any) {
             const errorMessage = err.message || getFirebaseErrorMessage(err.code);

@@ -2,12 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { StaffService } from '../services/StaffService';
-import { FarmService } from '../services/FarmService';
-import { UserService } from '../services/UserService';
 import { Button } from '../components/ui/Button';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, User, CheckCircle, Users, Building2 } from 'lucide-react';
 import logo from '../assets/logo.jpg';
-import { auth } from '../lib/firebase';
 import type { StaffInvitation } from '../types/staff';
 
 type RegistrationMode = 'choice' | 'owner' | 'staff';
@@ -15,7 +12,7 @@ type RegistrationMode = 'choice' | 'owner' | 'staff';
 export const Register: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { signUpWithEmail, signInWithGoogle, loading, error, clearError, refreshUserProfile } = useAuth();
+    const { signUpWithEmail, signInWithGoogle, loading, error, clearError } = useAuth();
 
     // Check if coming from an invitation - token can be direct (?token=xxx) or in redirect param
     const tokenDirect = searchParams.get('token');
@@ -89,38 +86,15 @@ export const Register: React.FC = () => {
         }
 
         try {
-            // Create account (no invitation code needed for new system)
-            await signUpWithEmail(email, password, displayName, '');
+            // Inscription (AuthContext handles staff association if invitationToken is present)
+            await signUpWithEmail(email, password, displayName, '', invitationToken || '');
 
-            if (mode === 'staff' && invitation) {
-                // Staff flow: join existing farm, skip onboarding
-                const userId = auth.currentUser?.uid;
-
-                if (userId) {
-                    // Add user to farm
-                    await FarmService.addMember(invitation.farmId, {
-                        userId,
-                        displayName,
-                        email: invitation.email,
-                        role: invitation.role,
-                        canAccessFinances: invitation.canAccessFinances,
-                        status: 'active',
-                        joinedAt: new Date().toISOString()
-                    });
-
-                    // Mark invitation as accepted
-                    await StaffService.acceptInvitation(invitation.id, userId);
-
-                    // Set user's farm and mark onboarding complete (staff doesn't need onboarding)
-                    await UserService.setFarm(userId, invitation.farmId, invitation.role);
-                    await UserService.completeOnboarding(userId);
-
-                    // Refresh profile and go to dashboard
-                    await refreshUserProfile();
-                    navigate('/');
-                }
+            // Redirect will be handled by AuthContext profile update or manual flow
+            // If it's a staff member, and profile is updated, ProtectedRoute/PublicRoute will handle redirection to /
+            // BUT since navigate('/') is already here, we keep it for normal flow too.
+            if (invitationToken) {
+                navigate('/');
             } else {
-                // Owner flow: go to onboarding to create farm
                 navigate('/onboarding');
             }
         } catch (err: any) {
@@ -133,31 +107,10 @@ export const Register: React.FC = () => {
         clearError();
 
         try {
-            await signInWithGoogle();
+            await signInWithGoogle('', invitationToken || '');
 
-            if (mode === 'staff' && invitation) {
-                // Staff flow: join existing farm
-                const userId = auth.currentUser?.uid;
-                const userEmail = auth.currentUser?.email;
-                const userName = auth.currentUser?.displayName;
-
-                if (userId) {
-                    await FarmService.addMember(invitation.farmId, {
-                        userId,
-                        displayName: userName || invitation.displayName,
-                        email: userEmail || invitation.email,
-                        role: invitation.role,
-                        canAccessFinances: invitation.canAccessFinances,
-                        status: 'active',
-                        joinedAt: new Date().toISOString()
-                    });
-
-                    await StaffService.acceptInvitation(invitation.id, userId);
-                    await UserService.setFarm(userId, invitation.farmId, invitation.role);
-                    await UserService.completeOnboarding(userId);
-                    await refreshUserProfile();
-                    navigate('/');
-                }
+            if (invitationToken) {
+                navigate('/');
             } else {
                 navigate('/onboarding');
             }
