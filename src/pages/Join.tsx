@@ -13,7 +13,15 @@ export const Join: React.FC = () => {
     const [searchParams] = useSearchParams();
     const { user, userProfile } = useAuth();
 
-    const token = searchParams.get('token');
+    const rawToken = searchParams.get('token') || searchParams.get('code') || '';
+    const token = rawToken ? decodeURIComponent(rawToken) : '';
+
+    console.log('[Join] Token extraction:', {
+        rawToken,
+        decodedToken: token,
+        length: token.length,
+        searchParamsString: window.location.search
+    });
 
     const [invitation, setInvitation] = useState<StaffInvitation | null>(null);
     const [loading, setLoading] = useState(true);
@@ -27,28 +35,41 @@ export const Join: React.FC = () => {
     }, [token]);
 
     const loadInvitation = async () => {
+        console.log('[Join.loadInvitation] Starting invitation load');
+        console.log('[Join.loadInvitation] Token from URL:', token);
+        console.log('[Join.loadInvitation] Token length:', token?.length);
+
         if (!token) {
+            console.log('[Join.loadInvitation] No token provided');
             setError('Lien d\'invitation invalide');
             setLoading(false);
             return;
         }
 
         try {
+            console.log('[Join.loadInvitation] Calling StaffService.getByToken...');
             const inv = await StaffService.getByToken(token);
+            console.log('[Join.loadInvitation] StaffService.getByToken result:', inv);
+
             if (!inv) {
+                console.log('[Join.loadInvitation] No invitation returned, setting error');
                 setError('Cette invitation a expiré ou n\'existe plus');
             } else {
+                console.log('[Join.loadInvitation] Valid invitation found, setting state');
                 setInvitation(inv);
 
                 // Check if user is already a member of this farm
                 if (user) {
+                    console.log('[Join.loadInvitation] User logged in, checking membership');
                     const farm = await FarmService.getById(inv.farmId);
                     if (farm?.members.some(m => m.userId === user.uid)) {
+                        console.log('[Join.loadInvitation] User is already a member');
                         setIsAlreadyMember(true);
                     }
                 }
             }
         } catch (err) {
+            console.error('[Join.loadInvitation] Error loading invitation:', err);
             setError('Erreur lors du chargement de l\'invitation');
         } finally {
             setLoading(false);

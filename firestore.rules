@@ -75,8 +75,10 @@ service cloud.firestore {
     }
     
     // Invitations
+    // Allow unauthenticated reads so users can validate invitation tokens before registering
+    // Only authenticated users can create/update/delete invitations
     match /invitations/{invitationId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Public read access for invitation validation
       allow create: if isAuthenticated();
       allow update: if isAuthenticated();
       allow delete: if isAuthenticated();

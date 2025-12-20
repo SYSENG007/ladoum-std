@@ -12,10 +12,10 @@ type RegistrationMode = 'choice' | 'owner' | 'staff';
 export const Register: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { signUpWithEmail, signInWithGoogle, loading, error, clearError } = useAuth();
+    const { signUpWithEmail, signInWithGoogle, loading, error, clearError, user, userProfile } = useAuth();
 
-    // Check if coming from an invitation - token can be direct (?token=xxx) or in redirect param
-    const tokenDirect = searchParams.get('token');
+    // Check if coming from an invitation - token can be direct (?token=xxx or ?code=xxx) or in redirect param
+    const tokenDirect = searchParams.get('token') || searchParams.get('code');
     const redirectParam = searchParams.get('redirect');
     const tokenFromRedirect = redirectParam?.includes('token=')
         ? new URLSearchParams(redirectParam.split('?')[1]).get('token')
@@ -42,6 +42,14 @@ export const Register: React.FC = () => {
             loadInvitation(invitationToken);
         }
     }, [invitationToken]);
+
+    // Redirect staff members to dashboard once their profile is set up
+    useEffect(() => {
+        if (invitationToken && user && userProfile?.onboardingCompleted) {
+            console.log('[Register] Staff member registered, redirecting to dashboard');
+            navigate('/');
+        }
+    }, [invitationToken, user, userProfile, navigate]);
 
     const loadInvitation = async (token: string) => {
         setLoadingInvitation(true);
@@ -89,14 +97,13 @@ export const Register: React.FC = () => {
             // Inscription (AuthContext handles staff association if invitationToken is present)
             await signUpWithEmail(email, password, displayName, '', invitationToken || '');
 
-            // Redirect will be handled by AuthContext profile update or manual flow
-            // If it's a staff member, and profile is updated, ProtectedRoute/PublicRoute will handle redirection to /
-            // BUT since navigate('/') is already here, we keep it for normal flow too.
-            if (invitationToken) {
-                navigate('/');
-            } else {
+            // For staff members, don't navigate manually - let PublicRoute handle it
+            // after the profile is refreshed with onboardingCompleted: true
+            if (!invitationToken) {
                 navigate('/onboarding');
             }
+            // If invitationToken exists, PublicRoute will automatically redirect to '/'
+            // once userProfile.onboardingCompleted is true
         } catch (err: any) {
             console.error('Registration error:', err);
         }
@@ -109,17 +116,25 @@ export const Register: React.FC = () => {
         try {
             await signInWithGoogle('', invitationToken || '');
 
-            if (invitationToken) {
-                navigate('/');
-            } else {
+            // For staff members, don't navigate manually - let PublicRoute handle it
+            if (!invitationToken) {
                 navigate('/onboarding');
             }
+            // If invitationToken exists, PublicRoute will automatically redirect to '/'
         } catch (err: any) {
             console.error('Google registration error:', err);
         }
     };
 
-    const displayError = localError || error;
+    // Filter out permission errors that are expected for unauthenticated users
+    // Only show errors that are actually relevant to registration
+    const isPermissionError = (err: string | null) => {
+        if (!err) return false;
+        const lowerErr = err.toLowerCase();
+        return lowerErr.includes('permission') || lowerErr.includes('insufficient');
+    };
+
+    const displayError = localError || (error && !isPermissionError(error) ? error : null);
 
     if (loadingInvitation) {
         return (

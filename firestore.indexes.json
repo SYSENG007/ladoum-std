@@ -59,6 +59,62 @@
                     "order": "DESCENDING"
                 }
             ]
+        },
+        {
+            "collectionGroup": "invitations",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "token",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "invitations",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "code",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "invitations",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "farmId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "invitations",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "email",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                }
+            ]
         }
     ],
     "fieldOverrides": []

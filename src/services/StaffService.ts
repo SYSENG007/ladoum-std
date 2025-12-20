@@ -14,7 +14,7 @@ import {
 import { db } from '../lib/firebase';
 import type { StaffInvitation } from '../types/staff';
 
-const INVITATIONS_COLLECTION = 'staff_invitations';
+const INVITATIONS_COLLECTION = 'invitations';
 
 /**
  * Generate a unique token for invitation links
@@ -98,33 +98,96 @@ export const StaffService = {
      * Get invitation by token
      */
     async getByToken(token: string): Promise<StaffInvitation | null> {
-        console.log('[StaffService.getByToken] Searching for token:', token);
-        const q = query(
-            collection(db, INVITATIONS_COLLECTION),
-            where('token', '==', token),
-            where('status', '==', 'pending')
-        );
-        const snapshot = await getDocs(q);
+        console.log('[StaffService.getByToken] ========== START ==========');
+        console.log('[StaffService.getByToken] Raw token:', token);
+        console.log('[StaffService.getByToken] Token length:', token?.length);
+        console.log('[StaffService.getByToken] Token type:', typeof token);
 
-        console.log('[StaffService.getByToken] Found docs:', snapshot.size);
+        if (!token) {
+            console.log('[StaffService.getByToken] No token provided');
+            return null;
+        }
+
+        const trimmedToken = token.trim();
+        console.log('[StaffService.getByToken] Trimmed token:', trimmedToken);
+        console.log('[StaffService.getByToken] Trimmed length:', trimmedToken.length);
+
+        // Query by token field ONLY (no status filter to avoid composite index requirement)
+        console.log('[StaffService.getByToken] Querying Firestore by token field only...');
+        let q = query(
+            collection(db, INVITATIONS_COLLECTION),
+            where('token', '==', trimmedToken)
+        );
+
+        let snapshot = await getDocs(q);
+        console.log('[StaffService.getByToken] Query returned', snapshot.size, 'document(s)');
+
+        // If not found by token, try code field (for backwards compatibility)
+        if (snapshot.empty && trimmedToken.length === 8) {
+            console.log('[StaffService.getByToken] No results by token, trying code field for 8-char token...');
+            q = query(
+                collection(db, INVITATIONS_COLLECTION),
+                where('code', '==', trimmedToken.toUpperCase())
+            );
+            snapshot = await getDocs(q);
+            console.log('[StaffService.getByToken] Code field query returned', snapshot.size, 'document(s)');
+        }
 
         if (snapshot.empty) {
-            console.log('[StaffService.getByToken] No invitation found for token:', token);
+            console.log('[StaffService.getByToken] ❌ No invitation found in database');
+            console.log('[StaffService.getByToken] ========== END (NOT FOUND) ==========');
             return null;
         }
 
-        const docData = snapshot.docs[0];
-        const invitation = { id: docData.id, ...docData.data() } as StaffInvitation;
+        // Get all matching documents and filter by status in JavaScript
+        const allDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StaffInvitation));
+        console.log('[StaffService.getByToken] Found', allDocs.length, 'invitation(s) with this token');
 
-        console.log('[StaffService.getByToken] Found invitation:', invitation);
+        allDocs.forEach((inv, idx) => {
+            console.log(`[StaffService.getByToken] Document ${idx + 1}:`, {
+                id: inv.id,
+                email: inv.email,
+                status: inv.status,
+                expiresAt: inv.expiresAt,
+                farmName: inv.farmName,
+                createdAt: inv.createdAt
+            });
+        });
+
+        // Filter for pending invitations
+        const pendingInvitations = allDocs.filter(inv => inv.status === 'pending');
+        console.log('[StaffService.getByToken] Pending invitations:', pendingInvitations.length);
+
+        if (pendingInvitations.length === 0) {
+            console.log('[StaffService.getByToken] ❌ No pending invitations (all are', allDocs.map(d => d.status).join(', ') + ')');
+            console.log('[StaffService.getByToken] ========== END (NO PENDING) ==========');
+            return null;
+        }
+
+        // Use the first pending invitation
+        const invitation = pendingInvitations[0];
+        console.log('[StaffService.getByToken] ✓ Using invitation:', invitation.id);
 
         // Check if expired
-        if (new Date(invitation.expiresAt) < new Date()) {
-            console.log('[StaffService.getByToken] Invitation expired:', invitation.expiresAt);
+        const expiryDate = new Date(invitation.expiresAt);
+        const now = new Date();
+        console.log('[StaffService.getByToken] Expiry check:', {
+            expiresAt: invitation.expiresAt,
+            expiryDate: expiryDate.toISOString(),
+            now: now.toISOString(),
+            isExpired: expiryDate < now,
+            timeUntilExpiry: `${Math.round((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60))} hours`
+        });
+
+        if (expiryDate < now) {
+            console.log('[StaffService.getByToken] ❌ Invitation expired, marking as expired');
             await updateDoc(doc(db, INVITATIONS_COLLECTION, invitation.id), { status: 'expired' });
+            console.log('[StaffService.getByToken] ========== END (EXPIRED) ==========');
             return null;
         }
 
+        console.log('[StaffService.getByToken] ✅ Returning valid invitation');
+        console.log('[StaffService.getByToken] ========== END (SUCCESS) ==========');
         return invitation;
     },
 
