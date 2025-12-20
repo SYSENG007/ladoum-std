@@ -143,10 +143,9 @@ export const IntegrationService = {
         userId: string,
         farmId?: string
     ): Promise<number> {
-        const inventory = await InventoryService.getAll();
+        const inventory = await InventoryService.getAll(farmId);
         const lowStockItems = inventory.filter(
-            item => (!item.farmId || !farmId || item.farmId === farmId) &&
-                item.quantity <= item.minThreshold
+            item => item.quantity <= item.minThreshold
         );
 
         for (const item of lowStockItems) {

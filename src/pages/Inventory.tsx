@@ -2,16 +2,19 @@ import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { AlertTriangle, Plus, Syringe, Wheat, Wrench, Package, TrendingDown, Search, Edit2, Trash2, MoreVertical } from 'lucide-react';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { AlertTriangle, Plus, Minus, Syringe, Wheat, Wrench, Package, TrendingDown, Search, Edit2, Trash2, MoreVertical } from 'lucide-react';
 import { AddInventoryModal } from '../components/inventory/AddInventoryModal';
 import { EditInventoryModal } from '../components/inventory/EditInventoryModal';
 import { InventoryService } from '../services/InventoryService';
 import { useData } from '../context/DataContext';
+import { useFarm } from '../context/FarmContext';
 import clsx from 'clsx';
 import type { InventoryCategory, InventoryItem } from '../types';
 
 export const Inventory: React.FC = () => {
     const { refreshData } = useData();
+    const { currentFarm } = useFarm();
     const [selectedCategory, setSelectedCategory] = useState<InventoryCategory | 'all'>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -19,6 +22,11 @@ export const Inventory: React.FC = () => {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
     const [_loading, setLoading] = useState(true);
+    const [confirmDialog, setConfirmDialog] = useState<{
+        isOpen: boolean;
+        item: InventoryItem | null;
+        delta: number;
+    }>({ isOpen: false, item: null, delta: 0 });
 
     // Load inventory data
     React.useEffect(() => {
@@ -27,7 +35,7 @@ export const Inventory: React.FC = () => {
 
     const loadInventory = async () => {
         try {
-            const data = await InventoryService.getAll();
+            const data = await InventoryService.getAll(currentFarm?.id);
             setInventory(data);
         } catch (err) {
             console.error('Error loading inventory:', err);
@@ -52,6 +60,24 @@ export const Inventory: React.FC = () => {
         } catch (err) {
             console.error('Error deleting inventory item:', err);
             alert('Erreur lors de la suppression de l\'article.');
+        }
+    };
+
+    const handleQuickAdjust = (item: InventoryItem, delta: number) => {
+        setConfirmDialog({ isOpen: true, item, delta });
+    };
+
+    const confirmQuickAdjust = async () => {
+        if (!confirmDialog.item) return;
+
+        try {
+            await InventoryService.adjustQuantity(confirmDialog.item.id, confirmDialog.delta);
+            await loadInventory();
+            await refreshData();
+            setConfirmDialog({ isOpen: false, item: null, delta: 0 });
+        } catch (err) {
+            console.error('Error adjusting quantity:', err);
+            alert('Erreur lors de la mise à jour du stock.');
         }
     };
 
@@ -273,6 +299,26 @@ export const Inventory: React.FC = () => {
                                             </p>
                                         </div>
 
+                                        {/* Quick Adjust Buttons */}
+                                        <div className="flex items-center gap-2 mt-3">
+                                            <button
+                                                onClick={() => handleQuickAdjust(item, -1)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors font-medium"
+                                                title="Retirer 1 unité"
+                                            >
+                                                <Minus className="w-4 h-4" />
+                                                <span className="text-sm">Retirer</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleQuickAdjust(item, 1)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-colors font-medium"
+                                                title="Ajouter 1 unité"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                <span className="text-sm">Ajouter</span>
+                                            </button>
+                                        </div>
+
                                         {isLowStock && (
                                             <Badge variant="error" className="w-full justify-center">
                                                 Réapprovisionnement nécessaire
@@ -300,6 +346,16 @@ export const Inventory: React.FC = () => {
                     item={editingItem}
                 />
             )}
+
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.delta > 0 ? 'Ajouter au stock' : 'Retirer du stock'}
+                message={`Voulez-vous ${confirmDialog.delta > 0 ? 'ajouter' : 'retirer'} ${Math.abs(confirmDialog.delta)} ${confirmDialog.item?.unit || 'unité'} ${confirmDialog.delta > 0 ? 'à' : 'de'} "${confirmDialog.item?.name}" ?`}
+                onConfirm={confirmQuickAdjust}
+                onCancel={() => setConfirmDialog({ isOpen: false, item: null, delta: 0 })}
+                confirmText="Confirmer"
+                cancelText="Annuler"
+            />
         </div>
     );
 };
