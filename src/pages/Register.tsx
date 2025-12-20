@@ -95,7 +95,7 @@ export const Register: React.FC = () => {
 
         try {
             // Inscription (AuthContext handles staff association if invitationToken is present)
-            await signUpWithEmail(email, password, displayName, '', invitationToken || '');
+            await signUpWithEmail(email, password, displayName, invitationToken || '');
 
             // For staff members, don't navigate manually - let PublicRoute handle it
             // after the profile is refreshed with onboardingCompleted: true
@@ -114,7 +114,7 @@ export const Register: React.FC = () => {
         clearError();
 
         try {
-            await signInWithGoogle('', invitationToken || '');
+            await signInWithGoogle(invitationToken || '');
 
             // For staff members, don't navigate manually - let PublicRoute handle it
             if (!invitationToken) {

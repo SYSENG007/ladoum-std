@@ -11,7 +11,6 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { UserService } from '../services/UserService';
-import { InvitationService } from '../services/InvitationService';
 import { StaffService } from '../services/StaffService';
 import { FarmService } from '../services/FarmService';
 import type { UserProfile } from '../types/auth';
@@ -22,8 +21,8 @@ interface AuthContextType {
     loading: boolean;
     error: string | null;
     signInWithEmail: (email: string, password: string) => Promise<void>;
-    signUpWithEmail: (email: string, password: string, displayName: string, invitationCode?: string, staffToken?: string) => Promise<void>;
-    signInWithGoogle: (invitationCode?: string, staffToken?: string) => Promise<void>;
+    signUpWithEmail: (email: string, password: string, displayName: string, staffToken?: string) => Promise<void>;
+    signInWithGoogle: (staffToken?: string) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
     clearError: () => void;
@@ -77,33 +76,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    // Inscription avec email/password (code d'invitation optionnel)
+    // Inscription avec email/password (staff token optionnel)
     const signUpWithEmail = async (
         email: string,
         password: string,
         displayName: string,
-        invitationCode: string = '',
         staffToken: string = ''
     ) => {
         setLoading(true);
         setError(null);
         try {
-            let invitation = null;
             let staffInv = null;
 
-            // 1. Valider le code d'invitation (ancien système)
-            if (invitationCode && invitationCode.trim()) {
-                const validation = await InvitationService.validateCode(invitationCode);
-                if (!validation.valid || !validation.invitation) {
-                    throw new Error(validation.error || 'Code d\'invitation invalide');
-                }
-                if (validation.invitation.email && validation.invitation.email !== email.toLowerCase()) {
-                    throw new Error('Cet email ne correspond pas à l\'invitation');
-                }
-                invitation = validation.invitation;
-            }
-
-            // 2. Valider le token staff (nouveau système)
+            // Valider le token staff si fourni
             if (staffToken && staffToken.trim()) {
                 const inv = await StaffService.getByToken(staffToken);
                 if (!inv) {
@@ -115,13 +100,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 staffInv = inv;
             }
 
-            // 3. Créer le compte Firebase
+            // Créer le compte Firebase
             const credential = await createUserWithEmailAndPassword(auth, email, password);
 
-            // 4. Mettre à jour le profil Firebase
+            // Mettre à jour le profil Firebase
             await updateProfile(credential.user, { displayName });
 
-            // 5. Créer le profil utilisateur dans Firestore
+            // Créer le profil utilisateur dans Firestore
             const userId = credential.user.uid;
 
             if (staffInv) {
@@ -146,17 +131,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 await UserService.setFarm(userId, staffInv.farmId, staffInv.role);
                 await UserService.completeOnboarding(userId);
             } else {
-                // Flow Normal / Owner
+                // Flow Normal / Owner - créer profil sans ferme
                 await UserService.create(userId, email, displayName);
-
-                if (invitation) {
-                    await InvitationService.markAsUsed(invitation.id);
-                    // Si l'invitation contient un farmId, on l'associe
-                    if (invitation.farmId) {
-                        await UserService.setFarm(userId, invitation.farmId, invitation.role || 'worker');
-                        await UserService.completeOnboarding(userId);
-                    }
-                }
             }
 
             // Rafraîchir le profil
@@ -172,21 +148,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // Connexion avec Google
-    const signInWithGoogle = async (invitationCode?: string, staffToken?: string) => {
+    const signInWithGoogle = async (staffToken?: string) => {
         setLoading(true);
         setError(null);
         try {
-            // 1. Valider les invitations si codes fournis
-            let invitation = null;
+            // Valider le token staff si fourni
             let staffInv = null;
-
-            if (invitationCode) {
-                const validation = await InvitationService.validateCode(invitationCode);
-                if (!validation.valid || !validation.invitation) {
-                    throw new Error(validation.error || 'Code d\'invitation invalide');
-                }
-                invitation = validation.invitation;
-            }
 
             if (staffToken) {
                 const inv = await StaffService.getByToken(staffToken);
@@ -207,12 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const email = googleUser.email?.toLowerCase() || '';
                 const displayName = googleUser.displayName || 'Utilisateur';
 
-                // Si une invitation est fournie, vérifier l'email
-                if (invitation && invitation.email && invitation.email !== email) {
-                    await signOut(auth);
-                    throw new Error('Cet email ne correspond pas à l\'invitation');
-                }
-
+                // Si une invitation staff est fournie, vérifier l'email
                 if (staffInv && staffInv.email.toLowerCase() !== email) {
                     await signOut(auth);
                     throw new Error('Cet email ne correspond pas à l\'invitation');
@@ -234,16 +196,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     await UserService.setFarm(googleUser.uid, staffInv.farmId, staffInv.role);
                     await UserService.completeOnboarding(googleUser.uid);
                 } else {
-                    // Créer le profil normal
+                    // Créer le profil normal sans invitation
                     await UserService.create(googleUser.uid, email, displayName);
-
-                    if (invitation) {
-                        await InvitationService.markAsUsed(invitation.id);
-                        if (invitation.farmId) {
-                            await UserService.setFarm(googleUser.uid, invitation.farmId, invitation.role || 'worker');
-                            await UserService.completeOnboarding(googleUser.uid);
-                        }
-                    }
                 }
             } else if (staffInv) {
                 // Utilisateur existant rejoignant une ferme via token
