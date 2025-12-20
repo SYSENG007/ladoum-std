@@ -74,8 +74,12 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
                 id: `rep-${Date.now()}`,
                 date: eventDate,
                 type: eventType,
-                notes: notes || undefined,
             };
+
+            // Add optional notes only if provided
+            if (notes && notes.trim()) {
+                newRecord.notes = notes.trim();
+            }
 
             // Add type-specific fields
             if (eventType === 'Heat') {
@@ -88,8 +92,12 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
 
             if (eventType === 'Birth') {
                 newRecord.offspringCount = offspringCount;
-                newRecord.outcome = outcome || undefined;
-                if (mateId) newRecord.mateId = mateId;
+                if (outcome && outcome.trim()) {
+                    newRecord.outcome = outcome.trim();
+                }
+                if (mateId) {
+                    newRecord.mateId = mateId;
+                }
             }
 
             if (eventType === 'Ultrasound' && mateId) {

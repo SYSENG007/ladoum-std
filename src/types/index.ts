@@ -74,6 +74,16 @@ export interface HeatPrediction {
 export type ReproductiveStatus =
     | 'Available' | 'InHeat' | 'Pregnant' | 'Lactating' | 'Resting';
 
+// Gestation prediction result
+export interface GestationPrediction {
+    expectedBirthDate: string;
+    windowStart: string;      // -5 days
+    windowEnd: string;        // +5 days
+    daysRemaining: number;
+    matingDate: string;
+    confidence: 'Low' | 'Medium' | 'High';
+}
+
 // Morphometric prediction result
 export interface MorphometricPrediction {
     predictedHG: number; // Hauteur au garrot

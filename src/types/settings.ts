@@ -54,7 +54,9 @@ export interface AppSettings {
 
     // Reproduction
     heatCycleLength: number; // Jours (default 17 pour moutons)
+    heatSurveillanceWindow: number; // Jours (default 2)
     gestationLength: number; // Jours (default 150 pour moutons)
+    gestationSurveillanceWindow: number; // Jours (default 5)
 }
 
 export const defaultAppSettings: AppSettings = {
@@ -97,7 +99,9 @@ export const defaultAppSettings: AppSettings = {
 
     // Reproduction
     heatCycleLength: 17,
+    heatSurveillanceWindow: 2,
     gestationLength: 150,
+    gestationSurveillanceWindow: 5,
 };
 
 // ============================================

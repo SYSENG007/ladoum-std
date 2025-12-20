@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, PawPrint, GitFork, CalendarCheck, Package, LogOut, Menu, Store, Wallet, Stethoscope, Settings, Users } from 'lucide-react';
+import { LayoutDashboard, PawPrint, GitFork, CalendarCheck, Package, LogOut, Menu, Store, Wallet, Stethoscope, Settings, Users, Sun, Moon } from 'lucide-react';
 import logo from '../../assets/logo.jpg';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
+import { useSettings } from '../../context/SettingsContext';
 import { FarmSwitcher } from '../farm/FarmSwitcher';
 
 const NAV_ITEMS = [
@@ -26,6 +27,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const { logout } = useAuth();
+    const { settings, updateSettings } = useSettings();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -33,21 +35,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
         navigate('/login');
     };
 
+    const toggleTheme = () => {
+        const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
+        updateSettings({ theme: newTheme });
+    };
+
+    const isDark = settings.theme === 'dark' ||
+        (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
     return (
         <>
             {/* Desktop Sidebar */}
             <aside className={clsx(
-                "hidden md:flex flex-col bg-white border-r border-slate-200 h-screen fixed left-0 top-0 z-50 transition-all duration-300",
+                "hidden md:flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 h-screen fixed left-0 top-0 z-50 transition-all duration-300",
                 isCollapsed ? "w-20" : "w-64"
             )}>
                 <div className={clsx("p-4 flex items-center gap-3", isCollapsed ? "justify-center" : "")}>
-                    <button onClick={toggleSidebar} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Menu className="w-6 h-6 text-slate-600" />
+                    <button onClick={toggleSidebar} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                        <Menu className="w-6 h-6 text-slate-600 dark:text-slate-300" />
                     </button>
                     {!isCollapsed && (
                         <div className="flex items-center gap-3 overflow-hidden whitespace-nowrap">
                             <img src={logo} alt="Ladoum STD Logo" className="w-8 h-8 rounded-lg object-cover" />
-                            <span className="text-lg font-bold text-slate-800 truncate">Ladoum STD</span>
+                            <span className="text-lg font-bold text-slate-800 dark:text-white truncate">Ladoum STD</span>
                         </div>
                     )}
                 </div>
@@ -68,8 +78,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                                 clsx(
                                     'flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200',
                                     isActive
-                                        ? 'bg-primary-50 text-primary-700 font-medium shadow-sm'
-                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
+                                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200',
                                     isCollapsed ? "justify-center" : ""
                                 )
                             }
@@ -80,7 +90,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-slate-100 space-y-2">
+                <div className="p-4 border-t border-slate-100 dark:border-slate-700 space-y-2">
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        className={clsx(
+                            "flex items-center gap-3 px-3 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 w-full transition-colors rounded-xl",
+                            isCollapsed ? "justify-center" : ""
+                        )}
+                        title={isCollapsed ? (isDark ? "Mode clair" : "Mode sombre") : undefined}
+                    >
+                        {isDark ? (
+                            <Sun className="w-5 h-5 shrink-0" />
+                        ) : (
+                            <Moon className="w-5 h-5 shrink-0" />
+                        )}
+                        {!isCollapsed && <span>{isDark ? "Mode clair" : "Mode sombre"}</span>}
+                    </button>
+
                     {/* Settings Link */}
                     <NavLink
                         to="/settings"
@@ -89,8 +116,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                             clsx(
                                 "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200",
                                 isActive
-                                    ? 'bg-primary-50 text-primary-700 font-medium'
-                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700',
+                                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium'
+                                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200',
                                 isCollapsed ? "justify-center" : ""
                             )
                         }
@@ -103,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                     <button
                         onClick={handleLogout}
                         className={clsx(
-                            "flex items-center gap-3 px-3 py-3 text-slate-500 hover:text-red-600 w-full transition-colors rounded-xl hover:bg-red-50",
+                            "flex items-center gap-3 px-3 py-3 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 w-full transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20",
                             isCollapsed ? "justify-center" : ""
                         )}
                         title={isCollapsed ? "Déconnexion" : undefined}

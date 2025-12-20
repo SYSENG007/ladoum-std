@@ -3,11 +3,12 @@
  * Predicts next heat cycles based on reproductive history
  */
 
-import type { Animal, HeatPrediction, ReproductionRecord, ReproductiveStatus } from '../types';
+import type { Animal, HeatPrediction, GestationPrediction, ReproductionRecord, ReproductiveStatus } from '../types';
 
 // Default cycle parameters for Ladoum sheep
 const DEFAULT_CYCLE_LENGTH = 17; // days
-const SURVEILLANCE_WINDOW = 2; // ±2 days
+const SURVEILLANCE_WINDOW = 2; // ±2 days for heat
+const GESTATION_SURVEILLANCE_WINDOW = 5; // ±5 days for birth
 const POST_PARTUM_DELAY = 45; // days after birth before returning to heat
 const LACTATION_DELAY_FACTOR = 1.2; // Cycle can be extended during heavy lactation
 
@@ -307,4 +308,118 @@ export function getStatusColor(status: ReproductiveStatus): string {
         'Resting': 'default'
     };
     return statusColors[status];
+}
+
+/**
+ * Predict birth date for a pregnant female
+ * Returns null if the animal is not pregnant
+ */
+export function predictBirthDate(animal: Animal): GestationPrediction | null {
+    if (animal.gender !== 'Female') return null;
+
+    const records = animal.reproductionRecords;
+    if (!records || records.length === 0) return null;
+
+    // Find the most recent mating or ultrasound event without a subsequent birth
+    const sortedRecords = [...records].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    // Find mating event
+    const matingEvent = sortedRecords.find(r => r.type === 'Mating' || r.type === 'Ultrasound');
+    if (!matingEvent) return null;
+
+    const matingDate = new Date(matingEvent.date);
+
+    // Check if there's a birth or abortion after this mating
+    const hasOutcome = sortedRecords.some(
+        r => (r.type === 'Birth' || r.type === 'Abortion') &&
+            new Date(r.date) > matingDate
+    );
+
+    if (hasOutcome) return null;
+
+    // Check if still within gestation period
+    const today = new Date();
+    const daysSinceMating = Math.floor(
+        (today.getTime() - matingDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysSinceMating > GESTATION_PERIOD + GESTATION_SURVEILLANCE_WINDOW) {
+        // Gestation period exceeded - might have missed recording the birth
+        return null;
+    }
+
+    // Calculate expected birth date
+    const expectedBirthDate = new Date(matingDate);
+    expectedBirthDate.setDate(expectedBirthDate.getDate() + GESTATION_PERIOD);
+
+    // Calculate surveillance window (±5 days)
+    const windowStart = new Date(expectedBirthDate);
+    windowStart.setDate(windowStart.getDate() - GESTATION_SURVEILLANCE_WINDOW);
+
+    const windowEnd = new Date(expectedBirthDate);
+    windowEnd.setDate(windowEnd.getDate() + GESTATION_SURVEILLANCE_WINDOW);
+
+    const daysRemaining = Math.floor(
+        (expectedBirthDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // Determine confidence based on ultrasound confirmation
+    let confidence: 'Low' | 'Medium' | 'High' = 'Medium';
+    const hasUltrasound = sortedRecords.some(
+        r => r.type === 'Ultrasound' && new Date(r.date) > matingDate
+    );
+    if (hasUltrasound) {
+        confidence = 'High';
+    } else if (daysSinceMating < 45) {
+        // Very early - lower confidence
+        confidence = 'Low';
+    }
+
+    return {
+        expectedBirthDate: expectedBirthDate.toISOString().split('T')[0],
+        windowStart: windowStart.toISOString().split('T')[0],
+        windowEnd: windowEnd.toISOString().split('T')[0],
+        daysRemaining,
+        matingDate: matingEvent.date,
+        confidence
+    };
+}
+
+/**
+ * Get all pregnant females with upcoming births in the next N days
+ */
+export function getUpcomingBirths(
+    animals: Animal[],
+    days: number = 14
+): Array<{ animal: Animal; prediction: GestationPrediction }> {
+    const today = new Date();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + days);
+
+    const results: Array<{ animal: Animal; prediction: GestationPrediction }> = [];
+
+    const females = animals.filter(a => a.gender === 'Female' && a.status === 'Active');
+
+    for (const animal of females) {
+        const prediction = predictBirthDate(animal);
+        if (prediction) {
+            const windowStart = new Date(prediction.windowStart);
+            const expectedDate = new Date(prediction.expectedBirthDate);
+
+            // Include if surveillance window starts within range
+            if (windowStart <= endDate && expectedDate >= today) {
+                results.push({ animal, prediction });
+            }
+        }
+    }
+
+    // Sort by soonest birth date
+    results.sort((a, b) =>
+        new Date(a.prediction.expectedBirthDate).getTime() -
+        new Date(b.prediction.expectedBirthDate).getTime()
+    );
+
+    return results;
 }

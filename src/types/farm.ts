@@ -33,8 +33,10 @@ export interface FarmMember {
 export interface FarmSettings {
     currency: 'XOF' | 'EUR';
     defaultBreed: string;
-    heatCycleLength: number; // jours (défaut: 17)
-    gestationLength: number; // jours (défaut: 150)
+    heatCycleLength: number;        // jours (défaut: 17)
+    heatSurveillanceWindow: number; // jours (défaut: 2)
+    gestationLength: number;        // jours (défaut: 150)
+    gestationSurveillanceWindow: number; // jours (défaut: 5)
 }
 
 // Paramètres par défaut pour une nouvelle ferme
@@ -42,5 +44,7 @@ export const defaultFarmSettings: FarmSettings = {
     currency: 'XOF',
     defaultBreed: 'Ladoum',
     heatCycleLength: 17,
+    heatSurveillanceWindow: 2,
     gestationLength: 150,
+    gestationSurveillanceWindow: 5,
 };

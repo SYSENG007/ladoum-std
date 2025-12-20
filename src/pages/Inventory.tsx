@@ -28,10 +28,10 @@ export const Inventory: React.FC = () => {
         delta: number;
     }>({ isOpen: false, item: null, delta: 0 });
 
-    // Load inventory data
+    // Load inventory data when farm changes
     React.useEffect(() => {
         loadInventory();
-    }, []);
+    }, [currentFarm?.id]);
 
     const loadInventory = async () => {
         try {

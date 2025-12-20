@@ -2,24 +2,28 @@ import React, { useMemo, useState } from 'react';
 import { useAnimals } from '../../hooks/useAnimals';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { Calendar, ChevronLeft, ChevronRight, AlertCircle, Heart, Plus } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, AlertCircle, Heart, Plus, Baby } from 'lucide-react';
 import { ReproductionEventModal } from './ReproductionEventModal';
 import clsx from 'clsx';
 import {
     getUpcomingHeats,
+    getUpcomingBirths,
     predictNextHeat,
+    predictBirthDate,
     formatReproductiveStatus,
     getStatusColor
 } from '../../utils/heatPrediction';
-import type { Animal, HeatPrediction, ReproductionRecord } from '../../types';
+import type { Animal, HeatPrediction, GestationPrediction, ReproductionRecord } from '../../types';
 
 interface CalendarEvent {
-    type: 'heat' | 'mating' | 'birth' | 'abortion' | 'ultrasound';
+    type: 'heat' | 'mating' | 'birth' | 'abortion' | 'ultrasound' | 'birth_prediction';
     animal: Animal;
     date: string;
     record?: ReproductionRecord;
     prediction?: HeatPrediction;
+    gestationPrediction?: GestationPrediction;
     isInWindow?: boolean;
+    mate?: Animal; // For mating events: the partner
 }
 
 interface DayData {
@@ -58,6 +62,15 @@ export const HeatCalendar: React.FC = () => {
         })).filter(p => p.prediction !== null) as Array<{
             animal: Animal;
             prediction: HeatPrediction;
+        }>;
+
+        // Calculate birth predictions for pregnant females
+        const birthPredictions = females.map(animal => ({
+            animal,
+            prediction: predictBirthDate(animal)
+        })).filter(p => p.prediction !== null) as Array<{
+            animal: Animal;
+            prediction: GestationPrediction;
         }>;
 
         // Build calendar grid
@@ -104,10 +117,25 @@ export const HeatCalendar: React.FC = () => {
 
                 animal.reproductionRecords.forEach(record => {
                     if (record.date.startsWith(dateStr)) {
-                        const eventType = record.type === 'Mating' ? 'mating' :
-                            record.type === 'Birth' ? 'birth' :
-                                record.type === 'Abortion' ? 'abortion' :
-                                    record.type === 'Ultrasound' ? 'ultrasound' : null;
+                        // For mating: only show from female's perspective to avoid duplicates
+                        if (record.type === 'Mating') {
+                            // Only add if this is the female animal
+                            if (animal.gender === 'Female') {
+                                const mate = record.mateId ? animals.find(a => a.id === record.mateId) : undefined;
+                                events.push({
+                                    type: 'mating',
+                                    animal,
+                                    date: dateStr,
+                                    record,
+                                    mate
+                                });
+                            }
+                            return; // Skip adding duplicate for male
+                        }
+
+                        const eventType = record.type === 'Birth' ? 'birth' :
+                            record.type === 'Abortion' ? 'abortion' :
+                                record.type === 'Ultrasound' ? 'ultrasound' : null;
 
                         if (eventType) {
                             events.push({
@@ -119,6 +147,21 @@ export const HeatCalendar: React.FC = () => {
                         }
                     }
                 });
+            });
+
+            // Add birth predictions (gestation surveillance window)
+            birthPredictions.forEach(p => {
+                const windowStart = p.prediction.windowStart;
+                const windowEnd = p.prediction.windowEnd;
+                if (dateStr >= windowStart && dateStr <= windowEnd) {
+                    events.push({
+                        type: 'birth_prediction',
+                        animal: p.animal,
+                        date: dateStr,
+                        gestationPrediction: p.prediction,
+                        isInWindow: dateStr === p.prediction.expectedBirthDate
+                    });
+                }
             });
 
             days.push({
@@ -150,6 +193,12 @@ export const HeatCalendar: React.FC = () => {
         [animals]
     );
 
+    // Upcoming births in next 14 days
+    const upcomingBirths = useMemo(() =>
+        getUpcomingBirths(animals, 14),
+        [animals]
+    );
+
     const navigateMonth = (direction: number) => {
         setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + direction, 1));
     };
@@ -168,6 +217,8 @@ export const HeatCalendar: React.FC = () => {
             case 'birth': return { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' };
             case 'abortion': return { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' };
             case 'ultrasound': return { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' };
+            case 'birth_prediction': return { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' };
+            default: return { bg: 'bg-slate-100', text: 'text-slate-700', dot: 'bg-slate-500' };
         }
     };
 
@@ -245,7 +296,59 @@ export const HeatCalendar: React.FC = () => {
                     </div>
                 </Card>
 
-                {/* All Females Status */}
+                {/* Upcoming Births Alert */}
+                <Card>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                            <Baby className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-slate-900">Mises-bas à surveiller</h4>
+                            <p className="text-sm text-slate-500">Prochains 14 jours (±5j)</p>
+                        </div>
+                    </div>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        {upcomingBirths.length === 0 ? (
+                            <p className="text-center text-slate-400 py-4">Aucune mise-bas prévue</p>
+                        ) : (
+                            upcomingBirths.slice(0, 5).map(({ animal, prediction }) => {
+                                const daysRemaining = prediction.daysRemaining;
+
+                                return (
+                                    <div
+                                        key={animal.id}
+                                        className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl"
+                                    >
+                                        <img
+                                            src={animal.photoUrl}
+                                            alt={animal.name}
+                                            className="w-10 h-10 rounded-full object-cover"
+                                        />
+                                        <div className="flex-1">
+                                            <p className="font-medium text-slate-900">{animal.name}</p>
+                                            <p className="text-xs text-slate-500">
+                                                Fenêtre: {new Date(prediction.windowStart).toLocaleDateString('fr-FR', {
+                                                    day: 'numeric', month: 'short'
+                                                })} - {new Date(prediction.windowEnd).toLocaleDateString('fr-FR', {
+                                                    day: 'numeric', month: 'short'
+                                                })}
+                                            </p>
+                                        </div>
+                                        <Badge variant={daysRemaining <= 5 ? 'warning' : 'info'}>
+                                            {daysRemaining <= 0 ? 'Imminent' :
+                                                daysRemaining === 1 ? 'Demain' :
+                                                    `J-${daysRemaining}`}
+                                        </Badge>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </Card>
+            </div>
+
+            {/* Second Row: Females Status */}
+            <div className="grid grid-cols-1 gap-6">
                 <Card>
                     <h4 className="font-medium text-slate-700 mb-4 flex items-center gap-2">
                         <Heart className="w-5 h-5 text-pink-500" />
@@ -360,18 +463,29 @@ export const HeatCalendar: React.FC = () => {
                                 {day.events.slice(0, 4).map((event, idx) => {
                                     const colors = getEventColor(event.type);
                                     const isHeatPeak = event.type === 'heat' && event.isInWindow;
+                                    const isBirthPeak = event.type === 'birth_prediction' && event.isInWindow;
+                                    const isPeak = isHeatPeak || isBirthPeak;
+
+                                    // Build display name - for mating show "Female x Male"
+                                    let displayName = event.animal.name.split(' ')[0];
+                                    let titleText = `${event.animal.name} - ${event.type === 'birth_prediction' ? 'Mise-bas prévue' : event.type}`;
+
+                                    if (event.type === 'mating' && event.mate) {
+                                        displayName = `${event.animal.name.split(' ')[0]} x ${event.mate.name.split(' ')[0]}`;
+                                        titleText = `Saillie: ${event.animal.name} x ${event.mate.name}`;
+                                    }
 
                                     return (
                                         <div
                                             key={idx}
                                             className={clsx(
                                                 "text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 truncate",
-                                                isHeatPeak ? `${colors.dot} text-white font-medium` : `${colors.bg} ${colors.text}`
+                                                isPeak ? `${colors.dot} text-white font-medium` : `${colors.bg} ${colors.text}`
                                             )}
-                                            title={`${event.animal.name} - ${event.type}`}
+                                            title={titleText}
                                         >
                                             <div className={clsx("w-1 h-1 rounded-full flex-shrink-0", colors.dot)} />
-                                            <span className="truncate">{event.animal.name.split(' ')[0]}</span>
+                                            <span className="truncate">{displayName}</span>
                                         </div>
                                     );
                                 })}
@@ -410,6 +524,14 @@ export const HeatCalendar: React.FC = () => {
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 rounded bg-blue-500"></div>
                         <span>Échographie</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded bg-orange-500"></div>
+                        <span>Mise-bas (pic)</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded bg-orange-100"></div>
+                        <span>Fenêtre mise-bas (±5j)</span>
                     </div>
                 </div>
             </Card>
