@@ -100,10 +100,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             onDragEnd={onDragEnd}
             className={clsx(
                 "bg-white rounded-xl border border-slate-200 p-4 cursor-grab active:cursor-grabbing",
-                "transform transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5",
+                "transform transition-all duration-300 ease-out",
+                "hover:shadow-lg hover:-translate-y-1 hover:border-primary-200",
                 "group relative",
-                isDragging && "opacity-50 scale-95 shadow-2xl rotate-2"
+                isDragging && "opacity-50 scale-[0.98] rotate-1 shadow-xl border-primary-300"
             )}
+            style={{
+                willChange: isDragging ? 'transform, opacity' : 'auto'
+            }}
         >
             {/* Header */}
             <div className="flex items-start justify-between mb-3">

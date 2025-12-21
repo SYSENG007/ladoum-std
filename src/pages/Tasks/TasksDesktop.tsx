@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { List, Kanban, Calendar, Plus, CheckCircle, Clock, AlertCircle, Ban, Edit2, Trash2, MoreVertical } from 'lucide-react';
+import { List, Kanban, Calendar, Plus, CheckCircle, Clock, AlertCircle, Ban, Edit2, Trash2, MoreVertical, User, Tag } from 'lucide-react';
 import { TaskFilters, type TaskFilterState } from '../../components/tasks/TaskFilters';
 import { TaskBoard } from '../../components/tasks/TaskBoard';
 import { TaskCalendar } from '../../components/tasks/TaskCalendar';
 import { AddTaskModal } from '../../components/tasks/AddTaskModal';
 import { EditTaskModal } from '../../components/tasks/EditTaskModal';
 import { useTasks } from '../../hooks/useTasks';
+import { useAnimals } from '../../hooks/useAnimals';
 import { useData } from '../../context/DataContext';
 import { useFarm } from '../../context/FarmContext';
 import { useToast } from '../../context/ToastContext';
@@ -16,9 +17,11 @@ import { TaskService } from '../../services/TaskService';
 import type { TaskStatus, Task } from '../../types';
 import clsx from 'clsx';
 
+
 export const TasksDesktop: React.FC = () => {
     const [view, setView] = useState<'list' | 'kanban' | 'calendar'>('kanban');
     const { tasks, error } = useTasks();
+    const { animals } = useAnimals();
     const { refreshData } = useData();
     const { currentFarm } = useFarm();
     const toast = useToast();
@@ -141,6 +144,7 @@ export const TasksDesktop: React.FC = () => {
                     <div className="divide-y divide-slate-100">
                         {filteredTasks.map(task => {
                             const assignee = (currentFarm?.members || []).find(m => m.userId === task.assignedTo);
+                            const linkedAnimal = task.animalId ? animals.find(a => a.id === task.animalId) : null;
                             return (
                                 <div key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
                                     <div className="flex items-center gap-4 flex-1">
@@ -212,7 +216,7 @@ export const TasksDesktop: React.FC = () => {
                                         </div>
                                         <div className="flex-1">
                                             <h3 className={clsx("font-medium text-slate-900", task.status === 'Done' && "line-through text-slate-400")}>{task.title}</h3>
-                                            <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                                            <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
                                                 <span>{task.date}</span>
                                                 <span>•</span>
                                                 <span>{task.type}</span>
@@ -220,6 +224,7 @@ export const TasksDesktop: React.FC = () => {
                                                     <>
                                                         <span>•</span>
                                                         <span className="flex items-center gap-1">
+                                                            <User className="w-3 h-3" />
                                                             <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">
                                                                 {(assignee.displayName || assignee.name || 'U').charAt(0).toUpperCase()}
                                                             </span>
@@ -227,9 +232,20 @@ export const TasksDesktop: React.FC = () => {
                                                         </span>
                                                     </>
                                                 )}
+                                                {linkedAnimal && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="flex items-center gap-1 text-primary-600">
+                                                            <Tag className="w-3 h-3" />
+                                                            {linkedAnimal.name}
+                                                            <span className="text-slate-400">({linkedAnimal.tagId})</span>
+                                                        </span>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
+
                                     <div className="flex items-center gap-2">
                                         <span className={clsx("text-xs font-medium px-2.5 py-0.5 rounded-full border", getPriorityColor(task.priority))}>
                                             {task.priority === 'High' ? 'Haute' : task.priority === 'Medium' ? 'Moyenne' : 'Basse'}
