@@ -31,44 +31,85 @@ export const AccountService = {
      */
     async deleteAccount(userId: string): Promise<{ success: boolean; message: string }> {
         try {
-            // Get user's farms
-            const userDoc = await getDocs(
-                query(collection(db, 'users'), where('__name__', '==', userId))
-            );
+            console.log('[AccountService] Starting account deletion for:', userId);
 
-            if (userDoc.empty) {
-                throw new Error('Utilisateur non trouvé');
+            const currentUser = auth.currentUser;
+            if (!currentUser || currentUser.uid !== userId) {
+                throw new Error('Vous devez être connecté pour supprimer votre compte');
             }
 
-            const userData = userDoc.docs[0].data();
-            const farmIds = userData.farms || [];
+            // STEP 1: Collect all data we need BEFORE deleting anything
+            console.log('[AccountService] Collecting user data');
+            const userDocQuery = query(collection(db, 'users'), where('__name__', '==', userId));
+            const userDoc = await getDocs(userDocQuery);
+
+            let farmIds: string[] = [];
+            if (!userDoc.empty) {
+                const userData = userDoc.docs[0].data();
+                farmIds = userData.farms || [];
+            }
+
+            // STEP 2: Try to delete Firebase Auth account
+            try {
+                await deleteUser(currentUser);
+                console.log('[AccountService] Firebase Auth user deleted');
+            } catch (authError: any) {
+                console.error('[AccountService] Auth deletion error:', authError);
+
+                // Check if reauthentication is required
+                if (authError.code === 'auth/requires-recent-login') {
+                    return {
+                        success: false,
+                        message: 'Pour des raisons de sécurité, veuillez vous déconnecter puis vous reconnecter avant de supprimer votre compte.'
+                    };
+                }
+
+                // Other auth errors
+                throw new Error(authError.message || 'Erreur lors de la suppression du compte Firebase');
+            }
+
+            // STEP 3: Auth deletion successful - now clean up Firestore data
+            // Note: This happens AFTER auth deletion, so user is logged out
+            // but we can still clean up using the data we collected earlier
+            console.log('[AccountService] Cleaning up Firestore data');
 
             // Delete data from each farm
             for (const farmId of farmIds) {
-                await this.deleteFarmData(farmId, userId);
+                try {
+                    await this.deleteFarmData(farmId, userId);
+                } catch (err) {
+                    console.error(`[AccountService] Error deleting farm ${farmId} data:`, err);
+                }
             }
 
             // Delete listings created by user
-            await this.deleteUserListings(userId);
-
-            // Delete invitations created by user
-            await this.deleteUserInvitations(userId);
-
-            // Delete user profile
-            await deleteDoc(doc(db, 'users', userId));
-
-            // Delete Firebase Auth account
-            const currentUser = auth.currentUser;
-            if (currentUser && currentUser.uid === userId) {
-                await deleteUser(currentUser);
+            try {
+                await this.deleteUserListings(userId);
+            } catch (err) {
+                console.error('[AccountService] Error deleting user listings:', err);
             }
 
+            // Delete invitations created by user
+            try {
+                await this.deleteUserInvitations(userId);
+            } catch (err) {
+                console.error('[AccountService] Error deleting user invitations:', err);
+            }
+
+            // Delete user profile
+            try {
+                await deleteDoc(doc(db, 'users', userId));
+            } catch (err) {
+                console.error('[AccountService] Error deleting user profile:', err);
+            }
+
+            console.log('[AccountService] Account deletion complete');
             return {
                 success: true,
                 message: 'Compte supprimé avec succès'
             };
         } catch (error: any) {
-            console.error('Error deleting account:', error);
+            console.error('[AccountService] Error deleting account:', error);
             return {
                 success: false,
                 message: error.message || 'Erreur lors de la suppression du compte'

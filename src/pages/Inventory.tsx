@@ -6,6 +6,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { AlertTriangle, Plus, Minus, Syringe, Wheat, Wrench, Package, TrendingDown, Search, Edit2, Trash2, MoreVertical } from 'lucide-react';
 import { AddInventoryModal } from '../components/inventory/AddInventoryModal';
 import { EditInventoryModal } from '../components/inventory/EditInventoryModal';
+import { QuantityDialog } from '../components/ui/QuantityDialog';
 import { InventoryService } from '../services/InventoryService';
 import { useData } from '../context/DataContext';
 import { useFarm } from '../context/FarmContext';
@@ -26,12 +27,12 @@ export const Inventory: React.FC = () => {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
     const [_loading, setLoading] = useState(true);
-    const [confirmDialog, setConfirmDialog] = useState<{
+    // New state for Quantity Dialog
+    const [quantityDialog, setQuantityDialog] = useState<{
         isOpen: boolean;
         item: InventoryItem | null;
-        action: 'add' | 'remove' | null;
-        quantity: number;
-    }>({ isOpen: false, item: null, action: null, quantity: 1 });
+        action: 'add' | 'remove';
+    }>({ isOpen: false, item: null, action: 'add' });
     const [deleteDialog, setDeleteDialog] = useState<{
         isOpen: boolean;
         itemId: string;
@@ -77,22 +78,27 @@ export const Inventory: React.FC = () => {
     };
 
     const handleQuickAdjust = (item: InventoryItem, action: 'add' | 'remove') => {
-        setConfirmDialog({ isOpen: true, item, action, quantity: 1 });
+        setQuantityDialog({
+            isOpen: true,
+            item,
+            action
+        });
     };
 
-    const confirmQuickAdjust = async () => {
-        if (!confirmDialog.item || !confirmDialog.action) return;
+    const handleQuantityConfirm = async (qty: number) => {
+        if (!quantityDialog.item) return;
 
-        const delta = confirmDialog.action === 'add' ? confirmDialog.quantity : -confirmDialog.quantity;
+        const delta = quantityDialog.action === 'add' ? qty : -qty;
 
         try {
-            await InventoryService.adjustQuantity(confirmDialog.item.id, delta);
+            await InventoryService.adjustQuantity(quantityDialog.item.id, delta);
             await loadInventory();
             await refreshData();
-            const action = delta > 0 ? t('inventory.addedTo') : t('inventory.removedFrom');
-            const qty = Math.abs(delta);
-            toast.success(`${qty} ${confirmDialog.item.unit} ${action} "${confirmDialog.item.name}"`);
-            setConfirmDialog({ isOpen: false, item: null, action: null, quantity: 1 });
+
+            const actionLabel = delta > 0 ? t('inventory.addedTo') : t('inventory.removedFrom');
+            toast.success(`${qty} ${quantityDialog.item.unit} ${actionLabel} "${quantityDialog.item.name}"`);
+
+            setQuantityDialog({ isOpen: false, item: null, action: 'add' });
         } catch (err) {
             console.error('Error adjusting quantity:', err);
             toast.error(t('common.error') || 'Erreur lors de la mise à jour du stock.');
@@ -126,7 +132,7 @@ export const Inventory: React.FC = () => {
     const totalValue = inventory.reduce((sum, item) => sum + item.quantity, 0);
 
     const categories: Array<{ value: InventoryCategory | 'all'; label: string; icon: React.ReactNode }> = [
-        { value: 'all', label: t('inventory.all') || t('common.all'), icon: <Package className="w-4 h-4" /> },
+        { value: 'all', label: t('inventory.all') === 'inventory.all' ? 'Tout' : t('inventory.all'), icon: <Package className="w-4 h-4" /> },
         { value: 'Feed', label: t('inventory.category.feed'), icon: <Wheat className="w-4 h-4" /> },
         { value: 'Medicine', label: t('inventory.category.medicine'), icon: <Syringe className="w-4 h-4" /> },
         { value: 'Equipment', label: t('inventory.category.equipment'), icon: <Wrench className="w-4 h-4" /> },
@@ -233,83 +239,93 @@ export const Inventory: React.FC = () => {
             </div>
 
             {/* Inventory List */}
-            <div className="space-y-4">
+            {/* Inventory Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredInventory.length > 0 ? (
                     filteredInventory.map(item => (
-                        <Card key={item.id} className="group">
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-slate-50 rounded-xl">
+                        <Card key={item.id} className="group relative hover:shadow-md transition-all">
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-white group-hover:shadow-sm transition-all">
                                         {getCategoryIcon(item.category)}
                                     </div>
                                     <div>
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="font-bold text-slate-900">{item.name}</h3>
-                                            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                                                {getCategoryLabel(item.category)}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-4 mt-1 text-sm text-slate-500">
-                                            <span>{t('inventory.quantity')}: <span className={clsx("font-semibold", item.quantity <= item.minThreshold ? "text-red-600" : "text-slate-700")}>{item.quantity} {item.unit}</span></span>
-                                            <span>•</span>
-                                            <span>{t('inventory.threshold')}: {item.minThreshold} {item.unit}</span>
-                                        </div>
+                                        <h3 className="font-bold text-slate-900 line-clamp-1" title={item.name}>{item.name}</h3>
+                                        <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full inline-block mt-1">
+                                            {getCategoryLabel(item.category)}
+                                        </span>
                                     </div>
                                 </div>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setActiveMenu(activeMenu === item.id ? null : item.id)}
+                                        className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        <MoreVertical className="w-4 h-4" />
+                                    </button>
+                                    {activeMenu === item.id && (
+                                        <div className="absolute right-0 top-8 w-48 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+                                            <button
+                                                onClick={() => {
+                                                    setEditingItem(item);
+                                                    setActiveMenu(null);
+                                                }}
+                                                className="w-full px-4 py-2.5 text-left hover:bg-slate-50 flex items-center gap-2 text-sm text-slate-700"
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                                {t('common.edit')}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    handleDelete(item.id, item.name);
+                                                    setActiveMenu(null);
+                                                }}
+                                                className="w-full px-4 py-2.5 text-left hover:bg-red-50 flex items-center gap-2 text-sm text-red-600"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                {t('common.delete')}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => handleQuickAdjust(item, 'remove')}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:border-red-200 hover:text-red-600 transition-colors"
-                                        >
-                                            <Minus className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleQuickAdjust(item, 'add')}
-                                            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:border-emerald-200 hover:text-emerald-600 transition-colors"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                        </button>
+                            <div className="space-y-3">
+                                <div className="flex items-end gap-1">
+                                    <span className={clsx("text-2xl font-bold", item.quantity <= item.minThreshold ? "text-red-600" : "text-slate-900")}>
+                                        {item.quantity}
+                                    </span>
+                                    <span className="text-sm text-slate-500 font-medium mb-1">{item.unit}</span>
+                                </div>
+
+                                {item.quantity <= item.minThreshold && (
+                                    <div className="flex items-center gap-1.5 text-xs text-red-600 bg-red-50 px-2 py-1 rounded-md">
+                                        <AlertTriangle className="w-3 h-3" />
+                                        <span className="font-medium">Stock bas (Min: {item.minThreshold})</span>
                                     </div>
-                                    <div className="relative">
-                                        <button
-                                            onClick={() => setActiveMenu(activeMenu === item.id ? null : item.id)}
-                                            className="p-2 hover:bg-slate-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                        >
-                                            <MoreVertical className="w-4 h-4 text-slate-500" />
-                                        </button>
-                                        {activeMenu === item.id && (
-                                            <div className="absolute right-0 top-10 w-48 bg-white rounded-xl shadow-xl border border-slate-200 z-50">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingItem(item);
-                                                        setActiveMenu(null);
-                                                    }}
-                                                    className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center gap-3 text-slate-700"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                    {t('common.edit')}
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        handleDelete(item.id, item.name);
-                                                        setActiveMenu(null);
-                                                    }}
-                                                    className="w-full px-4 py-3 text-left hover:bg-red-50 flex items-center gap-3 text-red-600"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                    {t('common.delete')}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
+                                )}
+
+                                <div className="pt-3 border-t border-slate-100 flex gap-2 justify-end">
+                                    <button
+                                        onClick={() => handleQuickAdjust(item, 'remove')}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all"
+                                        title={t('inventory.removeStock')}
+                                    >
+                                        <Minus className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleQuickAdjust(item, 'add')}
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-600 transition-all"
+                                        title={t('inventory.addStock')}
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         </Card>
                     ))
                 ) : (
-                    <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                    <div className="col-span-full text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300">
                         <Package className="w-12 h-12 mx-auto text-slate-400 mb-2" />
                         <p>{t('inventory.noItems')}</p>
                     </div>
@@ -331,19 +347,20 @@ export const Inventory: React.FC = () => {
                 />
             )}
 
-            {/* Quick Adjust Dialog */}
-            <ConfirmDialog
-                isOpen={confirmDialog.isOpen}
-                onCancel={() => setConfirmDialog({ isOpen: false, item: null, action: null, quantity: 1 })}
-                onConfirm={confirmQuickAdjust}
-                title={confirmDialog.action === 'add' ? t('inventory.addStock') : t('inventory.removeStock')}
-                message={
-                    confirmDialog.action === 'add'
-                        ? t('inventory.confirmAdd')?.replace('{qty}', confirmDialog.quantity.toString()).replace('{unit}', confirmDialog.item?.unit || '').replace('{name}', confirmDialog.item?.name || '') || `Ajouter ${confirmDialog.quantity} ${confirmDialog.item?.unit} à "${confirmDialog.item?.name}" ?`
-                        : t('inventory.confirmRemove')?.replace('{qty}', confirmDialog.quantity.toString()).replace('{unit}', confirmDialog.item?.unit || '').replace('{name}', confirmDialog.item?.name || '') || `Retirer ${confirmDialog.quantity} ${confirmDialog.item?.unit} de "${confirmDialog.item?.name}" ?`
+            {/* Quantity Dialog */}
+            <QuantityDialog
+                isOpen={quantityDialog.isOpen}
+                title={quantityDialog.action === 'add' ? t('inventory.addStock') : t('inventory.removeStock')}
+                message={quantityDialog.action === 'add'
+                    ? `Combien de ${quantityDialog.item?.unit} voulez-vous ajouter à "${quantityDialog.item?.name}" ?`
+                    : `Combien de ${quantityDialog.item?.unit} voulez-vous retirer de "${quantityDialog.item?.name}" ?`
                 }
-                confirmText={t('common.confirm') || "Confirmer"}
-                cancelText={t('common.cancel') || "Annuler"}
+                unit={quantityDialog.item?.unit}
+                initialQuantity={1}
+                action={quantityDialog.action}
+                onConfirm={handleQuantityConfirm}
+                onCancel={() => setQuantityDialog({ ...quantityDialog, isOpen: false })}
+                confirmText={quantityDialog.action === 'add' ? 'Ajouter' : 'Retirer'}
             />
 
             {/* Delete Dialog */}

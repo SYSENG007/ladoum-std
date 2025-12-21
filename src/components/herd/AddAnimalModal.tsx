@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { ImageUpload } from '../ui/ImageUpload';
 import { AnimalService } from '../../services/AnimalService';
 import { AccountingService } from '../../services/AccountingService';
+import { useAnimals } from '../../hooks/useAnimals';
 import { useFarm } from '../../context/FarmContext';
 import type { Animal, Gender } from '../../types';
 
@@ -13,8 +14,12 @@ interface AddAnimalModalProps {
     onSuccess: () => void;
 }
 
+import { useData } from '../../context/DataContext';
+
 export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const { currentFarm } = useFarm();
+    const { animals } = useAnimals();
+    const { refreshData } = useData();
     const [formData, setFormData] = useState({
         name: '',
         tagId: '',
@@ -26,6 +31,8 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
         length: '',
         chestGirth: '',
         photoUrl: '',
+        sireId: '',
+        damId: '',
         // Purchase tracking
         wasPurchased: false,
         purchasePrice: '',
@@ -68,13 +75,48 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                 chestGirth: formData.chestGirth ? parseFloat(formData.chestGirth) : 0,
                 photoUrl: formData.photoUrl || '',
                 measurements: hasMeasurements ? [measurementData] : [],
-                farmId: currentFarm?.id || ''  // Injection automatique du farmId
+                farmId: currentFarm?.id || '',
+                sireId: formData.sireId || undefined,
+                damId: formData.damId || undefined
             };
 
             console.log('Animal data to save:', animalData);
 
             const result = await AnimalService.add(animalData);
             console.log('Animal added successfully:', result.id);
+
+            // If Dam is selected, automatically register a Birth event if not generic purchase
+            if (formData.damId && !formData.wasPurchased) {
+                const dam = animals.find(a => a.id === formData.damId);
+                if (dam) {
+                    // Check if birth already recorded for this date (basic debounce)
+                    const hasBirth = dam.reproductionRecords?.some(
+                        r => r.type === 'Birth' && r.date === formData.birthDate
+                    );
+
+                    if (!hasBirth) {
+                        try {
+                            const newRecord = {
+                                id: `rep-birth-${Date.now()}`,
+                                date: formData.birthDate,
+                                type: 'Birth' as const,
+                                offspringCount: 1, // Default to 1, user can edit later
+                                notes: `Naissance de ${formData.name} (${formData.tagId})`,
+                                mateId: formData.sireId || undefined
+                            };
+
+                            await AnimalService.update(dam.id, {
+                                reproductionRecords: [...(dam.reproductionRecords || []), newRecord]
+                            });
+                            console.log('Dam updated with birth event');
+                        } catch (damErr) {
+                            console.error('Failed to update Dam record:', damErr);
+                        }
+                    }
+                }
+            }
+
+            if (refreshData) await refreshData();
 
             // Auto-create purchase transaction if animal was purchased
             if (formData.wasPurchased && formData.purchasePrice) {
@@ -112,6 +154,8 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                 length: '',
                 chestGirth: '',
                 photoUrl: '',
+                sireId: '',
+                damId: '',
                 wasPurchased: false,
                 purchasePrice: '',
                 purchaseDate: ''

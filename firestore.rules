@@ -29,12 +29,27 @@ service cloud.firestore {
       allow update, delete: if isOwner(userId);
     }
     
+    // Helper function to check if user has a valid pending invitation for a farm
+    function hasValidInvitation(farmId) {
+      return exists(/databases/$(database)/documents/invitations/$(request.auth.uid + '_' + farmId)) ||
+             // Fallback: check if any invitation exists for this user and farm
+             exists(/databases/$(database)/documents/invitations/$(farmId + '_' + request.auth.uid));
+    }
+    
     // Farms
     match /farms/{farmId} {
       allow read: if isAuthenticated() && hasFarmAccess(farmId);
       allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && 
-        resource.data.ownerId == request.auth.uid;
+      // Allow update if:
+      // 1. User is the owner, OR
+      // 2. User is adding themselves as a member (accepting invitation)
+      allow update: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid ||
+        // Allow if user is just adding themselves to members array
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'updatedAt']) &&
+         request.resource.data.members.size() == resource.data.members.size() + 1)
+      );
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
     }
     
     // Animals - accessible by farm members

@@ -69,19 +69,34 @@ export const Profile: React.FC = () => {
         const loadData = async () => {
             if (!user) return;
             try {
-                const userFarms = await FarmService.getByUserId(user.uid);
-                setFarms(userFarms);
+                // Try to load user's farms
+                try {
+                    const userFarms = await FarmService.getByUserId(user.uid);
+                    setFarms(userFarms);
+                } catch (farmError: any) {
+                    // If permission error, silently continue (user might not have farms yet)
+                    if (farmError.code !== 'permission-denied') {
+                        console.error('Error loading farms:', farmError);
+                    }
+                }
 
                 // Charger les membres de la bergerie
                 if (userProfile?.farmId) {
-                    const activeFarm = userFarms.find(f => f.id === userProfile.farmId);
+                    const activeFarm = farms.find(f => f.id === userProfile.farmId);
                     if (activeFarm?.members) {
                         setFarmMembers(activeFarm.members);
                     }
 
-                    // Charger les invitations en attente
-                    const invitations = await StaffService.getPendingInvitations(userProfile.farmId);
-                    setPendingInvitations(invitations);
+                    // Charger les invitations en attente (only for owners)
+                    try {
+                        const invitations = await StaffService.getPendingInvitations(userProfile.farmId);
+                        setPendingInvitations(invitations);
+                    } catch (invError: any) {
+                        // Silently ignore if user doesn't have permission (not owner)
+                        if (invError.code !== 'permission-denied') {
+                            console.error('Error loading invitations:', invError);
+                        }
+                    }
                 }
             } catch (err) {
                 console.error('Error loading data:', err);
@@ -107,17 +122,39 @@ export const Profile: React.FC = () => {
         if (!user || deleteConfirmText !== 'SUPPRIMER') return;
 
         setDeletingAccount(true);
+
         try {
             const result = await AccountService.deleteAccount(user.uid);
             if (result.success) {
-                navigate('/login');
+                // Success - user is now logged out automatically
+                console.log('Account deleted successfully');
+                // Close modal and they'll be redirected by auth context
+                setShowDeleteModal(false);
             } else {
-                alert(result.message);
+                // Show error - keep modal open
+                setDeletingAccount(false);
+
+                // Check if it's the reauthentication error
+                if (result.message.includes('déconnecter puis vous reconnecter') ||
+                    result.message.includes('recent')) {
+                    // Show in modal with logout button
+                    const shouldLogout = window.confirm(
+                        `Pour des raisons de sécurité, vous devez vous reconnecter récemment avant de supprimer votre compte.\n\nVoulez-vous vous déconnecter maintenant pour vous reconnecter ?`
+                    );
+                    if (shouldLogout) {
+                        setShowDeleteModal(false);
+                        await logout();
+                        navigate('/login');
+                    }
+                } else {
+                    // Other errors
+                    alert(result.message);
+                    setShowDeleteModal(false);
+                }
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error deleting account:', err);
-            alert('Une erreur est survenue lors de la suppression du compte');
-        } finally {
+            alert(`Une erreur est survenue: ${err.message || 'Erreur inconnue'}`);
             setDeletingAccount(false);
             setShowDeleteModal(false);
         }

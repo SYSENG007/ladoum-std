@@ -149,155 +149,157 @@ export const TasksDesktop: React.FC = () => {
             {/* Views */}
             <div className="flex-1 overflow-hidden">
                 {view === 'list' && (
-                    <div className="h-full overflow-y-auto bg-white rounded-xl shadow-sm border border-slate-100">
-                        <div className="divide-y divide-slate-100">
-                            {filteredTasks.map(task => {
-                                const assignee = (currentFarm?.members || []).find(m => m.userId === task.assignedTo);
-                                const linkedAnimal = task.animalId ? animals.find(a => a.id === task.animalId) : null;
-                                return (
-                                    <div key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
-                                        <div className="flex items-center gap-4 flex-1">
-                                            {/* Clickable Status Dropdown */}
-                                            <div className="relative">
-                                                <button
-                                                    onClick={() => setActiveMenu(activeMenu === `status-${task.id}` ? null : `status-${task.id}`)}
-                                                    className="p-1 rounded-lg hover:bg-slate-100 transition-colors"
-                                                    title={t('task.changeStatus')}
-                                                >
-                                                    {getStatusIcon(task.status)}
-                                                </button>
-                                                {activeMenu === `status-${task.id}` && (
-                                                    <div className="absolute left-0 top-8 w-40 bg-white rounded-xl shadow-xl border border-slate-200 z-50">
-                                                        <button
-                                                            onClick={() => {
-                                                                handleTaskUpdate(task.id, 'Todo');
-                                                                setActiveMenu(null);
-                                                            }}
-                                                            className={clsx(
-                                                                "w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-sm",
-                                                                task.status === 'Todo' && "bg-slate-100 font-medium"
-                                                            )}
-                                                        >
-                                                            <AlertCircle className="w-4 h-4 text-slate-400" />
-                                                            {t('task.todo')}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                handleTaskUpdate(task.id, 'In Progress');
-                                                                setActiveMenu(null);
-                                                            }}
-                                                            className={clsx(
-                                                                "w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-sm",
-                                                                task.status === 'In Progress' && "bg-amber-50 font-medium"
-                                                            )}
-                                                        >
-                                                            <Clock className="w-4 h-4 text-amber-500" />
-                                                            {t('task.inProgress')}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                handleTaskUpdate(task.id, 'Blocked');
-                                                                setActiveMenu(null);
-                                                            }}
-                                                            className={clsx(
-                                                                "w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-sm",
-                                                                task.status === 'Blocked' && "bg-red-50 font-medium"
-                                                            )}
-                                                        >
-                                                            <Ban className="w-4 h-4 text-red-500" />
-                                                            {t('task.blocked')}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                handleTaskUpdate(task.id, 'Done');
-                                                                setActiveMenu(null);
-                                                            }}
-                                                            className={clsx(
-                                                                "w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-sm",
-                                                                task.status === 'Done' && "bg-green-50 font-medium"
-                                                            )}
-                                                        >
-                                                            <CheckCircle className="w-4 h-4 text-green-500" />
-                                                            {t('task.done')}
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className={clsx("font-medium text-slate-900", task.status === 'Done' && "line-through text-slate-400")}>{task.title}</h3>
-                                                <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
-                                                    <span>{task.date}</span>
-                                                    <span>•</span>
-                                                    <span>{task.type}</span>
-                                                    {assignee && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span className="flex items-center gap-1">
-                                                                <User className="w-3 h-3" />
-                                                                <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">
-                                                                    {(assignee.displayName || assignee.name || 'U').charAt(0).toUpperCase()}
-                                                                </span>
-                                                                {assignee.displayName || assignee.name}
-                                                            </span>
-                                                        </>
+                    <div className="h-full flex flex-col bg-white rounded-xl shadow-sm border border-slate-100">
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="divide-y divide-slate-100">
+                                {filteredTasks.map(task => {
+                                    const assignee = (currentFarm?.members || []).find(m => m.userId === task.assignedTo);
+                                    const linkedAnimal = task.animalId ? animals.find(a => a.id === task.animalId) : null;
+                                    return (
+                                        <div key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
+                                            <div className="flex items-center gap-4 flex-1">
+                                                {/* Clickable Status Dropdown */}
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setActiveMenu(activeMenu === `status-${task.id}` ? null : `status-${task.id}`)}
+                                                        className="p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                                                        title={t('task.changeStatus')}
+                                                    >
+                                                        {getStatusIcon(task.status)}
+                                                    </button>
+                                                    {activeMenu === `status-${task.id}` && (
+                                                        <div className="fixed mt-2 w-40 bg-white rounded-xl shadow-xl border border-slate-200 z-[9999]">
+                                                            <button
+                                                                onClick={() => {
+                                                                    handleTaskUpdate(task.id, 'Todo');
+                                                                    setActiveMenu(null);
+                                                                }}
+                                                                className={clsx(
+                                                                    "w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-sm rounded-t-xl",
+                                                                    task.status === 'Todo' && "bg-slate-100 font-medium"
+                                                                )}
+                                                            >
+                                                                <AlertCircle className="w-4 h-4 text-slate-400" />
+                                                                {t('task.todo')}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    handleTaskUpdate(task.id, 'In Progress');
+                                                                    setActiveMenu(null);
+                                                                }}
+                                                                className={clsx(
+                                                                    "w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-sm",
+                                                                    task.status === 'In Progress' && "bg-amber-50 font-medium"
+                                                                )}
+                                                            >
+                                                                <Clock className="w-4 h-4 text-amber-500" />
+                                                                {t('task.inProgress')}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    handleTaskUpdate(task.id, 'Blocked');
+                                                                    setActiveMenu(null);
+                                                                }}
+                                                                className={clsx(
+                                                                    "w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-sm",
+                                                                    task.status === 'Blocked' && "bg-red-50 font-medium"
+                                                                )}
+                                                            >
+                                                                <Ban className="w-4 h-4 text-red-500" />
+                                                                {t('task.blocked')}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    handleTaskUpdate(task.id, 'Done');
+                                                                    setActiveMenu(null);
+                                                                }}
+                                                                className={clsx(
+                                                                    "w-full px-4 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-sm rounded-b-xl",
+                                                                    task.status === 'Done' && "bg-green-50 font-medium"
+                                                                )}
+                                                            >
+                                                                <CheckCircle className="w-4 h-4 text-green-500" />
+                                                                {t('task.done')}
+                                                            </button>
+                                                        </div>
                                                     )}
-                                                    {linkedAnimal && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span className="flex items-center gap-1 text-primary-600">
-                                                                <Tag className="w-3 h-3" />
-                                                                {linkedAnimal.name}
-                                                                <span className="text-slate-400">({linkedAnimal.tagId})</span>
-                                                            </span>
-                                                        </>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h3 className={clsx("font-medium text-slate-900", task.status === 'Done' && "line-through text-slate-400")}>{task.title}</h3>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
+                                                        <span>{task.date}</span>
+                                                        <span>•</span>
+                                                        <span>{task.type}</span>
+                                                        {assignee && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span className="flex items-center gap-1">
+                                                                    <User className="w-3 h-3" />
+                                                                    <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">
+                                                                        {(assignee.displayName || assignee.name || 'U').charAt(0).toUpperCase()}
+                                                                    </span>
+                                                                    {assignee.displayName || assignee.name}
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                        {linkedAnimal && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span className="flex items-center gap-1 text-primary-600">
+                                                                    <Tag className="w-3 h-3" />
+                                                                    {linkedAnimal.name}
+                                                                    <span className="text-slate-400">({linkedAnimal.tagId})</span>
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <span className={clsx("text-xs font-medium px-2.5 py-0.5 rounded-full border", getPriorityColor(task.priority))}>
+                                                    {getPriorityLabel(task.priority)}
+                                                </span>
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setActiveMenu(activeMenu === task.id ? null : task.id)}
+                                                        className="p-2 hover:bg-slate-200 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                    >
+                                                        <MoreVertical className="w-4 h-4 text-slate-600" />
+                                                    </button>
+                                                    {activeMenu === task.id && (
+                                                        <div className="fixed mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 z-[9999]" style={{ marginLeft: '-160px' }}>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditingTask(task);
+                                                                    setActiveMenu(null);
+                                                                }}
+                                                                className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center gap-3 text-slate-700 rounded-t-xl"
+                                                            >
+                                                                <Edit2 className="w-4 h-4" />
+                                                                {t('common.edit')}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    handleDelete(task.id, task.title);
+                                                                    setActiveMenu(null);
+                                                                }}
+                                                                className="w-full px-4 py-3 text-left hover:bg-red-50 flex items-center gap-3 text-red-600 rounded-b-xl"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                                {t('common.delete')}
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <span className={clsx("text-xs font-medium px-2.5 py-0.5 rounded-full border", getPriorityColor(task.priority))}>
-                                                {getPriorityLabel(task.priority)}
-                                            </span>
-                                            <div className="relative">
-                                                <button
-                                                    onClick={() => setActiveMenu(activeMenu === task.id ? null : task.id)}
-                                                    className="p-2 hover:bg-slate-200 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                >
-                                                    <MoreVertical className="w-4 h-4 text-slate-600" />
-                                                </button>
-                                                {activeMenu === task.id && (
-                                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 z-50">
-                                                        <button
-                                                            onClick={() => {
-                                                                setEditingTask(task);
-                                                                setActiveMenu(null);
-                                                            }}
-                                                            className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center gap-3 text-slate-700"
-                                                        >
-                                                            <Edit2 className="w-4 h-4" />
-                                                            {t('common.edit')}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                handleDelete(task.id, task.title);
-                                                                setActiveMenu(null);
-                                                            }}
-                                                            className="w-full px-4 py-3 text-left hover:bg-red-50 flex items-center gap-3 text-red-600"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                            {t('common.delete')}
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            {filteredTasks.length === 0 && (
-                                <div className="p-8 text-center text-slate-500">{t('task.noTasks')}</div>
-                            )}
+                                    );
+                                })}
+                                {filteredTasks.length === 0 && (
+                                    <div className="p-8 text-center text-slate-500">{t('task.noTasks')}</div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -307,6 +309,10 @@ export const TasksDesktop: React.FC = () => {
                         tasks={filteredTasks}
                         onTaskUpdate={handleTaskUpdate}
                         onEditTask={(task) => setEditingTask(task)}
+                        onDeleteTask={(taskId) => {
+                            const task = tasks.find(t => t.id === taskId);
+                            if (task) handleDelete(taskId, task.title);
+                        }}
                     />
                 )}
 

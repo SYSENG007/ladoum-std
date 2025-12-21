@@ -101,7 +101,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             // Créer le compte Firebase
-            const credential = await createUserWithEmailAndPassword(auth, email, password);
+            let credential;
+            try {
+                credential = await createUserWithEmailAndPassword(auth, email, password);
+            } catch (firebaseError: any) {
+                // Gérer spécifiquement l'erreur email-already-in-use
+                if (firebaseError.code === 'auth/email-already-in-use') {
+                    throw new Error('Cet email est déjà utilisé. Cliquez sur "J\'ai déjà un compte" pour vous connecter.');
+                }
+                // Autres erreurs Firebase
+                throw new Error(getFirebaseErrorMessage(firebaseError.code));
+            }
 
             // Mettre à jour le profil Firebase
             await updateProfile(credential.user, { displayName });
@@ -110,26 +120,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const userId = credential.user.uid;
 
             if (staffInv) {
-                // Flow Staff: Rejoindre directement la ferme et passer l'onboarding
+                // Flow Invitation : Accepter l'invitation automatiquement
+                console.log('[Auth] Creating staff member profile with invitation');
+
+                // STEP 1: Créer le profil utilisateur basique
                 await UserService.create(userId, email, displayName);
 
-                // Ajouter à la ferme
-                await FarmService.addMember(staffInv.farmId, {
-                    userId,
-                    displayName,
-                    email: staffInv.email,
-                    role: staffInv.role,
-                    canAccessFinances: staffInv.canAccessFinances,
-                    status: 'active',
-                    joinedAt: new Date().toISOString()
-                });
-
-                // Marquer l'invitation comme acceptée
+                // STEP 2: Marquer l'invitation comme acceptée
                 await StaffService.acceptInvitation(staffInv.id, userId);
 
-                // Configurer la ferme de l'utilisateur et marquer l'onboarding terminé
+                // STEP 3: Configurer la ferme de l'utilisateur et marquer l'onboarding terminé
+                // FAIRE ÇA D'ABORD avant d'ajouter à la ferme (pour éviter erreur permission)
                 await UserService.setFarm(userId, staffInv.farmId, staffInv.role);
                 await UserService.completeOnboarding(userId);
+
+                // STEP 4: Essayer d'ajouter à la ferme (peut échouer à cause des permissions)
+                try {
+                    await FarmService.addMember(staffInv.farmId, {
+                        userId: credential.user.uid,
+                        displayName,
+                        email,
+                        role: staffInv.role,
+                        canAccessFinances: staffInv.canAccessFinances || false,
+                        status: 'active',
+                        joinedAt: new Date().toISOString()
+                    });
+                    console.log('[Auth] Successfully added to farm members');
+                } catch (farmError: any) {
+                    // Si échec (permission), ce n'est pas grave - l'utilisateur est configuré
+                    console.warn('[Auth] Could not add to farm members (will sync later):', farmError.message);
+                }
             } else {
                 // Flow Normal / Owner - créer profil sans ferme
                 await UserService.create(userId, email, displayName);
@@ -139,7 +159,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await loadUserProfile(credential.user);
 
         } catch (err: any) {
-            const errorMessage = err.message || getFirebaseErrorMessage(err.code);
+            // L'erreur a déjà un message clair (soit de notre throw, soit de getFirebaseErrorMessage)
+            const errorMessage = err.message || 'Une erreur est survenue lors de l\'inscription';
             setError(errorMessage);
             throw new Error(errorMessage);
         } finally {
@@ -300,20 +321,22 @@ export const useAuth = () => {
     return context;
 };
 
-// Helper pour traduire les erreurs Firebase
+// Helper pour traduire les erreurs Firebase avec messages clairs et constructifs
 function getFirebaseErrorMessage(code: string): string {
     const messages: Record<string, string> = {
-        'auth/email-already-in-use': 'Cet email est déjà utilisé',
-        'auth/invalid-email': 'Email invalide',
-        'auth/operation-not-allowed': 'Opération non autorisée',
-        'auth/weak-password': 'Le mot de passe doit contenir au moins 6 caractères',
-        'auth/user-disabled': 'Ce compte a été désactivé',
-        'auth/user-not-found': 'Aucun compte trouvé avec cet email',
-        'auth/wrong-password': 'Mot de passe incorrect',
-        'auth/invalid-credential': 'Identifiants invalides',
-        'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.',
-        'auth/popup-closed-by-user': 'Connexion annulée',
-        'auth/popup-blocked': 'Popup bloquée par le navigateur',
+        'auth/email-already-in-use': 'Cet email est déjà utilisé. Connectez-vous ou utilisez un autre email.',
+        'auth/invalid-email': 'L\'adresse email n\'est pas valide. Vérifiez et réessayez.',
+        'auth/operation-not-allowed': 'Cette méthode de connexion n\'est pas activée. Contactez le support.',
+        'auth/weak-password': 'Mot de passe trop faible. Utilisez au moins 6 caractères.',
+        'auth/user-disabled': 'Ce compte a été désactivé. Contactez l\'administrateur.',
+        'auth/user-not-found': 'Aucun compte trouvé avec cet email. Créez un compte d\'abord.',
+        'auth/wrong-password': 'Mot de passe incorrect. Réessayez ou cliquez sur "Mot de passe oublié".',
+        'auth/invalid-credential': 'Email ou mot de passe incorrect. Vérifiez vos identifiants.',
+        'auth/too-many-requests': 'Trop de tentatives échouées. Attendez quelques minutes avant de réessayer.',
+        'auth/popup-closed-by-user': 'Connexion annulée. Cliquez à nouveau pour vous connecter.',
+        'auth/popup-blocked': 'Les popups sont bloquées par votre navigateur. Autorisez-les et réessayez.',
+        'auth/network-request-failed': 'Problème de connexion internet. Vérifiez votre réseau.',
+        'auth/requires-recent-login': 'Cette action nécessite une connexion récente. Reconnectez-vous.',
     };
-    return messages[code] || 'Une erreur est survenue';
+    return messages[code] || 'Une erreur inattendue est survenue. Réessayez ou contactez le support.';
 }

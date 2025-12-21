@@ -122,6 +122,7 @@ export interface ReproductionRecord {
     heatDuration?: number; // hours, for Heat events
     offspringCount?: number; // For Birth events
     weaningDate?: string; // For tracking weaning
+    ultrasoundResult?: 'Positive' | 'Negative'; // For Ultrasound events
 }
 
 export interface TransactionRecord {

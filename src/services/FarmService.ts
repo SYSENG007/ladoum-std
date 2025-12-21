@@ -5,6 +5,7 @@ import {
     getDocs,
     setDoc,
     updateDoc,
+    arrayUnion,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { Farm, FarmMember, FarmSettings } from '../types/farm';
@@ -89,22 +90,18 @@ export const FarmService = {
         farmId: string,
         member: Omit<FarmMember, 'id'>
     ): Promise<void> {
-        const farm = await this.getById(farmId);
-        if (!farm) throw new Error('Farm not found');
-
-        // Vérifier si l'utilisateur est déjà membre
-        if (farm.members.some(m => m.userId === member.userId)) {
-            throw new Error('User is already a member of this farm');
-        }
-
         const newMember: FarmMember = {
             ...member,
             joinedAt: member.joinedAt || new Date().toISOString(),
         };
 
         const docRef = doc(db, COLLECTION_NAME, farmId);
+
+        // Use arrayUnion to add member without reading farm first
+        // This avoids permission error when user doesn't have read access yet
         await updateDoc(docRef, {
-            members: [...farm.members, newMember],
+            members: arrayUnion(newMember),
+            memberIds: arrayUnion(member.userId), // Update memberIds for permissions
             updatedAt: new Date().toISOString(),
         });
     },

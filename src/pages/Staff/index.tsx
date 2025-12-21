@@ -3,6 +3,7 @@ import { Users, Calendar, Clock, Star, Plus, Crown, Wrench, Mail, MoreVertical, 
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { InviteMemberModal } from '../../components/staff/InviteMemberModal';
+import { InvitationStats } from '../../components/staff/InvitationStats';
 import { StaffService } from '../../services/StaffService';
 import { AttendanceService } from '../../services/AttendanceService';
 import { useFarm } from '../../context/FarmContext';
@@ -23,6 +24,7 @@ export const Staff: React.FC = () => {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [members, setMembers] = useState<FarmMember[]>([]);
     const [pendingInvitations, setPendingInvitations] = useState<StaffInvitation[]>([]);
+    const [allInvitations, setAllInvitations] = useState<StaffInvitation[]>([]); // For stats
     const [todayAttendance, setTodayAttendance] = useState<Attendance[]>([]);
     const [loading, setLoading] = useState(true);
     const [shareInvitation, setShareInvitation] = useState<StaffInvitation | null>(null);
@@ -46,6 +48,10 @@ export const Staff: React.FC = () => {
             // Load pending invitations
             const invitations = await StaffService.getPendingInvitations(currentFarm.id);
             setPendingInvitations(invitations);
+
+            // Load all invitations for stats
+            const all = await StaffService.getAllInvitations(currentFarm.id);
+            setAllInvitations(all);
 
             // Load today's attendance
             const today = new Date().toISOString().split('T')[0];
@@ -100,6 +106,19 @@ export const Staff: React.FC = () => {
             case 'manager': return 'Manager';
             default: return 'Employé';
         }
+    };
+
+    const getTimeRemaining = (expiresAt: string) => {
+        const now = new Date();
+        const expiry = new Date(expiresAt);
+        const diffMs = expiry.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) return { text: 'Expiré', color: 'bg-red-100 text-red-700 border-red-200' };
+        if (diffDays === 0) return { text: 'Expire aujourd\'hui', color: 'bg-red-100 text-red-700 border-red-200' };
+        if (diffDays === 1) return { text: 'Expire demain', color: 'bg-orange-100 text-orange-700 border-orange-200' };
+        if (diffDays <= 3) return { text: `Expire dans ${diffDays} jours`, color: 'bg-orange-100 text-orange-700 border-orange-200' };
+        return { text: `Expire dans ${diffDays} jours`, color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
     };
 
     const myTodayAttendance = todayAttendance.find(a => a.memberId === user?.uid);
@@ -166,6 +185,11 @@ export const Staff: React.FC = () => {
             <div className="flex-1 overflow-auto">
                 {activeTab === 'members' && (
                     <div className="space-y-4">
+                        {/* Invitation Stats Dashboard */}
+                        {canManageStaff && allInvitations.length > 0 && (
+                            <InvitationStats invitations={allInvitations} />
+                        )}
+
                         {/* Active Members */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {members.map((member, idx) => (
@@ -208,30 +232,95 @@ export const Staff: React.FC = () => {
                                     {pendingInvitations.map(invitation => (
                                         <Card key={invitation.id} className="p-4 bg-amber-50 border-amber-200">
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-3 flex-1">
                                                     <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
                                                         <Mail className="w-5 h-5 text-amber-600" />
                                                     </div>
-                                                    <div>
-                                                        <p className="font-medium text-slate-900">{invitation.displayName}</p>
-                                                        <p className="text-sm text-slate-500">{invitation.email}</p>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <p className="font-medium text-slate-900">{invitation.displayName}</p>
+                                                            <span className="text-xs bg-amber-200 text-amber-800 px-2 py-1 rounded">
+                                                                {invitation.role === 'manager' ? 'Manager' : 'Employé'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-sm text-slate-500">{invitation.email}</p>
+                                                            <span className={`text-xs px-2 py-0.5 rounded border ${getTimeRemaining(invitation.expiresAt).color}`}>
+                                                                {getTimeRemaining(invitation.expiresAt).text}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-xs bg-amber-200 text-amber-800 px-2 py-1 rounded">
-                                                        {invitation.role === 'manager' ? 'Manager' : 'Employé'}
-                                                    </span>
+                                                    {/* Extend button for invitations expiring soon */}
+                                                    {(() => {
+                                                        const now = new Date();
+                                                        const expiry = new Date(invitation.expiresAt);
+                                                        const daysUntilExpiry = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+                                                        if (daysUntilExpiry <= 2 && daysUntilExpiry >= 0) {
+                                                            return (
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            await StaffService.extendInvitation(invitation.id);
+                                                                            toast.success('Invitation prolongée de 7 jours');
+                                                                            loadData();
+                                                                        } catch (err) {
+                                                                            toast.error('Erreur lors de la prolongation');
+                                                                            console.error(err);
+                                                                        }
+                                                                    }}
+                                                                    className="text-xs text-blue-600 hover:underline font-medium"
+                                                                    title="Prolonger de 7 jours"
+                                                                >
+                                                                    Prolonger
+                                                                </button>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })()}
+
                                                     <button
                                                         onClick={() => setShareInvitation(invitation)}
-                                                        className="text-xs text-emerald-600 hover:underline"
+                                                        className="text-xs text-emerald-600 hover:underline font-medium"
                                                     >
-                                                        Partager
+                                                        Renvoyer
                                                     </button>
                                                     <button
-                                                        onClick={() => StaffService.cancelInvitation(invitation.id).then(loadData)}
-                                                        className="text-xs text-red-600 hover:underline"
+                                                        onClick={() => {
+                                                            if (window.confirm(
+                                                                `Annuler l'invitation de ${invitation.displayName} ?\n\nL'invitation sera marquée comme annulée mais conservée dans l'historique.`
+                                                            )) {
+                                                                StaffService.cancelInvitation(invitation.id)
+                                                                    .then(() => {
+                                                                        toast.success('Invitation annulée');
+                                                                        loadData();
+                                                                    })
+                                                                    .catch((err) => {
+                                                                        toast.error('Erreur lors de l\'annulation');
+                                                                        console.error(err);
+                                                                    });
+                                                            }
+                                                        }}
+                                                        className="text-xs text-orange-600 hover:underline font-medium"
                                                     >
                                                         Annuler
+                                                    </button>
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                await StaffService.deleteInvitation(invitation.id);
+                                                                toast.success('Invitation supprimée');
+                                                                loadData();
+                                                            } catch (err) {
+                                                                toast.error('Erreur lors de la suppression');
+                                                                console.error(err);
+                                                            }
+                                                        }}
+                                                        className="text-xs text-red-600 hover:underline font-medium"
+                                                    >
+                                                        Supprimer
                                                     </button>
                                                 </div>
                                             </div>
@@ -324,7 +413,7 @@ export const Staff: React.FC = () => {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl p-6 max-w-md w-full">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Partager l'invitation</h3>
+                            <h3 className="text-lg font-semibold">Renvoyer l'invitation</h3>
                             <button onClick={() => setShareInvitation(null)} className="p-1 hover:bg-slate-100 rounded-lg">
                                 <X className="w-5 h-5" />
                             </button>

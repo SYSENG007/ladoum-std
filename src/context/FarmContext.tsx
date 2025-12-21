@@ -34,8 +34,23 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const farmIdToLoad = userProfile.farmId || (userProfile as any).activeFarmId;
 
             if (farmIdToLoad) {
-                const farm = await FarmService.getById(farmIdToLoad);
-                setCurrentFarm(farm);
+                try {
+                    const farm = await FarmService.getById(farmIdToLoad);
+                    setCurrentFarm(farm);
+                    console.log('[FarmContext] Farm loaded successfully:', farm?.name);
+                } catch (farmError: any) {
+                    // Si erreur de permission, essayer de charger via userId
+                    console.warn('[FarmContext] Could not load farm by ID, trying getByUserId:', farmError.message);
+                    const userFarms = await FarmService.getByUserId(user.uid);
+                    if (userFarms.length > 0) {
+                        const targetFarm = userFarms.find(f => f.id === farmIdToLoad) || userFarms[0];
+                        setCurrentFarm(targetFarm);
+                        console.log('[FarmContext] Farm loaded via userId:', targetFarm.name);
+                    } else {
+                        console.error('[FarmContext] No farms found for user');
+                        setCurrentFarm(null);
+                    }
+                }
             } else {
                 // Pas de bergerie associée, essayer de trouver une par userId
                 const userFarms = await FarmService.getByUserId(user.uid);

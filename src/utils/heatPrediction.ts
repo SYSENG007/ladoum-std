@@ -89,10 +89,36 @@ export function getReproductiveStatus(animal: Animal): ReproductiveStatus {
                 break;
 
             case 'Mating':
-            case 'Ultrasound':
-                // If mating was within gestation period and no birth recorded after
-                if (daysSinceRecord < GESTATION_PERIOD) {
+                // Check for subsequent "Negative" ultrasound
+                const negativeUltrasound = sortedRecords.some(
+                    r => r.type === 'Ultrasound' &&
+                        r.ultrasoundResult === 'Negative' &&
+                        new Date(r.date) > recordDate
+                );
+
+                if (negativeUltrasound) continue; // Skip to next record
+
+                // If mating was within gestation period (extended for overdue) and no birth recorded after
+                if (daysSinceRecord < GESTATION_PERIOD + 15) { // Allow 15 days overdue
                     // Check if there's a birth or abortion after this
+                    const hasOutcomeAfter = sortedRecords.some(
+                        r => (r.type === 'Birth' || r.type === 'Abortion') &&
+                            new Date(r.date) > recordDate
+                    );
+                    if (!hasOutcomeAfter) return 'Pregnant';
+                }
+                break;
+
+            case 'Ultrasound':
+                // If checking an Ultrasound directly as the latest event
+                if (record.ultrasoundResult === 'Negative') {
+                    // Treated as "Checked and Empty" -> Available (or Resting if recent abortion/birth prior)
+                    // But we should keep looking back in history if this was just a check
+                    continue;
+                }
+
+                // Positive Ultrasound
+                if (daysSinceRecord < GESTATION_PERIOD + 15) {
                     const hasOutcomeAfter = sortedRecords.some(
                         r => (r.type === 'Birth' || r.type === 'Abortion') &&
                             new Date(r.date) > recordDate
@@ -331,6 +357,14 @@ export function predictBirthDate(animal: Animal): GestationPrediction | null {
 
     const matingDate = new Date(matingEvent.date);
 
+    // Check for Negative Ultrasound after mating
+    const negativeUltrasound = sortedRecords.some(
+        r => r.type === 'Ultrasound' &&
+            r.ultrasoundResult === 'Negative' &&
+            new Date(r.date) > matingDate
+    );
+    if (negativeUltrasound) return null;
+
     // Check if there's a birth or abortion after this mating
     const hasOutcome = sortedRecords.some(
         r => (r.type === 'Birth' || r.type === 'Abortion') &&
@@ -339,14 +373,14 @@ export function predictBirthDate(animal: Animal): GestationPrediction | null {
 
     if (hasOutcome) return null;
 
-    // Check if still within gestation period
+    // Check if still within gestation period (allow 15 days overdue)
     const today = new Date();
     const daysSinceMating = Math.floor(
         (today.getTime() - matingDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    if (daysSinceMating > GESTATION_PERIOD + GESTATION_SURVEILLANCE_WINDOW) {
-        // Gestation period exceeded - might have missed recording the birth
+    if (daysSinceMating > GESTATION_PERIOD + 15) {
+        // Gestation period exceeded significantly - might have missed recording the birth
         return null;
     }
 
@@ -361,16 +395,19 @@ export function predictBirthDate(animal: Animal): GestationPrediction | null {
     const windowEnd = new Date(expectedBirthDate);
     windowEnd.setDate(windowEnd.getDate() + GESTATION_SURVEILLANCE_WINDOW);
 
-    const daysRemaining = Math.floor(
+    const daysRemaining = Math.ceil(
         (expectedBirthDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
 
     // Determine confidence based on ultrasound confirmation
     let confidence: 'Low' | 'Medium' | 'High' = 'Medium';
-    const hasUltrasound = sortedRecords.some(
-        r => r.type === 'Ultrasound' && new Date(r.date) > matingDate
+    const hasPositiveUltrasound = sortedRecords.some(
+        r => r.type === 'Ultrasound' &&
+            (!r.ultrasoundResult || r.ultrasoundResult === 'Positive') &&
+            new Date(r.date) > matingDate
     );
-    if (hasUltrasound) {
+
+    if (hasPositiveUltrasound) {
         confidence = 'High';
     } else if (daysSinceMating < 45) {
         // Very early - lower confidence

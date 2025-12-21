@@ -49,10 +49,20 @@ export const Reproduction: React.FC = () => {
 
                         // Check if there's a birth after this mating
                         const hasBirthAfter = records.some(
-                            r => r.type === 'Birth' && new Date(r.date) > matingDate
+                            r => (r.type === 'Birth' || r.type === 'Abortion') && new Date(r.date) > matingDate
                         );
 
-                        if (daysRemaining > 0 && !hasBirthAfter) {
+                        // Allow up to 15 days overdue before hiding
+                        if (daysRemaining > -15 && !hasBirthAfter) {
+                            // Check for negative ultrasound
+                            const hasNegativeUltrasound = records.some(
+                                r => r.type === 'Ultrasound' &&
+                                    r.ultrasoundResult === 'Negative' &&
+                                    new Date(r.date) > matingDate
+                            );
+
+                            if (hasNegativeUltrasound) continue;
+
                             return {
                                 animal,
                                 daysSinceMating,
@@ -210,8 +220,14 @@ export const Reproduction: React.FC = () => {
                                                 <p className="text-sm font-medium text-slate-900">
                                                     {gestation.expectedDate.toLocaleDateString('fr-FR')}
                                                 </p>
-                                                <Badge variant={gestation.daysRemaining < 30 ? "warning" : "info"}>
-                                                    {gestation.daysRemaining} jours restants
+                                                <Badge variant={
+                                                    gestation.daysRemaining < 0 ? "error" :
+                                                        gestation.daysRemaining < 30 ? "warning" : "info"
+                                                }>
+                                                    {gestation.daysRemaining < 0
+                                                        ? `Retard de ${Math.abs(gestation.daysRemaining)} jours`
+                                                        : `${gestation.daysRemaining} jours restants`
+                                                    }
                                                 </Badge>
                                             </div>
                                         </div>

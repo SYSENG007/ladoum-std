@@ -49,6 +49,7 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
     const [heatIntensity, setHeatIntensity] = useState<'Low' | 'Medium' | 'High'>('Medium');
     const [offspringCount, setOffspringCount] = useState(1);
     const [outcome, setOutcome] = useState('');
+    const [ultrasoundResult, setUltrasoundResult] = useState<'Positive' | 'Negative'>('Positive');
     const [saving, setSaving] = useState(false);
 
     const selectedAnimal = animals.find(a => a.id === selectedAnimalId);
@@ -100,8 +101,11 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
                 }
             }
 
-            if (eventType === 'Ultrasound' && mateId) {
-                newRecord.mateId = mateId;
+            if (eventType === 'Ultrasound') {
+                newRecord.ultrasoundResult = ultrasoundResult;
+                if (mateId) {
+                    newRecord.mateId = mateId;
+                }
             }
 
             // Update animal with new record
@@ -136,6 +140,7 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
             setHeatIntensity('Medium');
             setOffspringCount(1);
             setOutcome('');
+            setUltrasoundResult('Positive');
 
         } catch (error) {
             console.error('Error saving reproduction event:', error);
@@ -322,6 +327,43 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
                                 placeholder="Ex: 1 mâle, 1 femelle"
                                 className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-slate-50"
                             />
+                        </div>
+                    )}
+
+                    {/* Ultrasound-specific: Result */}
+                    {eventType === 'Ultrasound' && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Résultat de l'échographie
+                            </label>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setUltrasoundResult('Positive')}
+                                    className={clsx(
+                                        "flex-1 py-3 px-4 rounded-xl border-2 font-medium transition-colors flex items-center justify-center gap-2",
+                                        ultrasoundResult === 'Positive'
+                                            ? "border-green-500 bg-green-50 text-green-700"
+                                            : "border-slate-200 text-slate-600 hover:border-slate-300"
+                                    )}
+                                >
+                                    <CheckCircle className="w-5 h-5" />
+                                    Positive (Gestante)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setUltrasoundResult('Negative')}
+                                    className={clsx(
+                                        "flex-1 py-3 px-4 rounded-xl border-2 font-medium transition-colors flex items-center justify-center gap-2",
+                                        ultrasoundResult === 'Negative'
+                                            ? "border-red-500 bg-red-50 text-red-700"
+                                            : "border-slate-200 text-slate-600 hover:border-slate-300"
+                                    )}
+                                >
+                                    <X className="w-5 h-5" />
+                                    Négative (Non Gestante)
+                                </button>
+                            </div>
                         </div>
                     )}
 

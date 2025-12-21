@@ -8,6 +8,7 @@ import {
     updateDoc,
     deleteDoc,
     getDocs,
+    getDoc,
     query,
     where
 } from 'firebase/firestore';
@@ -215,7 +216,19 @@ export const StaffService = {
     },
 
     /**
-     * Cancel an invitation
+     * Get all invitations for a farm (for stats)
+     */
+    async getAllInvitations(farmId: string): Promise<StaffInvitation[]> {
+        const q = query(
+            collection(db, INVITATIONS_COLLECTION),
+            where('farmId', '==', farmId)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as StaffInvitation);
+    },
+
+    /**
+     * Cancel an invitation (change status to cancelled)
      */
     async cancelInvitation(invitationId: string): Promise<void> {
         await updateDoc(doc(db, INVITATIONS_COLLECTION, invitationId), {
@@ -224,14 +237,53 @@ export const StaffService = {
     },
 
     /**
-     * Extend invitation expiration
+     * Delete an invitation permanently
+     */
+    async deleteInvitation(invitationId: string): Promise<void> {
+        await deleteDoc(doc(db, INVITATIONS_COLLECTION, invitationId));
+    },
+
+    /**
+     * Update invitation fields
+     */
+    async updateInvitation(invitationId: string, updates: Partial<StaffInvitation>): Promise<void> {
+        await updateDoc(doc(db, INVITATIONS_COLLECTION, invitationId), updates as any);
+    },
+
+    /**
+     * Extend invitation expiration by 7 days
      */
     async extendInvitation(invitationId: string): Promise<void> {
-        const newExpiry = new Date();
-        newExpiry.setDate(newExpiry.getDate() + 7);
+        const invitation = await this.getById(invitationId);
+        if (!invitation) {
+            throw new Error('Invitation not found');
+        }
+
+        if (invitation.status !== 'pending') {
+            throw new Error('Can only extend pending invitations');
+        }
+
+        const newExpiresAt = new Date();
+        newExpiresAt.setDate(newExpiresAt.getDate() + 7);
+
         await updateDoc(doc(db, INVITATIONS_COLLECTION, invitationId), {
-            expiresAt: newExpiry.toISOString()
+            expiresAt: newExpiresAt.toISOString(),
+            extendedAt: new Date().toISOString()
         });
+    },
+
+    /**
+     * Get invitation by ID
+     */
+    async getById(invitationId: string): Promise<StaffInvitation | null> {
+        const docRef = doc(db, INVITATIONS_COLLECTION, invitationId);
+        const snapshot = await getDoc(docRef);
+
+        if (!snapshot.exists()) {
+            return null;
+        }
+
+        return { id: snapshot.id, ...snapshot.data() } as StaffInvitation;
     },
 
     /**

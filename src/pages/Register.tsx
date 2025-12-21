@@ -93,17 +93,21 @@ export const Register: React.FC = () => {
             return;
         }
 
+
         try {
             // Inscription (AuthContext handles staff association if invitationToken is present)
             await signUpWithEmail(email, password, displayName, invitationToken || '');
 
-            // For staff members, don't navigate manually - let PublicRoute handle it
-            // after the profile is refreshed with onboardingCompleted: true
             if (!invitationToken) {
+                // Regular user - go to onboarding
                 navigate('/onboarding');
+            } else {
+                // Staff member - navigate to dashboard after short delay
+                // to allow context to update with new userProfile
+                setTimeout(() => {
+                    navigate('/');
+                }, 500);
             }
-            // If invitationToken exists, PublicRoute will automatically redirect to '/'
-            // once userProfile.onboardingCompleted is true
         } catch (err: any) {
             console.error('Registration error:', err);
         }
@@ -116,25 +120,37 @@ export const Register: React.FC = () => {
         try {
             await signInWithGoogle(invitationToken || '');
 
-            // For staff members, don't navigate manually - let PublicRoute handle it
             if (!invitationToken) {
+                // Regular user - go to onboarding
                 navigate('/onboarding');
+            } else {
+                // Staff member - navigate to dashboard after short delay
+                setTimeout(() => {
+                    navigate('/');
+                }, 500);
             }
-            // If invitationToken exists, PublicRoute will automatically redirect to '/'
         } catch (err: any) {
             console.error('Google registration error:', err);
         }
     };
 
-    // Filter out permission errors that are expected for unauthenticated users
-    // Only show errors that are actually relevant to registration
-    const isPermissionError = (err: string | null) => {
+    // Filter out only expected Firestore permission errors for unauthenticated users
+    // These occur when trying to read invitations before logging in - they're expected
+    const isExpectedPermissionError = (err: string | null) => {
         if (!err) return false;
         const lowerErr = err.toLowerCase();
-        return lowerErr.includes('permission') || lowerErr.includes('insufficient');
+
+        // Only filter very specific expected errors
+        const expectedErrors = [
+            'missing or insufficient permissions',
+            'requires authentication',
+            'permission-denied'
+        ];
+
+        return expectedErrors.some(expected => lowerErr.includes(expected));
     };
 
-    const displayError = localError || (error && !isPermissionError(error) ? error : null);
+    const displayError = localError || (error && !isExpectedPermissionError(error) ? error : null);
 
     if (loadingInvitation) {
         return (
@@ -167,9 +183,21 @@ export const Register: React.FC = () => {
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
                     {/* Error Message */}
                     {displayError && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                            <p className="text-sm text-red-700">{displayError}</p>
+                        <div className="mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-red-700 mb-2">{displayError}</p>
+                                    {displayError.includes('déjà utilisé') && (
+                                        <button
+                                            onClick={() => navigate('/login')}
+                                            className="text-xs text-red-600 hover:text-red-700 underline font-medium"
+                                        >
+                                            → Me connecter maintenant
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
 

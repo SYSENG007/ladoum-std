@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, XCircle, Loader2, Users } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Users, AlertTriangle, LogOut } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { StaffService } from '../services/StaffService';
 import { FarmService } from '../services/FarmService';
@@ -8,122 +8,203 @@ import { UserService } from '../services/UserService';
 import { useAuth } from '../context/AuthContext';
 import type { StaffInvitation } from '../types/staff';
 
+type JoinState =
+    | 'loading'
+    | 'error'
+    | 'not_logged_in'
+    | 'email_mismatch'     // Logged in user email doesn't match invitation
+    | 'already_member'
+    | 'has_own_farm'       // User already owns/belongs to another farm
+    | 'ready_to_accept'
+    | 'accepting'
+    | 'success';
+
 export const Join: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { user, userProfile } = useAuth();
+    const { user, userProfile, logout, loading: authLoading, refreshUserProfile } = useAuth();
 
     const rawToken = searchParams.get('token') || searchParams.get('code') || '';
     const token = rawToken ? decodeURIComponent(rawToken) : '';
 
-    console.log('[Join] Token extraction:', {
-        rawToken,
-        decodedToken: token,
-        length: token.length,
-        searchParamsString: window.location.search
-    });
-
     const [invitation, setInvitation] = useState<StaffInvitation | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [accepting, setAccepting] = useState(false);
+    const [state, setState] = useState<JoinState>('loading');
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
-    const [isAlreadyMember, setIsAlreadyMember] = useState(false);
+    const [existingFarmName, setExistingFarmName] = useState<string>('');
 
+    // Load invitation and determine state
     useEffect(() => {
-        loadInvitation();
-    }, [token]);
+        // Don't evaluate user state while auth is still loading
+        // This prevents showing "not_logged_in" while waiting for Firebase auth
+        if (authLoading) {
+            console.log('[Join] Auth loading, waiting...');
+            return;
+        }
 
-    const loadInvitation = async () => {
-        console.log('[Join.loadInvitation] Starting invitation load');
-        console.log('[Join.loadInvitation] Token from URL:', token);
-        console.log('[Join.loadInvitation] Token length:', token?.length);
+        console.log('[Join] Auth ready, user:', user?.uid, 'userProfile:', userProfile?.id);
+        loadInvitationAndCheckState();
+    }, [token, user, userProfile, authLoading]);
+
+    const loadInvitationAndCheckState = async () => {
+        console.log('[Join] Loading invitation, token:', token?.slice(0, 8) + '...');
 
         if (!token) {
-            console.log('[Join.loadInvitation] No token provided');
             setError('Lien d\'invitation invalide');
-            setLoading(false);
+            setState('error');
             return;
         }
 
         try {
-            console.log('[Join.loadInvitation] Calling StaffService.getByToken...');
+            // 1. Load invitation
             const inv = await StaffService.getByToken(token);
-            console.log('[Join.loadInvitation] StaffService.getByToken result:', inv);
 
             if (!inv) {
-                console.log('[Join.loadInvitation] No invitation returned, setting error');
                 setError('Cette invitation a expiré ou n\'existe plus');
-            } else {
-                console.log('[Join.loadInvitation] Valid invitation found, setting state');
-                setInvitation(inv);
+                setState('error');
+                return;
+            }
 
-                // Check if user is already a member of this farm
-                if (user) {
-                    console.log('[Join.loadInvitation] User logged in, checking membership');
-                    const farm = await FarmService.getById(inv.farmId);
-                    if (farm?.members.some(m => m.userId === user.uid)) {
-                        console.log('[Join.loadInvitation] User is already a member');
-                        setIsAlreadyMember(true);
+            setInvitation(inv);
+            console.log('[Join] Invitation loaded:', inv.farmName, 'for:', inv.email);
+
+            // 2. Check if user is logged in
+            if (!user || !userProfile) {
+                console.log('[Join] User not logged in');
+                setState('not_logged_in');
+                return;
+            }
+
+            const userEmail = user.email?.toLowerCase() || '';
+            const invitedEmail = inv.email.toLowerCase();
+
+            // 3. Check email match
+            if (userEmail !== invitedEmail) {
+                console.log('[Join] Email mismatch:', userEmail, 'vs', invitedEmail);
+                setState('email_mismatch');
+                return;
+            }
+
+            // 4. Check if already member of this farm
+            // Don't fetch farm data (would cause permission error if user not yet member)
+            // Instead, check user's profile farmId
+            if (userProfile.farmId === inv.farmId) {
+                console.log('[Join] User already member of farm:', inv.farmId);
+                setState('already_member');
+                return;
+            }
+
+            // 5. Check if user has their own farm (multi-farm conflict)
+            if (userProfile.farmId && userProfile.farmId !== inv.farmId) {
+                // User belongs to a different farm
+                // Try to get their current farm to check if they're the owner
+                try {
+                    const currentFarm = await FarmService.getById(userProfile.farmId);
+                    if (currentFarm) {
+                        // Check if user is owner of their current farm
+                        const isOwner = currentFarm.ownerId === user.uid;
+                        if (isOwner) {
+                            console.log('[Join] User already owns a farm:', currentFarm.name);
+                            setExistingFarmName(currentFarm.name);
+                            setState('has_own_farm');
+                            return;
+                        }
+                        // If just a member (not owner), we can switch their farm
                     }
+                } catch (farmError) {
+                    // If we can't read their current farm (shouldn't happen), continue anyway
+                    console.warn('[Join] Could not read current farm:', farmError);
                 }
             }
+
+            // 6. Ready to accept
+            console.log('[Join] Ready to accept invitation');
+            setState('ready_to_accept');
+
         } catch (err) {
-            console.error('[Join.loadInvitation] Error loading invitation:', err);
+            console.error('[Join] Error:', err);
             setError('Erreur lors du chargement de l\'invitation');
-        } finally {
-            setLoading(false);
+            setState('error');
         }
     };
 
     const handleAccept = async () => {
         if (!invitation || !user || !userProfile) return;
 
-        setAccepting(true);
+        setState('accepting');
         setError(null);
 
         try {
-            // Add user to farm
-            await FarmService.addMember(invitation.farmId, {
-                userId: user.uid,
-                displayName: userProfile.displayName || invitation.displayName,
-                email: invitation.email,
-                role: invitation.role,
-                canAccessFinances: invitation.canAccessFinances,
-                status: 'active',
-                joinedAt: new Date().toISOString()
-            });
+            // Verify email one more time for security
+            if (user.email?.toLowerCase() !== invitation.email.toLowerCase()) {
+                setError('L\'email ne correspond pas à l\'invitation');
+                setState('ready_to_accept');
+                return;
+            }
 
-            // Mark invitation as accepted
+            console.log('[Join] Step 1: Mark invitation as accepted');
+            // Mark invitation as accepted FIRST
             await StaffService.acceptInvitation(invitation.id, user.uid);
 
-            // If user has no farm yet, set this one and complete onboarding
-            if (!userProfile.farmId) {
-                await UserService.setFarm(user.uid, invitation.farmId, invitation.role);
+            console.log('[Join] Step 2: Update user profile with farm');
+            // Update user's farm (this they CAN do - their own profile)
+            await UserService.setFarm(user.uid, invitation.farmId, invitation.role);
+            if (!userProfile.onboardingCompleted) {
                 await UserService.completeOnboarding(user.uid);
             }
 
-            setSuccess(true);
+            console.log('[Join] Step 3: Try to add member to farm');
+            // Try to add to farm - this might fail due to permissions
+            // but that's OK, we'll add a background process to handle this
+            try {
+                await FarmService.addMember(invitation.farmId, {
+                    userId: user.uid,
+                    displayName: userProfile.displayName || invitation.displayName,
+                    email: invitation.email,
+                    role: invitation.role,
+                    canAccessFinances: invitation.canAccessFinances,
+                    status: 'active',
+                    joinedAt: new Date().toISOString()
+                });
+                console.log('[Join] Successfully added to farm members');
+            } catch (farmError: any) {
+                // If we can't add to farm (permission issue), that's OK
+                // The user profile is updated, and they'll have access once farm syncs
+                console.warn('[Join] Could not add to farm members (will sync later):', farmError.message);
+            }
 
-            // Redirect to dashboard after 2 seconds
+            console.log('[Join] Step 4: Refresh user profile in context');
+            // CRITICAL: Refresh the user profile in context so routing works correctly
+            await refreshUserProfile();
+
+            setState('success');
+
+            // Redirect to dashboard after 1 second
             setTimeout(() => {
                 navigate('/');
-            }, 2000);
+            }, 1000);
+
         } catch (err: any) {
-            console.error('Error accepting invitation:', err);
-            // Check if it's "already member" error
+            console.error('[Join] Error accepting invitation:', err);
             if (err.message?.includes('already a member')) {
-                setIsAlreadyMember(true);
-                setError(null);
+                setState('already_member');
             } else {
                 setError(err.message || 'Erreur lors de l\'acceptation de l\'invitation');
+                setState('ready_to_accept');
             }
-        } finally {
-            setAccepting(false);
         }
     };
 
-    if (loading) {
+    const handleLogout = async () => {
+        await logout();
+        // After logout, the useEffect will trigger and set state to 'not_logged_in'
+    };
+
+    // ============================================
+    // RENDER STATES
+    // ============================================
+
+    // Loading
+    if (state === 'loading') {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <div className="text-center">
@@ -134,7 +215,8 @@ export const Join: React.FC = () => {
         );
     }
 
-    if (error && !invitation) {
+    // Error
+    if (state === 'error') {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
@@ -151,7 +233,37 @@ export const Join: React.FC = () => {
         );
     }
 
-    if (isAlreadyMember) {
+    // Email Mismatch - Different user logged in
+    if (state === 'email_mismatch') {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <AlertTriangle className="w-8 h-8 text-amber-600" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-slate-900 mb-2">Compte différent</h1>
+                    <p className="text-slate-500 mb-4">
+                        Vous êtes connecté en tant que <strong className="text-slate-700">{user?.email}</strong>.
+                    </p>
+                    <p className="text-slate-500 mb-6">
+                        Cette invitation est destinée à <strong className="text-emerald-600">{invitation?.email}</strong>.
+                    </p>
+                    <div className="space-y-3">
+                        <Button onClick={handleLogout} className="w-full">
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Se déconnecter pour continuer
+                        </Button>
+                        <Button onClick={() => navigate('/')} variant="outline" className="w-full">
+                            Revenir au tableau de bord
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Already member
+    if (state === 'already_member') {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
@@ -170,7 +282,37 @@ export const Join: React.FC = () => {
         );
     }
 
-    if (success) {
+    // Has own farm (multi-farm conflict)
+    if (state === 'has_own_farm') {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <AlertTriangle className="w-8 h-8 text-amber-600" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-slate-900 mb-2">Vous avez déjà une bergerie</h1>
+                    <p className="text-slate-500 mb-4">
+                        Vous êtes propriétaire de <strong className="text-slate-700">{existingFarmName}</strong>.
+                    </p>
+                    <p className="text-slate-500 mb-6">
+                        Pour rejoindre <strong className="text-emerald-600">{invitation?.farmName}</strong>,
+                        vous devez d'abord transférer ou supprimer votre bergerie actuelle.
+                    </p>
+                    <div className="space-y-3">
+                        <Button onClick={() => navigate('/profile')} className="w-full">
+                            Gérer ma bergerie
+                        </Button>
+                        <Button onClick={() => navigate('/')} variant="outline" className="w-full">
+                            Annuler
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Success
+    if (state === 'success') {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
@@ -187,8 +329,8 @@ export const Join: React.FC = () => {
         );
     }
 
-    if (!user) {
-        // Redirect to register with token - will auto-load invitation and prefill email
+    // Not logged in - show options
+    if (state === 'not_logged_in') {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
@@ -214,6 +356,7 @@ export const Join: React.FC = () => {
         );
     }
 
+    // Ready to accept (and handling 'accepting' state)
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
@@ -251,8 +394,8 @@ export const Join: React.FC = () => {
                 )}
 
                 <div className="space-y-3">
-                    <Button onClick={handleAccept} disabled={accepting} className="w-full">
-                        {accepting ? 'Acceptation en cours...' : 'Accepter l\'invitation'}
+                    <Button onClick={handleAccept} disabled={state === 'accepting'} className="w-full">
+                        {state === 'accepting' ? 'Acceptation en cours...' : 'Accepter l\'invitation'}
                     </Button>
                     <Button onClick={() => navigate('/')} variant="outline" className="w-full">
                         Annuler

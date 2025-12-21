@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, MoreHorizontal, Edit2, Trash2, ArrowRight } from 'lucide-react';
+import { Calendar, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
 import { useAnimals } from '../../hooks/useAnimals';
 import { useTranslation } from '../../context/SettingsContext';
-import type { Task, TaskStatus } from '../../types';
+import type { Task } from '../../types';
 import clsx from 'clsx';
 
 interface TaskCardProps {
@@ -13,7 +13,6 @@ interface TaskCardProps {
     isDragging?: boolean;
     onEdit?: (task: Task) => void;
     onDelete?: (taskId: string) => void;
-    onStatusChange?: (taskId: string, status: TaskStatus) => void;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -22,14 +21,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     onDragEnd,
     isDragging,
     onEdit,
-    onDelete,
-    onStatusChange
+    onDelete
 }) => {
     const { currentFarm } = useFarm();
     const { animals } = useAnimals();
     const { t } = useTranslation();
     const [showMenu, setShowMenu] = useState(false);
-    const [showStatusMenu, setShowStatusMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     // Find assignee from farm members
@@ -41,7 +38,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         const handleClickOutside = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
                 setShowMenu(false);
-                setShowStatusMenu(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -88,12 +84,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     };
 
-    const statuses: { id: TaskStatus; label: string; color: string }[] = [
-        { id: 'Todo', label: t('task.todo'), color: 'text-slate-500' },
-        { id: 'In Progress', label: t('task.inProgress'), color: 'text-amber-500' },
-        { id: 'Blocked', label: t('task.blocked'), color: 'text-red-500' },
-        { id: 'Done', label: t('task.done'), color: 'text-green-500' },
-    ];
+
 
     return (
         <div
@@ -129,7 +120,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                         onClick={(e) => {
                             e.stopPropagation();
                             setShowMenu(!showMenu);
-                            setShowStatusMenu(false);
                         }}
                         className="p-1 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-slate-100 transition-all"
                     >
@@ -153,52 +143,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                                 </button>
                             )}
 
-                            {onStatusChange && (
-                                <div className="relative">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShowStatusMenu(!showStatusMenu);
-                                        }}
-                                        className="w-full px-4 py-2.5 text-left hover:bg-slate-50 flex items-center justify-between text-sm text-slate-700"
-                                    >
-                                        <span className="flex items-center gap-3">
-                                            <ArrowRight className="w-4 h-4" />
-                                            {t('task.changeStatus')}
-                                        </span>
-                                        <span className="text-slate-400">›</span>
-                                    </button>
 
-                                    {/* Status submenu */}
-                                    {showStatusMenu && (
-                                        <div className="absolute left-full top-0 ml-1 w-40 bg-white rounded-xl shadow-xl border border-slate-200 z-50">
-                                            {statuses.map(status => (
-                                                <button
-                                                    key={status.id}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onStatusChange(task.id, status.id);
-                                                        setShowMenu(false);
-                                                        setShowStatusMenu(false);
-                                                    }}
-                                                    className={clsx(
-                                                        "w-full px-4 py-2 text-left hover:bg-slate-50 text-sm flex items-center gap-2",
-                                                        task.status === status.id && "bg-slate-100 font-medium"
-                                                    )}
-                                                >
-                                                    <span className={clsx("w-2 h-2 rounded-full",
-                                                        status.id === 'Todo' && "bg-slate-400",
-                                                        status.id === 'In Progress' && "bg-amber-400",
-                                                        status.id === 'Blocked' && "bg-red-400",
-                                                        status.id === 'Done' && "bg-green-400"
-                                                    )} />
-                                                    {status.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
 
                             {onDelete && (
                                 <button

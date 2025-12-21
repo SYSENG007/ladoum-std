@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { TaskCard } from './TaskCard';
-import { MoreVertical, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { Task, TaskStatus } from '../../types';
 import clsx from 'clsx';
 import { useTranslation } from '../../context/SettingsContext';
@@ -157,9 +157,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, onTaskUpdate, onAdd
                                         <Plus className="w-4 h-4" />
                                     </button>
                                 )}
-                                <button className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
-                                    <MoreVertical className="w-4 h-4" />
-                                </button>
                             </div>
                         </div>
 
@@ -188,7 +185,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, onTaskUpdate, onAdd
                                             isDragging={draggedTask?.id === task.id}
                                             onEdit={onEditTask}
                                             onDelete={onDeleteTask}
-                                            onStatusChange={onTaskUpdate}
                                         />
                                     ))}
 

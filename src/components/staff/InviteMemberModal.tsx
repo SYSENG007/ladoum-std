@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { X, Mail, User, Crown, Wrench, DollarSign, Link, Copy, Check, MessageCircle } from 'lucide-react';
+import { X, Mail, User, Crown, Wrench, DollarSign, Link, Copy, Check, MessageCircle, MessageSquare, AlertTriangle } from 'lucide-react';
+import { useDeviceType } from '../../hooks/useDeviceType';
 import { Button } from '../ui/Button';
 import { StaffService } from '../../services/StaffService';
+import { RateLimitService } from '../../services/RateLimitService';
 import { useFarm } from '../../context/FarmContext';
 import { useAuth } from '../../context/AuthContext';
 import type { StaffInvitation } from '../../types/staff';
@@ -15,6 +17,7 @@ interface InviteMemberModalProps {
 export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const { currentFarm } = useFarm();
     const { user, userProfile } = useAuth();
+    const { isMobile } = useDeviceType();
 
     const [formData, setFormData] = useState({
         email: '',
@@ -35,7 +38,27 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, on
 
     const getInviteMessage = () => {
         if (!invitation) return '';
-        return `Bonjour ${invitation.displayName}, vous êtes invité(e) à rejoindre ${invitation.farmName} sur Ladoum STD en tant que ${invitation.role === 'manager' ? 'Manager' : 'Employé'}.\n\n📎 Cliquez ici : ${getInviteLink()}\n\n🔑 Code d'invitation : ${invitation.token}\n(Si le lien ne fonctionne pas, utilisez ce code lors de l'inscription)`;
+        const roleText = invitation.role === 'manager' ? 'Manager' : 'Employé';
+
+        return `🐑 *Invitation Ladoum STD*
+
+Bonjour ${invitation.displayName},
+
+${invitation.inviterName} vous invite à rejoindre *${invitation.farmName}* en tant que ${roleText}.
+
+👉 Créer mon compte:
+${getInviteLink()}
+
+📱 Code: ${invitation.token}
+
+✅ Valable 7 jours`;
+    };
+
+    const getSMSMessage = () => {
+        if (!invitation) return '';
+        // Short message for SMS (max 160 chars recommended)
+        const tokenShort = invitation.token.substring(0, 8); // First 8 chars
+        return `Ladoum STD - ${invitation.inviterName} vous invite. Lien: ${getInviteLink()} Code: ${tokenShort}`;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -48,6 +71,13 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, on
                 throw new Error('Données utilisateur manquantes');
             }
 
+            // Check rate limit
+            const rateCheck = RateLimitService.canCreateInvitation(user.uid);
+            if (!rateCheck.allowed) {
+                const resetTime = rateCheck.resetAt?.toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' });
+                throw new Error(`Limite atteinte (10 invitations/heure). Réessayez après ${resetTime}.`);
+            }
+
             const result = await StaffService.inviteMember({
                 farmId: currentFarm.id,
                 farmName: currentFarm.name,
@@ -58,6 +88,9 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, on
                 invitedBy: user.uid,
                 inviterName: userProfile.displayName || 'Propriétaire'
             });
+
+            // Record this invitation for rate limiting
+            RateLimitService.recordInvitation(user.uid);
 
             setInvitation(result);
         } catch (err: any) {
@@ -95,6 +128,19 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, on
     const handleShareWhatsApp = () => {
         const text = encodeURIComponent(getInviteMessage());
         window.open(`https://wa.me/?text=${text}`, '_blank');
+    };
+
+    const handleShareSMS = () => {
+        const message = getSMSMessage();
+        if (isMobile) {
+            // Open native SMS app on mobile
+            window.open(`sms:?body=${encodeURIComponent(message)}`, '_blank');
+        } else {
+            // On desktop, copy message to clipboard
+            navigator.clipboard.writeText(message);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
     };
 
     const handleClose = () => {
@@ -190,7 +236,29 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, on
                         <div className="space-y-3">
                             <p className="text-sm font-medium text-slate-700 text-center">Partager via</p>
 
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-2 gap-3">
+                                {/* WhatsApp - Most popular, first position */}
+                                <button
+                                    onClick={handleShareWhatsApp}
+                                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-green-200 hover:border-green-300 hover:bg-green-50 transition-all bg-green-50/50"
+                                >
+                                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                        <MessageCircle className="w-5 h-5 text-green-600" />
+                                    </div>
+                                    <span className="text-xs font-medium text-green-700">WhatsApp</span>
+                                </button>
+
+                                {/* SMS - Second most popular */}
+                                <button
+                                    onClick={handleShareSMS}
+                                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all bg-blue-50/50"
+                                >
+                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <MessageSquare className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <span className="text-xs font-medium text-blue-700">{isMobile ? 'SMS' : 'Copier SMS'}</span>
+                                </button>
+
                                 {/* Copy */}
                                 <button
                                     onClick={handleCopyLink}
@@ -199,29 +267,18 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, on
                                     <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
                                         <Copy className="w-5 h-5 text-slate-600" />
                                     </div>
-                                    <span className="text-xs font-medium text-slate-600">Copier</span>
+                                    <span className="text-xs font-medium text-slate-600">Copier lien</span>
                                 </button>
 
                                 {/* Email */}
                                 <button
                                     onClick={handleShareEmail}
-                                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
                                 >
-                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <Mail className="w-5 h-5 text-blue-600" />
+                                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
+                                        <Mail className="w-5 h-5 text-slate-600" />
                                     </div>
                                     <span className="text-xs font-medium text-slate-600">Email</span>
-                                </button>
-
-                                {/* WhatsApp */}
-                                <button
-                                    onClick={handleShareWhatsApp}
-                                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-200 hover:border-green-300 hover:bg-green-50 transition-all"
-                                >
-                                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                        <MessageCircle className="w-5 h-5 text-green-600" />
-                                    </div>
-                                    <span className="text-xs font-medium text-slate-600">WhatsApp</span>
                                 </button>
                             </div>
                         </div>
@@ -243,6 +300,29 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, on
                                 {error}
                             </div>
                         )}
+
+                        {/* Rate Limit Info */}
+                        {user && (() => {
+                            const status = RateLimitService.getStatus(user.uid);
+                            if (status.count > 0) {
+                                const remaining = status.limit - status.count;
+                                const color = remaining <= 2 ? 'amber' : 'blue';
+                                return (
+                                    <div className={`bg-${color}-50 border border-${color}-200 px-4 py-3 rounded-xl`}>
+                                        <div className="flex items-start gap-2">
+                                            <AlertTriangle className={`w-4 h-4 text-${color}-600 mt-0.5 flex-shrink-0`} />
+                                            <div className="text-xs text-${color}-700">
+                                                <p className="font-medium">Limite : {remaining} invitation{remaining > 1 ? 's' : ''} restante{remaining > 1 ? 's' : ''} cette heure</p>
+                                                {status.resetAt && (
+                                                    <p className="mt-1">Réinitialisation à {status.resetAt.toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' })}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
 
                         {/* Email */}
                         <div>
