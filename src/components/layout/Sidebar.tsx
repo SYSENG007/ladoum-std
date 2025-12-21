@@ -4,20 +4,21 @@ import { LayoutDashboard, PawPrint, GitFork, CalendarCheck, Package, LogOut, Men
 import logo from '../../assets/logo.jpg';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
-import { useSettings } from '../../context/SettingsContext';
+import { useSettings, useTranslation } from '../../context/SettingsContext';
 import { FarmSwitcher } from '../farm/FarmSwitcher';
 
+// Navigation items with translation keys
 const NAV_ITEMS = [
-    { name: 'Tableau de bord', icon: LayoutDashboard, path: '/', tourId: 'dashboard' },
-    { name: 'Troupeau', icon: PawPrint, path: '/herd', tourId: 'herd' },
-    { name: 'Pédigrées', icon: GitFork, path: '/pedigree', tourId: 'pedigree' },
-    { name: 'Reproduction', icon: CalendarCheck, path: '/reproduction', tourId: 'reproduction' },
-    { name: 'Tâches', icon: CalendarCheck, path: '/tasks', tourId: 'tasks' },
-    { name: 'Inventaire', icon: Package, path: '/inventory', tourId: 'inventory' },
-    { name: 'Personnel', icon: Users, path: '/staff', tourId: 'staff' },
-    { name: 'Véto', icon: Stethoscope, path: '/teleconsultation', tourId: 'teleconsultation' },
-    { name: 'Comptabilité', icon: Wallet, path: '/accounting', tourId: 'accounting' },
-    { name: 'Marketplace', icon: Store, path: '/marketplace', tourId: 'marketplace' },
+    { key: 'nav.dashboard', icon: LayoutDashboard, path: '/', tourId: 'dashboard' },
+    { key: 'nav.herd', icon: PawPrint, path: '/herd', tourId: 'herd' },
+    { key: 'nav.pedigree', icon: GitFork, path: '/pedigree', tourId: 'pedigree' },
+    { key: 'nav.reproduction', icon: CalendarCheck, path: '/reproduction', tourId: 'reproduction' },
+    { key: 'nav.tasks', icon: CalendarCheck, path: '/tasks', tourId: 'tasks' },
+    { key: 'nav.inventory', icon: Package, path: '/inventory', tourId: 'inventory' },
+    { key: 'nav.staff', icon: Users, path: '/staff', tourId: 'staff' },
+    { key: 'nav.vet', icon: Stethoscope, path: '/teleconsultation', tourId: 'teleconsultation' },
+    { key: 'nav.accounting', icon: Wallet, path: '/accounting', tourId: 'accounting' },
+    { key: 'nav.marketplace', icon: Store, path: '/marketplace', tourId: 'marketplace' },
 ];
 
 interface SidebarProps {
@@ -28,6 +29,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     const { logout } = useAuth();
     const { settings, updateSettings } = useSettings();
+    const { t } = useTranslation();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -72,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                         <NavLink
                             key={item.path}
                             to={item.path}
-                            title={isCollapsed ? item.name : undefined}
+                            title={isCollapsed ? t(item.key) : undefined}
                             data-tour={item.tourId}
                             className={({ isActive }) =>
                                 clsx(
@@ -85,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                             }
                         >
                             <item.icon className="w-5 h-5 shrink-0" />
-                            {!isCollapsed && <span className="truncate">{item.name}</span>}
+                            {!isCollapsed && <span className="truncate">{t(item.key)}</span>}
                         </NavLink>
                     ))}
                 </nav>
@@ -98,20 +100,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                             "flex items-center gap-3 px-3 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 w-full transition-colors rounded-xl",
                             isCollapsed ? "justify-center" : ""
                         )}
-                        title={isCollapsed ? (isDark ? "Mode clair" : "Mode sombre") : undefined}
+                        title={isCollapsed ? t(isDark ? 'theme.light' : 'theme.dark') : undefined}
                     >
                         {isDark ? (
                             <Sun className="w-5 h-5 shrink-0" />
                         ) : (
                             <Moon className="w-5 h-5 shrink-0" />
                         )}
-                        {!isCollapsed && <span>{isDark ? "Mode clair" : "Mode sombre"}</span>}
+                        {!isCollapsed && <span>{t(isDark ? 'theme.light' : 'theme.dark')}</span>}
                     </button>
 
                     {/* Settings Link */}
                     <NavLink
                         to="/settings"
-                        title={isCollapsed ? "Paramètres" : undefined}
+                        title={isCollapsed ? t('nav.settings') : undefined}
                         className={({ isActive }) =>
                             clsx(
                                 "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200",
@@ -123,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                         }
                     >
                         <Settings className="w-5 h-5 shrink-0" />
-                        {!isCollapsed && <span>Paramètres</span>}
+                        {!isCollapsed && <span>{t('nav.settings')}</span>}
                     </NavLink>
 
                     {/* Logout Button */}
@@ -133,10 +135,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                             "flex items-center gap-3 px-3 py-3 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 w-full transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20",
                             isCollapsed ? "justify-center" : ""
                         )}
-                        title={isCollapsed ? "Déconnexion" : undefined}
+                        title={isCollapsed ? t('nav.logout') : undefined}
                     >
                         <LogOut className="w-5 h-5 shrink-0" />
-                        {!isCollapsed && <span>Déconnexion</span>}
+                        {!isCollapsed && <span>{t('nav.logout')}</span>}
                     </button>
                 </div>
             </aside>

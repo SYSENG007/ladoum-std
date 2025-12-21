@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAnimals } from '../../hooks/useAnimals';
 import { useAuth } from '../../context/AuthContext';
 import { useFarm } from '../../context/FarmContext';
+import { useTranslation } from '../../context/SettingsContext';
 import { Card } from '../../components/ui/Card';
 import { NotificationCenter } from '../../components/notifications/NotificationCenter';
 import { ExpertCard } from '../../components/dashboard/ExpertCard';
@@ -21,6 +22,7 @@ export const DashboardDesktop: React.FC = () => {
     const { animals } = useAnimals();
     const { user, userProfile } = useAuth();
     const { currentFarm } = useFarm();
+    const { t } = useTranslation();
 
     const [carouselFilter, setCarouselFilter] = useState<CarouselFilter>('all');
     const [carouselIndex, setCarouselIndex] = useState(0);
@@ -53,7 +55,24 @@ export const DashboardDesktop: React.FC = () => {
         return result;
     }, [animals, carouselFilter]);
 
+    const getRoleName = (role?: string) => {
+        switch (role) {
+            case 'owner': return t('role.owner');
+            case 'manager': return t('role.manager');
+            case 'worker': return t('role.worker');
+            default: return t('role.user');
+        }
+    };
 
+    const getFilterLabel = (filter: CarouselFilter) => {
+        switch (filter) {
+            case 'all': return t('dashboard.filter.all');
+            case 'males': return t('dashboard.filter.males');
+            case 'females': return t('dashboard.filter.females');
+            case 'certified': return t('dashboard.filter.certified');
+            case 'recent': return t('dashboard.filter.recent');
+        }
+    };
 
     const canScrollLeft = carouselIndex > 0;
     const canScrollRight = carouselIndex < Math.max(0, filteredAnimals.length - 4);
@@ -67,18 +86,16 @@ export const DashboardDesktop: React.FC = () => {
                         {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-slate-900">{currentFarm?.name || 'Ma Bergerie'}</h1>
-                        <p className="text-sm text-slate-500">Planifiez, priorisez et gérez votre élevage avec facilité.</p>
+                        <h1 className="text-xl font-bold text-slate-900">{currentFarm?.name || t('dashboard.myFarm')}</h1>
+                        <p className="text-sm text-slate-500">{t('dashboard.subtitle')}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <NotificationCenter />
                     <button onClick={() => navigate('/profile')} className="flex items-center gap-3 hover:bg-white/50 rounded-xl px-3 py-2 transition-colors">
                         <div className="text-right">
-                            <p className="text-sm font-semibold text-slate-900">{userProfile?.displayName || 'Utilisateur'}</p>
-                            <p className="text-xs text-slate-500">
-                                {userProfile?.role === 'owner' ? 'Propriétaire' : userProfile?.role === 'manager' ? 'Manager' : userProfile?.role === 'worker' ? 'Employé' : 'Utilisateur'}
-                            </p>
+                            <p className="text-sm font-semibold text-slate-900">{userProfile?.displayName || t('dashboard.user')}</p>
+                            <p className="text-xs text-slate-500">{getRoleName(userProfile?.role)}</p>
                         </div>
                         <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                             {userInitials}
@@ -102,10 +119,10 @@ export const DashboardDesktop: React.FC = () => {
                             </div>
                             <div className="mt-3">
                                 <h3 className="text-2xl font-bold text-slate-900">{stats.total}</h3>
-                                <p className="text-sm text-slate-500">Total Sujets</p>
+                                <p className="text-sm text-slate-500">{t('dashboard.totalAnimals')}</p>
                                 <div className="flex gap-3 mt-1 text-xs">
-                                    <span className="text-blue-600 font-medium">♂ {stats.males} Mâles</span>
-                                    <span className="text-pink-600 font-medium">♀ {stats.females} Femelles</span>
+                                    <span className="text-blue-600 font-medium">♂ {stats.males} {t('dashboard.males')}</span>
+                                    <span className="text-pink-600 font-medium">♀ {stats.females} {t('dashboard.females')}</span>
                                 </div>
                             </div>
                         </Card>
@@ -120,7 +137,7 @@ export const DashboardDesktop: React.FC = () => {
                     <div className="flex flex-col overflow-hidden">
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2 flex-shrink-0">
                             <div className="flex items-center gap-3">
-                                <h2 className="text-lg font-bold text-slate-900">Sujets en Vedette</h2>
+                                <h2 className="text-lg font-bold text-slate-900">{t('dashboard.featuredAnimals')}</h2>
                                 <div className="flex gap-1">
                                     {(['all', 'males', 'females', 'certified', 'recent'] as CarouselFilter[]).map(filter => (
                                         <button
@@ -131,13 +148,13 @@ export const DashboardDesktop: React.FC = () => {
                                                 carouselFilter === filter ? "bg-slate-100 font-medium text-slate-900" : "text-slate-500 hover:bg-slate-50"
                                             )}
                                         >
-                                            {filter === 'all' ? 'Tous' : filter === 'males' ? 'Mâles' : filter === 'females' ? 'Femelles' : filter === 'certified' ? 'Certifiés' : 'Récents'}
+                                            {getFilterLabel(filter)}
                                         </button>
                                     ))}
                                 </div>
                             </div>
                             <button onClick={() => navigate('/herd')} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1">
-                                Voir tout <ChevronRight className="w-4 h-4" />
+                                {t('dashboard.viewAll')} <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
 
@@ -171,7 +188,7 @@ export const DashboardDesktop: React.FC = () => {
                                     )) : (
                                         <div className="w-full text-center py-8 text-slate-400">
                                             <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                                            <p className="text-sm">Aucun animal trouvé</p>
+                                            <p className="text-sm">{t('dashboard.noAnimals')}</p>
                                         </div>
                                     )}
                                 </div>

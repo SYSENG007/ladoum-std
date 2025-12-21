@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, MoreHorizontal, Edit2, Trash2, ArrowRight } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
 import { useAnimals } from '../../hooks/useAnimals';
+import { useTranslation } from '../../context/SettingsContext';
 import type { Task, TaskStatus } from '../../types';
 import clsx from 'clsx';
 
@@ -26,6 +27,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 }) => {
     const { currentFarm } = useFarm();
     const { animals } = useAnimals();
+    const { t } = useTranslation();
     const [showMenu, setShowMenu] = useState(false);
     const [showStatusMenu, setShowStatusMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -73,10 +75,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         const diffTime = dueDate.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays < 0) return { label: `Il y a ${Math.abs(diffDays)}j`, isOverdue: true };
-        if (diffDays === 0) return { label: "Aujourd'hui", isOverdue: false };
-        if (diffDays === 1) return { label: 'Demain', isOverdue: false };
-        return { label: `Dans ${diffDays}j`, isOverdue: false };
+        if (diffDays < 0) return { label: (t('common.daysAgo') || 'Il y a {days}j').replace('{days}', Math.abs(diffDays).toString()), isOverdue: true };
+        if (diffDays === 0) return { label: t('common.today'), isOverdue: false };
+        if (diffDays === 1) return { label: t('common.tomorrow'), isOverdue: false };
+        return { label: (t('common.inDays') || 'Dans {days}j').replace('{days}', diffDays.toString()), isOverdue: false };
     };
 
     const dueInfo = getDueDateLabel();
@@ -87,10 +89,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     };
 
     const statuses: { id: TaskStatus; label: string; color: string }[] = [
-        { id: 'Todo', label: 'À faire', color: 'text-slate-500' },
-        { id: 'In Progress', label: 'En cours', color: 'text-amber-500' },
-        { id: 'Blocked', label: 'Bloqué', color: 'text-red-500' },
-        { id: 'Done', label: 'Terminé', color: 'text-green-500' },
+        { id: 'Todo', label: t('task.todo'), color: 'text-slate-500' },
+        { id: 'In Progress', label: t('task.inProgress'), color: 'text-amber-500' },
+        { id: 'Blocked', label: t('task.blocked'), color: 'text-red-500' },
+        { id: 'Done', label: t('task.done'), color: 'text-green-500' },
     ];
 
     return (
@@ -117,7 +119,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                         "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border",
                         priorityStyles.bg, priorityStyles.text, priorityStyles.border
                     )}>
-                        {task.priority === 'High' ? 'Haute' : task.priority === 'Medium' ? 'Moyenne' : 'Basse'}
+                        {t(`task.${task.priority.toLowerCase()}`)}
                     </span>
                 </div>
 
@@ -147,7 +149,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                                     className="w-full px-4 py-2.5 text-left hover:bg-slate-50 flex items-center gap-3 text-sm text-slate-700"
                                 >
                                     <Edit2 className="w-4 h-4" />
-                                    Modifier
+                                    {t('common.edit')}
                                 </button>
                             )}
 
@@ -162,7 +164,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                                     >
                                         <span className="flex items-center gap-3">
                                             <ArrowRight className="w-4 h-4" />
-                                            Changer statut
+                                            {t('task.changeStatus')}
                                         </span>
                                         <span className="text-slate-400">›</span>
                                     </button>
@@ -208,7 +210,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                                     className="w-full px-4 py-2.5 text-left hover:bg-red-50 flex items-center gap-3 text-sm text-red-600 border-t border-slate-100"
                                 >
                                     <Trash2 className="w-4 h-4" />
-                                    Supprimer
+                                    {t('common.delete')}
                                 </button>
                             )}
                         </div>
@@ -262,7 +264,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 ) : (
                     <div
                         className="w-7 h-7 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center"
-                        title="Non assigné"
+                        title={t('task.unassigned')}
                     >
                         <span className="text-[10px] text-slate-400">?</span>
                     </div>

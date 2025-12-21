@@ -5,10 +5,12 @@ import { Search, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { useAnimals } from '../../hooks/useAnimals';
 import { useData } from '../../context/DataContext';
+import { useTranslation } from '../../context/SettingsContext';
 
 export const HerdDesktop: React.FC = () => {
     const { animals, error } = useAnimals();
     const { refreshData } = useData();
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -31,12 +33,12 @@ export const HerdDesktop: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 flex-shrink-0">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Mon Cheptel</h1>
-                    <p className="text-slate-500">Gérez vos moutons Ladoum</p>
+                    <h1 className="text-2xl font-bold text-slate-900">{t('herd.title')}</h1>
+                    <p className="text-slate-500">{t('herd.subtitle')}</p>
                 </div>
                 <Button onClick={() => setIsAddModalOpen(true)}>
                     <Plus className="w-5 h-5 mr-2" />
-                    Ajouter un animal
+                    {t('herd.addAnimal')}
                 </Button>
             </div>
 
@@ -46,7 +48,7 @@ export const HerdDesktop: React.FC = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
                         type="text"
-                        placeholder="Rechercher par nom ou ID..."
+                        placeholder={t('herd.searchPlaceholder')}
                         className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -54,13 +56,13 @@ export const HerdDesktop: React.FC = () => {
                 </div>
                 <div className="flex gap-2">
                     <Button variant="secondary" onClick={() => setFilterStatus('all')} className={filterStatus === 'all' ? 'bg-slate-200' : ''}>
-                        Tout
+                        {t('herd.all')}
                     </Button>
                     <Button variant="secondary" onClick={() => setFilterStatus('Active')} className={filterStatus === 'Active' ? 'bg-emerald-100 text-emerald-700' : ''}>
-                        Actifs
+                        {t('herd.active')}
                     </Button>
                     <Button variant="secondary" onClick={() => setFilterStatus('Sold')} className={filterStatus === 'Sold' ? 'bg-blue-100 text-blue-700' : ''}>
-                        Vendus
+                        {t('herd.sold')}
                     </Button>
                 </div>
             </div>
@@ -75,7 +77,7 @@ export const HerdDesktop: React.FC = () => {
                     </div>
                 ) : (
                     <div className="text-center py-12 text-slate-500 bg-white rounded-xl border border-dashed border-slate-300">
-                        <p>Aucun animal trouvé.</p>
+                        <p>{t('herd.noAnimals')}</p>
                     </div>
                 )}
             </div>

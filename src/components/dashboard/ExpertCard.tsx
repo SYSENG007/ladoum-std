@@ -2,12 +2,15 @@ import React, { useMemo } from 'react';
 import { CertificationBadge } from '../ui/CertificationBadge';
 import clsx from 'clsx';
 import type { Animal } from '../../types';
+import { useTranslation } from '../../context/SettingsContext';
 
 interface ExpertCardProps {
     animals: Animal[];
 }
 
 export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
+    const { t } = useTranslation();
+
     // Calculate real certification progress
     const certificationStats = useMemo(() => {
         const totalAnimals = animals.length;
@@ -45,8 +48,8 @@ export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
             <div className="relative z-10 h-full flex flex-col justify-between">
                 <div className="flex items-start justify-between mb-3">
                     <div>
-                        <h3 className="text-xl font-bold mb-0.5">Niveau {certificationStats.currentLevel}</h3>
-                        <p className="text-slate-400 text-xs">Bergerie Certifiée</p>
+                        <h3 className="text-xl font-bold mb-0.5">{t('expert.level')} {certificationStats.currentLevel}</h3>
+                        <p className="text-slate-400 text-xs">{t('expert.certifiedFarm')}</p>
                     </div>
                     <CertificationBadge level={certificationStats.currentLevel} size="md" className="shadow-lg shadow-yellow-900/20" />
                 </div>
@@ -55,7 +58,7 @@ export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
                     <div>
                         <div className="flex justify-between text-xs mb-1">
                             <span className="text-slate-300">
-                                {certificationStats.currentLevel === 'Elite' ? 'Niveau Maximum!' : 'Progression Elite'}
+                                {certificationStats.currentLevel === 'Elite' ? t('expert.maxLevel') : t('expert.eliteProgress')}
                             </span>
                             <span className="font-bold text-yellow-400">{certificationStats.progress}%</span>
                         </div>
@@ -73,14 +76,14 @@ export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
                                 "w-1.5 h-1.5 rounded-full",
                                 certificationStats.certificationRate >= 80 ? "bg-green-500" : "bg-amber-500"
                             )} />
-                            <span>Certifiés: {certificationStats.certificationRate}%</span>
+                            <span>{t('expert.certified')}: {certificationStats.certificationRate}%</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                             <div className={clsx(
                                 "w-1.5 h-1.5 rounded-full",
                                 certificationStats.goldRate >= 50 ? "bg-green-500" : "bg-amber-500"
                             )} />
-                            <span>Gold+: {certificationStats.goldRate}%</span>
+                            <span>{t('expert.goldPlus')}: {certificationStats.goldRate}%</span>
                         </div>
                     </div>
                 </div>

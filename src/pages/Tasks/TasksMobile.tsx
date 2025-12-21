@@ -4,29 +4,31 @@ import { useTasks } from '../../hooks/useTasks';
 import { useAnimals } from '../../hooks/useAnimals';
 import { useData } from '../../context/DataContext';
 import { useFarm } from '../../context/FarmContext';
+import { useTranslation } from '../../context/SettingsContext';
 import { TaskService } from '../../services/TaskService';
 import { AddTaskModal } from '../../components/tasks/AddTaskModal';
 import { Plus, CheckCircle, Clock, XCircle, Circle, User, Tag } from 'lucide-react';
 import clsx from 'clsx';
 import type { TaskStatus } from '../../types';
 
-const STATUS_OPTIONS: { id: TaskStatus; label: string; icon: React.ReactNode }[] = [
-    { id: 'Todo', label: 'À faire', icon: <Circle className="w-5 h-5 text-slate-400" strokeWidth={1.5} /> },
-    { id: 'In Progress', label: 'En cours', icon: <Clock className="w-5 h-5 text-amber-500" strokeWidth={1.5} /> },
-    { id: 'Blocked', label: 'Bloqué', icon: <XCircle className="w-5 h-5 text-red-500" strokeWidth={1.5} /> },
-    { id: 'Done', label: 'Terminé', icon: <CheckCircle className="w-5 h-5 text-green-500" strokeWidth={1.5} /> },
-];
-
 export const TasksMobile: React.FC = () => {
     const { tasks, error } = useTasks();
     const { animals } = useAnimals();
     const { refreshData } = useData();
     const { currentFarm } = useFarm();
+    const { t } = useTranslation();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
     const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+
+    const STATUS_OPTIONS: { id: TaskStatus; label: string; icon: React.ReactNode }[] = [
+        { id: 'Todo', label: t('task.todo'), icon: <Circle className="w-5 h-5 text-slate-400" strokeWidth={1.5} /> },
+        { id: 'In Progress', label: t('task.inProgress'), icon: <Clock className="w-5 h-5 text-amber-500" strokeWidth={1.5} /> },
+        { id: 'Blocked', label: t('task.blocked'), icon: <XCircle className="w-5 h-5 text-red-500" strokeWidth={1.5} /> },
+        { id: 'Done', label: t('task.done'), icon: <CheckCircle className="w-5 h-5 text-green-500" strokeWidth={1.5} /> },
+    ];
 
     const filteredTasks = tasks.filter(t => filterStatus === 'all' || t.status === filterStatus);
 
@@ -63,6 +65,10 @@ export const TasksMobile: React.FC = () => {
         setDropdownPosition(null);
     };
 
+    const getPriorityLabel = (priority: string) => {
+        return t(`task.${priority.toLowerCase()}`);
+    };
+
     if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
 
     const currentTask = openDropdownId ? tasks.find(t => t.id === openDropdownId) : null;
@@ -72,8 +78,8 @@ export const TasksMobile: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-3 flex-shrink-0 px-1">
                 <div>
-                    <h1 className="text-lg font-bold text-slate-900">Tâches</h1>
-                    <p className="text-xs text-slate-500">{tasks.length} tâches</p>
+                    <h1 className="text-lg font-bold text-slate-900">{t('page.tasks')}</h1>
+                    <p className="text-xs text-slate-500">{tasks.length} {t('page.tasks').toLowerCase()}</p>
                 </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
@@ -86,11 +92,11 @@ export const TasksMobile: React.FC = () => {
             {/* Filters */}
             <div className="flex gap-2 mb-3 flex-shrink-0 overflow-x-auto pb-1">
                 {[
-                    { key: 'all', label: 'Toutes' },
-                    { key: 'Todo', label: 'À faire' },
-                    { key: 'In Progress', label: 'En cours' },
-                    { key: 'Blocked', label: 'Bloqué' },
-                    { key: 'Done', label: 'Terminées' },
+                    { key: 'all', label: t('common.all') || 'Toutes' },
+                    { key: 'Todo', label: t('task.todo') },
+                    { key: 'In Progress', label: t('task.inProgress') },
+                    { key: 'Blocked', label: t('task.blocked') },
+                    { key: 'Done', label: t('task.done') },
                 ].map(f => (
                     <button
                         key={f.key}
@@ -135,7 +141,7 @@ export const TasksMobile: React.FC = () => {
                                         {task.title}
                                     </p>
                                     <p className="text-xs text-slate-400 mt-1">
-                                        {new Date(task.date).toLocaleDateString('fr')} • {task.type}
+                                        {new Date(task.date).toLocaleDateString()} • {task.type}
                                     </p>
 
                                     {/* Assignee & Animal Info */}
@@ -164,14 +170,14 @@ export const TasksMobile: React.FC = () => {
                                     task.priority === 'High' ? "bg-red-100 text-red-700" :
                                         task.priority === 'Medium' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
                                 )}>
-                                    {task.priority === 'High' ? 'Haute' : task.priority === 'Medium' ? 'Moyenne' : 'Basse'}
+                                    {getPriorityLabel(task.priority)}
                                 </span>
                             </div>
                         </div>
                     );
                 }) : (
                     <div className="text-center py-12 text-slate-400">
-                        <p className="text-sm">Aucune tâche</p>
+                        <p className="text-sm">{t('task.noTasks')}</p>
                     </div>
                 )}
             </div>

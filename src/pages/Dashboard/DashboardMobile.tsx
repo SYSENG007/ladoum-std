@@ -6,6 +6,7 @@ import { useInventory } from '../../hooks/useInventory';
 import { useAuth } from '../../context/AuthContext';
 import { useFarm } from '../../context/FarmContext';
 import { useData } from '../../context/DataContext';
+import { useTranslation } from '../../context/SettingsContext';
 import { Card } from '../../components/ui/Card';
 import { NotificationCenter } from '../../components/notifications/NotificationCenter';
 import {
@@ -29,6 +30,7 @@ export const DashboardMobile: React.FC = () => {
     const { user, userProfile } = useAuth();
     const { currentFarm } = useFarm();
     const { transactions } = useData();
+    const { t } = useTranslation();
 
     const [carouselFilter, setCarouselFilter] = useState<CarouselFilter>('all');
 
@@ -72,27 +74,32 @@ export const DashboardMobile: React.FC = () => {
     }, [animals]);
 
     const healthRemindersCount = useMemo(() => {
-        // Count health tasks not done
         const healthTasksCount = tasks.filter(t => t.type === 'Health' && t.status !== 'Done').length;
-
-        // Count healthRecords with nextDueDate (upcoming vaccinations, treatments)
         const healthRecordsCount = animals.reduce((count, animal) => {
             const recordsWithDueDate = (animal.healthRecords || []).filter(r => r.nextDueDate);
             return count + recordsWithDueDate.length;
         }, 0);
-
         return healthTasksCount + healthRecordsCount;
     }, [tasks, animals]);
 
     const activeAlertsCount = heatAlertsCount + healthRemindersCount + lowStockItems.length;
+
+    const getFilterLabel = (filter: CarouselFilter) => {
+        switch (filter) {
+            case 'all': return t('dashboard.filter.all');
+            case 'males': return t('dashboard.filter.males');
+            case 'females': return t('dashboard.filter.females');
+            case 'certified': return t('dashboard.filter.certified');
+        }
+    };
 
     return (
         <div className="h-full flex flex-col overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between mb-3 flex-shrink-0 px-1">
                 <div>
-                    <h1 className="text-lg font-bold text-slate-900">Tableau de bord</h1>
-                    <p className="text-xs text-slate-500">Bienvenue sur Ladoum STD</p>
+                    <h1 className="text-lg font-bold text-slate-900">{t('page.dashboard')}</h1>
+                    <p className="text-xs text-slate-500">{t('dashboard.welcome')}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <NotificationCenter />
@@ -112,8 +119,8 @@ export const DashboardMobile: React.FC = () => {
                         {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
                     </div>
                     <div className="text-white">
-                        <h2 className="font-bold text-sm">{currentFarm?.name || 'Ma Bergerie'}</h2>
-                        <p className="text-[10px] text-white/80">Planifiez, priorisez et gérez votre élevage avec facilité.</p>
+                        <h2 className="font-bold text-sm">{currentFarm?.name || t('dashboard.myFarm')}</h2>
+                        <p className="text-[10px] text-white/80">{t('dashboard.subtitle')}</p>
                     </div>
                 </div>
             </Card>
@@ -129,7 +136,7 @@ export const DashboardMobile: React.FC = () => {
                         <span className="text-xs font-semibold text-emerald-500">+12%</span>
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mt-2">{stats.total}</h3>
-                    <p className="text-xs text-slate-500">Total Sujets</p>
+                    <p className="text-xs text-slate-500">{t('dashboard.totalAnimals')}</p>
                 </Card>
 
                 {/* Naissances */}
@@ -141,7 +148,7 @@ export const DashboardMobile: React.FC = () => {
                         <span className="text-xs font-semibold text-emerald-500">+12%</span>
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mt-2">{stats.births}</h3>
-                    <p className="text-xs text-slate-500">Naissances (90j)</p>
+                    <p className="text-xs text-slate-500">{t('dashboard.births90d')}</p>
                 </Card>
 
                 {/* Revenus - Full width */}
@@ -153,7 +160,7 @@ export const DashboardMobile: React.FC = () => {
                             </div>
                             <div>
                                 <h3 className="text-xl font-bold text-slate-900">{stats.revenue}</h3>
-                                <p className="text-xs text-slate-500">Revenus</p>
+                                <p className="text-xs text-slate-500">{t('dashboard.revenue')}</p>
                             </div>
                         </div>
                         <span className="text-xs font-semibold text-slate-400">0%</span>
@@ -164,62 +171,62 @@ export const DashboardMobile: React.FC = () => {
             {/* Rappels & Alertes - Clean Design */}
             <div className="mb-3 flex-shrink-0">
                 <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-sm font-bold text-slate-900">Rappels & Alertes</h2>
+                    <h2 className="text-sm font-bold text-slate-900">{t('dashboard.reminders')}</h2>
                     <span className={clsx(
                         "text-xs font-semibold px-2.5 py-1 rounded-full",
                         activeAlertsCount > 0
                             ? "bg-red-100 text-red-500"
                             : "bg-pink-100 text-pink-500"
                     )}>
-                        {activeAlertsCount} Actif{activeAlertsCount !== 1 ? 's' : ''}
+                        {activeAlertsCount} {activeAlertsCount !== 1 ? t('dashboard.actives') : t('dashboard.active')}
                     </span>
                 </div>
                 <Card className="p-0 overflow-hidden">
-                    {/* Chaleurs à surveiller - Click to go to reproduction */}
+                    {/* Chaleurs à surveiller */}
                     <button
                         onClick={() => navigate('/reproduction')}
                         className="w-full p-4 border-b border-slate-100 text-left hover:bg-pink-50 transition-colors"
                     >
                         <div className="flex items-center gap-2 mb-1">
                             <Heart className="w-4 h-4 text-pink-500" />
-                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Chaleurs à surveiller</p>
+                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">{t('dashboard.heats')}</p>
                         </div>
                         <p className="text-xs text-slate-400 italic pl-6">
                             {heatAlertsCount > 0
-                                ? `${heatAlertsCount} brebis à surveiller`
-                                : 'Aucune chaleur prévue.'}
+                                ? `${heatAlertsCount} ${t('dashboard.heatsToWatch')}`
+                                : t('dashboard.noHeats')}
                         </p>
                     </button>
 
-                    {/* Santé à venir - Click to go to tasks */}
+                    {/* Santé à venir */}
                     <button
                         onClick={() => navigate('/tasks')}
                         className="w-full p-4 border-b border-slate-100 text-left hover:bg-blue-50 transition-colors"
                     >
                         <div className="flex items-center gap-2 mb-1">
                             <Stethoscope className="w-4 h-4 text-blue-500" />
-                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Santé à venir</p>
+                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">{t('dashboard.health')}</p>
                         </div>
                         <p className="text-xs text-slate-400 italic pl-6">
                             {healthRemindersCount > 0
-                                ? `${healthRemindersCount} rappel${healthRemindersCount > 1 ? 's' : ''} sanitaire${healthRemindersCount > 1 ? 's' : ''}`
-                                : 'Aucun rappel sanitaire.'}
+                                ? `${healthRemindersCount} ${t('dashboard.healthReminders')}`
+                                : t('dashboard.noHealth')}
                         </p>
                     </button>
 
-                    {/* Alertes Stock - Click to go to inventory */}
+                    {/* Alertes Stock */}
                     <button
                         onClick={() => navigate('/inventory')}
                         className="w-full p-4 text-left hover:bg-blue-50 transition-colors"
                     >
                         <div className="flex items-center gap-2 mb-1">
                             <Package className="w-4 h-4 text-blue-500" />
-                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Alertes Stock</p>
+                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">{t('dashboard.stockAlerts')}</p>
                         </div>
                         <p className="text-xs text-slate-400 italic pl-6">
                             {lowStockItems.length > 0
-                                ? `${lowStockItems.length} article${lowStockItems.length > 1 ? 's' : ''} en stock critique`
-                                : 'Aucune alerte stock.'}
+                                ? `${lowStockItems.length} ${t('dashboard.lowStock')}`
+                                : t('dashboard.noStock')}
                         </p>
                     </button>
                 </Card>
@@ -228,9 +235,9 @@ export const DashboardMobile: React.FC = () => {
             {/* Sujets en Vedette - Flexible space */}
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 <div className="flex items-center justify-between mb-2 flex-shrink-0">
-                    <h2 className="text-sm font-bold text-slate-900">Sujets en Vedette</h2>
+                    <h2 className="text-sm font-bold text-slate-900">{t('dashboard.featuredAnimals')}</h2>
                     <button onClick={() => navigate('/herd')} className="text-xs text-emerald-600 font-medium flex items-center gap-0.5">
-                        Voir tout <ChevronRight className="w-3 h-3" />
+                        {t('dashboard.viewAll')} <ChevronRight className="w-3 h-3" />
                     </button>
                 </div>
 
@@ -245,7 +252,7 @@ export const DashboardMobile: React.FC = () => {
                                 carouselFilter === filter ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"
                             )}
                         >
-                            {filter === 'all' ? 'Tous' : filter === 'males' ? 'Mâles' : filter === 'females' ? 'Femelles' : 'Certifiés'}
+                            {getFilterLabel(filter)}
                         </button>
                     ))}
                 </div>
@@ -274,7 +281,7 @@ export const DashboardMobile: React.FC = () => {
                             </div>
                         )) : (
                             <div className="w-full flex items-center justify-center text-slate-400">
-                                <p className="text-xs">Aucun animal</p>
+                                <p className="text-xs">{t('dashboard.noAnimals')}</p>
                             </div>
                         )}
                     </div>

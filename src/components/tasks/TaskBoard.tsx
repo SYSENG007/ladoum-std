@@ -3,6 +3,7 @@ import { TaskCard } from './TaskCard';
 import { MoreVertical, Plus } from 'lucide-react';
 import type { Task, TaskStatus } from '../../types';
 import clsx from 'clsx';
+import { useTranslation } from '../../context/SettingsContext';
 
 interface TaskBoardProps {
     tasks: Task[];
@@ -12,19 +13,20 @@ interface TaskBoardProps {
     onDeleteTask?: (taskId: string) => void;
 }
 
-const COLUMNS: { id: TaskStatus; label: string; color: string; dotColor: string; bgColor: string }[] = [
-    { id: 'Todo', label: 'À faire', color: 'border-slate-200', dotColor: 'bg-slate-400', bgColor: 'bg-slate-50' },
-    { id: 'In Progress', label: 'En cours', color: 'border-amber-200', dotColor: 'bg-amber-400', bgColor: 'bg-amber-50' },
-    { id: 'Blocked', label: 'Bloqué', color: 'border-red-200', dotColor: 'bg-red-400', bgColor: 'bg-red-50' },
-    { id: 'Done', label: 'Terminé', color: 'border-green-200', dotColor: 'bg-green-400', bgColor: 'bg-green-50' },
-];
-
 export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, onTaskUpdate, onAddTask, onEditTask, onDeleteTask }) => {
+    const { t } = useTranslation();
     const [draggedTask, setDraggedTask] = useState<Task | null>(null);
     const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null);
     const [droppedTask, setDroppedTask] = useState<{ id: string; targetStatus: TaskStatus } | null>(null);
     const dragCounter = useRef<{ [key: string]: number }>({});
     const draggedElementRef = useRef<HTMLElement | null>(null);
+
+    const COLUMNS: { id: TaskStatus; label: string; color: string; dotColor: string; bgColor: string }[] = [
+        { id: 'Todo', label: t('task.todo'), color: 'border-slate-200', dotColor: 'bg-slate-400', bgColor: 'bg-slate-50' },
+        { id: 'In Progress', label: t('task.inProgress'), color: 'border-amber-200', dotColor: 'bg-amber-400', bgColor: 'bg-amber-50' },
+        { id: 'Blocked', label: t('task.blocked'), color: 'border-red-200', dotColor: 'bg-red-400', bgColor: 'bg-red-50' },
+        { id: 'Done', label: t('task.done'), color: 'border-green-200', dotColor: 'bg-green-400', bgColor: 'bg-green-50' },
+    ];
 
     const handleDragStart = (e: React.DragEvent, task: Task) => {
         setDraggedTask(task);
@@ -173,7 +175,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, onTaskUpdate, onAdd
                                         ? "border-primary-400 bg-primary-100/50 text-primary-600"
                                         : "border-slate-200 text-slate-400"
                                 )}>
-                                    {isOver ? "Déposer ici" : "Aucune tâche"}
+                                    {isOver ? t('task.dropHere') : t('task.noTasks')}
                                 </div>
                             ) : (
                                 <>
@@ -193,7 +195,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, onTaskUpdate, onAdd
                                     {/* Single drop zone at bottom when dragging over */}
                                     {isOver && (
                                         <div className="h-16 border-2 border-dashed border-primary-400 bg-primary-100/50 rounded-xl flex items-center justify-center text-sm text-primary-600">
-                                            Déposer ici
+                                            {t('task.dropHere')}
                                         </div>
                                     )}
                                 </>

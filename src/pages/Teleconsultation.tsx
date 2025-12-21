@@ -11,6 +11,7 @@ import { useFarm } from '../context/FarmContext';
 import type { Consultation, Veterinarian } from '../types/consultation';
 import type { Animal } from '../types';
 import clsx from 'clsx';
+import { useTranslation } from '../context/SettingsContext';
 
 type TabType = 'all' | 'scheduled' | 'completed';
 type FilterStatus = 'all' | 'Scheduled' | 'InProgress' | 'Completed' | 'Cancelled';
@@ -18,6 +19,7 @@ type FilterStatus = 'all' | 'Scheduled' | 'InProgress' | 'Completed' | 'Cancelle
 export const Teleconsultation: React.FC = () => {
     const { user } = useAuth();
     const { currentFarm } = useFarm();
+    const { t } = useTranslation();
     const [consultations, setConsultations] = useState<Consultation[]>([]);
     const [veterinarians, setVeterinarians] = useState<Veterinarian[]>([]);
     const [animals, setAnimals] = useState<Animal[]>([]);
@@ -79,7 +81,7 @@ export const Teleconsultation: React.FC = () => {
             console.log('Consultation list refreshed');
         } catch (error) {
             console.error('Booking failed:', error);
-            alert('Erreur lors de la réservation. Veuillez réessayer.');
+            alert(t('teleconsultation.bookingError'));
         }
     };
 
@@ -117,9 +119,9 @@ export const Teleconsultation: React.FC = () => {
     };
 
     const tabs: { id: TabType; label: string; count?: number }[] = [
-        { id: 'all', label: 'Toutes', count: consultations.length },
-        { id: 'scheduled', label: 'Programmées', count: scheduledCount },
-        { id: 'completed', label: 'Terminées', count: completedCount }
+        { id: 'all', label: t('common.all'), count: consultations.length },
+        { id: 'scheduled', label: t('teleconsultation.scheduled'), count: scheduledCount },
+        { id: 'completed', label: t('teleconsultation.completed'), count: completedCount }
     ];
 
     return (
@@ -129,12 +131,12 @@ export const Teleconsultation: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                         <Stethoscope className="w-7 h-7 text-primary-600" />
-                        Véto
+                        {t('teleconsultation.title')}
                     </h1>
-                    <p className="text-slate-500 mt-1">Consultez un vétérinaire à distance</p>
+                    <p className="text-slate-500 mt-1">{t('teleconsultation.subtitle')}</p>
                 </div>
                 <Button icon={Plus} onClick={() => setShowBookingModal(true)}>
-                    Nouvelle consultation
+                    {t('teleconsultation.new')}
                 </Button>
             </div>
 
@@ -147,7 +149,7 @@ export const Teleconsultation: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-blue-700">{scheduledCount}</p>
-                            <p className="text-sm text-blue-600">Programmées</p>
+                            <p className="text-sm text-blue-600">{t('teleconsultation.scheduled')}</p>
                         </div>
                     </div>
                 </Card>
@@ -158,7 +160,7 @@ export const Teleconsultation: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-amber-700">{inProgressCount}</p>
-                            <p className="text-sm text-amber-600">En cours</p>
+                            <p className="text-sm text-amber-600">{t('teleconsultation.inProgress')}</p>
                         </div>
                     </div>
                 </Card>
@@ -169,7 +171,7 @@ export const Teleconsultation: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-green-700">{completedCount}</p>
-                            <p className="text-sm text-green-600">Terminées</p>
+                            <p className="text-sm text-green-600">{t('teleconsultation.completed')}</p>
                         </div>
                     </div>
                 </Card>
@@ -180,7 +182,7 @@ export const Teleconsultation: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-purple-700">{veterinarians.length}</p>
-                            <p className="text-sm text-purple-600">Vétérinaires</p>
+                            <p className="text-sm text-purple-600">{t('teleconsultation.veterinarians')}</p>
                         </div>
                     </div>
                 </Card>
@@ -222,7 +224,7 @@ export const Teleconsultation: React.FC = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Rechercher..."
+                            placeholder={t('common.search')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full sm:w-48 pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -233,11 +235,11 @@ export const Teleconsultation: React.FC = () => {
                         onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
                         className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                     >
-                        <option value="all">Tous les statuts</option>
-                        <option value="Scheduled">Programmées</option>
-                        <option value="InProgress">En cours</option>
-                        <option value="Completed">Terminées</option>
-                        <option value="Cancelled">Annulées</option>
+                        <option value="all">{t('teleconsultation.allStatuses')}</option>
+                        <option value="Scheduled">{t('teleconsultation.scheduled')}</option>
+                        <option value="InProgress">{t('teleconsultation.inProgress')}</option>
+                        <option value="Completed">{t('teleconsultation.completed')}</option>
+                        <option value="Cancelled">{t('teleconsultation.cancelled')}</option>
                     </select>
                 </div>
             </div>
@@ -251,16 +253,16 @@ export const Teleconsultation: React.FC = () => {
                 <Card className="text-center py-12 border-dashed">
                     <Video className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-slate-700 mb-2">
-                        {consultations.length === 0 ? 'Aucune consultation' : 'Aucun résultat'}
+                        {consultations.length === 0 ? t('teleconsultation.noConsultations') : t('teleconsultation.noResults')}
                     </h3>
                     <p className="text-slate-500 mb-4">
                         {consultations.length === 0
-                            ? 'Prenez rendez-vous avec un vétérinaire pour commencer'
-                            : 'Essayez de modifier vos filtres'}
+                            ? t('teleconsultation.bookMessage')
+                            : t('teleconsultation.filterMessage')}
                     </p>
                     {consultations.length === 0 && (
                         <Button icon={Plus} onClick={() => setShowBookingModal(true)}>
-                            Nouvelle consultation
+                            {t('teleconsultation.new')}
                         </Button>
                     )}
                 </Card>

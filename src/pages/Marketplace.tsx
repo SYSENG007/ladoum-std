@@ -12,23 +12,9 @@ import { EditListingModal } from '../components/marketplace/EditListingModal';
 import { ListingDetailsModal } from '../components/marketplace/ListingDetailsModal';
 import { MarketplaceService } from '../services/MarketplaceService';
 import { useToast } from '../context/ToastContext';
+import { useTranslation } from '../context/SettingsContext';
 import clsx from 'clsx';
 import type { Listing, ListingCategory, ListingStatus, SenegalRegion } from '../types';
-
-const CATEGORIES: { value: ListingCategory | 'all'; label: string; icon: React.ReactNode }[] = [
-    { value: 'all', label: 'Tout', icon: <Package className="w-4 h-4" /> },
-    { value: 'Animal', label: 'Animaux', icon: <PawPrint className="w-4 h-4" /> },
-    { value: 'Feed', label: 'Aliments', icon: <Wheat className="w-4 h-4" /> },
-    { value: 'Equipment', label: 'Matériel', icon: <Wrench className="w-4 h-4" /> },
-    { value: 'Service', label: 'Services', icon: <Truck className="w-4 h-4" /> },
-];
-
-const STATUSES: { value: ListingStatus | 'all'; label: string; icon: React.ReactNode }[] = [
-    { value: 'all', label: 'Tous', icon: <Package className="w-4 h-4" /> },
-    { value: 'Available', label: 'Disponible', icon: <CheckCircle className="w-4 h-4" /> },
-    { value: 'Reserved', label: 'Réservé', icon: <Clock className="w-4 h-4" /> },
-    { value: 'Sold', label: 'Vendu', icon: <Tag className="w-4 h-4" /> },
-];
 
 const REGIONS: SenegalRegion[] = [
     'Dakar', 'Thiès', 'Diourbel', 'Saint-Louis', 'Louga',
@@ -37,6 +23,7 @@ const REGIONS: SenegalRegion[] = [
 ];
 
 export const Marketplace: React.FC = () => {
+    const { t } = useTranslation();
     const toast = useToast();
     const [listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(true);
@@ -48,6 +35,21 @@ export const Marketplace: React.FC = () => {
     const [selectedStatus, setSelectedStatus] = useState<ListingStatus | 'all'>('all');
     const [selectedRegion, setSelectedRegion] = useState<SenegalRegion | 'all'>('all');
     const [showFilters, setShowFilters] = useState(false);
+
+    const categories: { value: ListingCategory | 'all'; label: string; icon: React.ReactNode }[] = [
+        { value: 'all', label: t('common.all'), icon: <Package className="w-4 h-4" /> },
+        { value: 'Animal', label: t('marketplace.category.animal'), icon: <PawPrint className="w-4 h-4" /> },
+        { value: 'Feed', label: t('marketplace.category.feed'), icon: <Wheat className="w-4 h-4" /> },
+        { value: 'Equipment', label: t('marketplace.category.equipment'), icon: <Wrench className="w-4 h-4" /> },
+        { value: 'Service', label: t('marketplace.category.service'), icon: <Truck className="w-4 h-4" /> },
+    ];
+
+    const statuses: { value: ListingStatus | 'all'; label: string; icon: React.ReactNode }[] = [
+        { value: 'all', label: t('common.all'), icon: <Package className="w-4 h-4" /> },
+        { value: 'Available', label: t('marketplace.status.available'), icon: <CheckCircle className="w-4 h-4" /> },
+        { value: 'Reserved', label: t('marketplace.status.reserved'), icon: <Clock className="w-4 h-4" /> },
+        { value: 'Sold', label: t('marketplace.status.sold'), icon: <Tag className="w-4 h-4" /> },
+    ];
 
     // Modals
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -70,7 +72,7 @@ export const Marketplace: React.FC = () => {
             setListings(data);
         } catch (err) {
             console.error('Error loading listings:', err);
-            setError('Erreur lors du chargement des annonces');
+            setError(t('marketplace.error'));
         } finally {
             setLoading(false);
         }
@@ -86,10 +88,10 @@ export const Marketplace: React.FC = () => {
             await MarketplaceService.delete(deleteDialog.listing.id);
             await loadListings();
             setDeleteDialog({ isOpen: false, listing: null });
-            toast.success('Annonce supprimée');
+            toast.success(t('marketplace.deleteSuccess'));
         } catch (err) {
             console.error('Error deleting listing:', err);
-            toast.error('Erreur lors de la suppression de l\'annonce');
+            toast.error(t('marketplace.deleteError'));
         }
     };
 
@@ -97,13 +99,17 @@ export const Marketplace: React.FC = () => {
         try {
             await MarketplaceService.updateStatus(listing.id, newStatus);
             await loadListings();
-            toast.success(`Statut mis à jour: ${newStatus === 'Available' ? 'Disponible' : newStatus === 'Reserved' ? 'Réservé' : 'Vendu'}`);
+            toast.success(t('marketplace.statusUpdateSuccess').replace('{status}',
+                newStatus === 'Available' ? t('marketplace.status.available')
+                    : newStatus === 'Reserved' ? t('marketplace.status.reserved')
+                        : t('marketplace.status.sold')
+            ));
             if (viewingListing?.id === listing.id) {
                 setViewingListing({ ...listing, status: newStatus });
             }
         } catch (err) {
             console.error('Error updating status:', err);
-            toast.error('Erreur lors de la mise à jour du statut');
+            toast.error(t('marketplace.statusUpdateError'));
         }
     };
 
@@ -128,12 +134,12 @@ export const Marketplace: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                         <Store className="w-7 h-7 text-primary-600" />
-                        Marketplace
+                        {t('marketplace.title')}
                     </h1>
-                    <p className="text-slate-500">Achetez et vendez animaux, aliments et services</p>
+                    <p className="text-slate-500">{t('marketplace.subtitle')}</p>
                 </div>
                 <Button icon={Plus} onClick={() => setIsAddModalOpen(true)}>
-                    Nouvelle Annonce
+                    {t('marketplace.new')}
                 </Button>
             </div>
 
@@ -145,7 +151,7 @@ export const Marketplace: React.FC = () => {
                             <Package className="w-5 h-5 text-primary-600" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500">Total Annonces</p>
+                            <p className="text-sm text-slate-500">{t('marketplace.totalListings')}</p>
                             <p className="text-2xl font-bold text-slate-900">{totalCount}</p>
                         </div>
                     </div>
@@ -156,7 +162,7 @@ export const Marketplace: React.FC = () => {
                             <CheckCircle className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500">Disponibles</p>
+                            <p className="text-sm text-slate-500">{t('marketplace.availableListings')}</p>
                             <p className="text-2xl font-bold text-green-600">{availableCount}</p>
                         </div>
                     </div>
@@ -167,7 +173,7 @@ export const Marketplace: React.FC = () => {
                             <PawPrint className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500">Animaux</p>
+                            <p className="text-sm text-slate-500">{t('marketplace.animalListings')}</p>
                             <p className="text-2xl font-bold text-blue-600">
                                 {listings.filter(l => l.category === 'Animal').length}
                             </p>
@@ -184,7 +190,7 @@ export const Marketplace: React.FC = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                         <input
                             type="text"
-                            placeholder="Rechercher une annonce..."
+                            placeholder={t('marketplace.search')}
                             className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -198,13 +204,13 @@ export const Marketplace: React.FC = () => {
                         )}
                     >
                         <Filter className="w-4 h-4" />
-                        Filtres
+                        {t('marketplace.filter')}
                     </button>
                 </div>
 
                 {/* Category Filter */}
                 <div className="flex gap-2 overflow-x-auto pb-2">
-                    {CATEGORIES.map(cat => (
+                    {categories.map(cat => (
                         <button
                             key={cat.value}
                             onClick={() => setSelectedCategory(cat.value)}
@@ -226,9 +232,9 @@ export const Marketplace: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
                         {/* Status Filter */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Statut</label>
+                            <label className="text-sm font-medium text-slate-700">{t('common.status')}</label>
                             <div className="flex flex-wrap gap-2">
-                                {STATUSES.map(status => (
+                                {statuses.map(status => (
                                     <button
                                         key={status.value}
                                         onClick={() => setSelectedStatus(status.value)}
@@ -254,7 +260,7 @@ export const Marketplace: React.FC = () => {
                                 onChange={(e) => setSelectedRegion(e.target.value as SenegalRegion | 'all')}
                                 className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                             >
-                                <option value="all">Toutes les régions</option>
+                                <option value="all">{t('marketplace.allRegions')}</option>
                                 {REGIONS.map(region => (
                                     <option key={region} value={region}>{region}</option>
                                 ))}
@@ -268,29 +274,29 @@ export const Marketplace: React.FC = () => {
             {loading ? (
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-                    <p className="text-slate-500">Chargement des annonces...</p>
+                    <p className="text-slate-500">{t('marketplace.loading')}</p>
                 </div>
             ) : error ? (
                 <div className="text-center py-12 text-red-500 bg-red-50 rounded-xl border border-red-200">
                     <p>{error}</p>
                     <Button variant="secondary" onClick={loadListings} className="mt-4">
-                        Réessayer
+                        {t('marketplace.retry')}
                     </Button>
                 </div>
             ) : filteredListings.length === 0 ? (
                 <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-300">
                     <Store className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-slate-700 mb-2">Aucune annonce trouvée</h3>
+                    <h3 className="text-lg font-medium text-slate-700 mb-2">{t('marketplace.noListings')}</h3>
                     <p className="text-slate-500 mb-4">
                         {listings.length === 0
-                            ? "Commencez par créer votre première annonce"
-                            : "Essayez de modifier vos critères de recherche"
+                            ? t('marketplace.createFirst')
+                            : t('marketplace.adjustFilters')
                         }
                     </p>
                     {listings.length === 0 && (
                         <Button onClick={() => setIsAddModalOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" />
-                            Créer une annonce
+                            {t('marketplace.create')}
                         </Button>
                     )}
                 </div>
@@ -342,12 +348,12 @@ export const Marketplace: React.FC = () => {
 
             <ConfirmDialog
                 isOpen={deleteDialog.isOpen}
-                title="Supprimer l'annonce"
-                message={`Êtes-vous sûr de vouloir supprimer "${deleteDialog.listing?.title}" ?`}
+                title={t('marketplace.deleteTitle')}
+                message={t('marketplace.deleteConfirm').replace('{title}', deleteDialog.listing?.title || '')}
                 onConfirm={confirmDelete}
                 onCancel={() => setDeleteDialog({ isOpen: false, listing: null })}
-                confirmText="Supprimer"
-                cancelText="Annuler"
+                confirmText={t('common.delete')}
+                cancelText={t('common.cancel')}
                 variant="danger"
             />
         </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAnimals } from '../../hooks/useAnimals';
 import { useData } from '../../context/DataContext';
+import { useTranslation } from '../../context/SettingsContext';
 import { AddAnimalModal } from '../../components/herd/AddAnimalModal';
 import { Search, Plus } from 'lucide-react';
 import clsx from 'clsx';
@@ -10,6 +11,7 @@ export const HerdMobile: React.FC = () => {
     const navigate = useNavigate();
     const { animals, error } = useAnimals();
     const { refreshData } = useData();
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -32,8 +34,8 @@ export const HerdMobile: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-3 flex-shrink-0 px-1">
                 <div>
-                    <h1 className="text-lg font-bold text-slate-900">Mon Cheptel</h1>
-                    <p className="text-xs text-slate-500">{animals.length} animaux</p>
+                    <h1 className="text-lg font-bold text-slate-900">{t('herd.title')}</h1>
+                    <p className="text-xs text-slate-500">{animals.length} {t('dashboard.totalAnimals').toLowerCase()}</p>
                 </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
@@ -48,7 +50,7 @@ export const HerdMobile: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <input
                     type="text"
-                    placeholder="Rechercher..."
+                    placeholder={t('common.search') + '...'}
                     className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -58,9 +60,9 @@ export const HerdMobile: React.FC = () => {
             {/* Filters */}
             <div className="flex gap-2 mb-3 flex-shrink-0 overflow-x-auto pb-1">
                 {[
-                    { key: 'all', label: 'Tous' },
-                    { key: 'Active', label: 'Actifs' },
-                    { key: 'Sold', label: 'Vendus' },
+                    { key: 'all', labelKey: 'herd.all' },
+                    { key: 'Active', labelKey: 'herd.active' },
+                    { key: 'Sold', labelKey: 'herd.sold' },
                 ].map(f => (
                     <button
                         key={f.key}
@@ -72,7 +74,7 @@ export const HerdMobile: React.FC = () => {
                                 : "bg-slate-100 text-slate-600"
                         )}
                     >
-                        {f.label}
+                        {t(f.labelKey)}
                     </button>
                 ))}
             </div>
@@ -119,7 +121,7 @@ export const HerdMobile: React.FC = () => {
                     ))
                 ) : (
                     <div className="text-center py-12 text-slate-400">
-                        <p className="text-sm">Aucun animal trouvé</p>
+                        <p className="text-sm">{t('herd.noAnimals')}</p>
                     </div>
                 )}
             </div>

@@ -21,7 +21,9 @@ import { EditTransactionModal } from '../components/accounting/EditTransactionMo
 import { AccountingService } from '../services/AccountingService';
 import { useData } from '../context/DataContext';
 import { useFarm } from '../context/FarmContext';
+
 import { useToast } from '../context/ToastContext';
+import { useTranslation } from '../context/SettingsContext';
 import clsx from 'clsx';
 import type { Transaction, TransactionCategory, TransactionType } from '../types';
 import { Link } from 'react-router-dom';
@@ -29,6 +31,7 @@ import { Link } from 'react-router-dom';
 export const Accounting: React.FC = () => {
     const { transactions, animals, refreshData } = useData();
     const { currentFarm } = useFarm();
+    const { t } = useTranslation();
     const toast = useToast();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -49,20 +52,9 @@ export const Accounting: React.FC = () => {
     });
 
     // Category labels and icons
+
     const getCategoryLabel = (category: TransactionCategory): string => {
-        const labels: Record<TransactionCategory, string> = {
-            Feed: 'Alimentation',
-            Health: 'Santé',
-            Reproduction: 'Reproduction',
-            Personnel: 'Personnel',
-            Infrastructure: 'Infrastructure',
-            Sale: 'Vente',
-            Purchase: 'Achat d\'animaux',
-            Consultation: 'Consultation',
-            Marketplace: 'Marketplace',
-            Other: 'Divers'
-        };
-        return labels[category] || category;
+        return t(`accounting.category.${category.toLowerCase()}`);
     };
 
     const getCategoryColor = (category: TransactionCategory): string => {
@@ -139,10 +131,10 @@ export const Accounting: React.FC = () => {
             await AccountingService.delete(deleteDialog.id);
             await refreshData();
             setDeleteDialog({ isOpen: false, id: '', description: '' });
-            toast.success('Transaction supprimée');
+            toast.success(t('accounting.transactionDeleted'));
         } catch (err) {
             console.error('Error deleting transaction:', err);
-            toast.error('Erreur lors de la suppression de la transaction.');
+            toast.error(t('accounting.deleteError'));
         }
     };
 
@@ -166,11 +158,11 @@ export const Accounting: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Comptabilité</h1>
-                    <p className="text-slate-500">Suivi des revenus et dépenses de la bergerie.</p>
+                    <h1 className="text-2xl font-bold text-slate-900">{t('accounting.title')}</h1>
+                    <p className="text-slate-500">{t('accounting.subtitle')}</p>
                 </div>
                 <Button icon={Plus} onClick={() => setIsAddModalOpen(true)}>
-                    Nouvelle transaction
+                    {t('accounting.addTransaction')}
                 </Button>
             </div>
 
@@ -182,7 +174,7 @@ export const Accounting: React.FC = () => {
                             <TrendingUp className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-sm text-green-700 font-medium">Revenus</p>
+                            <p className="text-sm text-green-700 font-medium">{t('accounting.income')}</p>
                             <p className="text-2xl font-bold text-green-800">{formatCurrency(totals.income)}</p>
                         </div>
                     </div>
@@ -193,7 +185,7 @@ export const Accounting: React.FC = () => {
                             <TrendingDown className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <p className="text-sm text-red-700 font-medium">Dépenses</p>
+                            <p className="text-sm text-red-700 font-medium">{t('accounting.expense')}</p>
                             <p className="text-2xl font-bold text-red-800">{formatCurrency(totals.expenses)}</p>
                         </div>
                     </div>
@@ -215,7 +207,7 @@ export const Accounting: React.FC = () => {
                             <p className={clsx(
                                 "text-sm font-medium",
                                 totals.balance >= 0 ? "text-emerald-700" : "text-orange-700"
-                            )}>Solde</p>
+                            )}>{t('accounting.balance')}</p>
                             <p className={clsx(
                                 "text-2xl font-bold",
                                 totals.balance >= 0 ? "text-emerald-800" : "text-orange-800"
@@ -231,7 +223,7 @@ export const Accounting: React.FC = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input
                         type="text"
-                        placeholder="Rechercher une transaction..."
+                        placeholder={t('common.search')}
                         className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -252,16 +244,16 @@ export const Accounting: React.FC = () => {
                         onChange={(e) => setSelectedType(e.target.value as TransactionType | 'all')}
                         className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     >
-                        <option value="all">Tous types</option>
-                        <option value="Income">Revenus</option>
-                        <option value="Expense">Dépenses</option>
+                        <option value="all">{t('common.allTypes')}</option>
+                        <option value="Income">{t('accounting.income')}</option>
+                        <option value="Expense">{t('accounting.expense')}</option>
                     </select>
                     <select
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value as TransactionCategory | 'all')}
                         className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     >
-                        <option value="all">Toutes catégories</option>
+                        <option value="all">{t('common.allCategories')}</option>
                         {categories.map(cat => (
                             <option key={cat} value={cat}>{getCategoryLabel(cat)}</option>
                         ))}
@@ -275,13 +267,13 @@ export const Accounting: React.FC = () => {
                     <table className="w-full">
                         <thead className="bg-slate-50 border-b border-slate-100">
                             <tr>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Catégorie</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Description</th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Montant</th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Lien</th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('common.date')}</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('common.type')}</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('common.category')}</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('common.description')}</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('common.amount')}</th>
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('common.link')}</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('common.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -289,7 +281,7 @@ export const Accounting: React.FC = () => {
                                 <tr>
                                     <td colSpan={7} className="px-4 py-12 text-center text-slate-500">
                                         <Wallet className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                                        <p>Aucune transaction trouvée</p>
+                                        <p>{t('accounting.noTransactions')}</p>
                                     </td>
                                 </tr>
                             ) : (
@@ -313,7 +305,7 @@ export const Accounting: React.FC = () => {
                                                 ) : (
                                                     <ArrowDownCircle className="w-3.5 h-3.5" />
                                                 )}
-                                                {transaction.type === 'Income' ? 'Revenu' : 'Dépense'}
+                                                {transaction.type === 'Income' ? t('accounting.income') : t('accounting.expense')}
                                             </div>
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap">
@@ -364,7 +356,7 @@ export const Accounting: React.FC = () => {
                                                             className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center gap-3 text-slate-700"
                                                         >
                                                             <Edit2 className="w-4 h-4" />
-                                                            Modifier
+                                                            {t('common.edit')}
                                                         </button>
                                                         <button
                                                             onClick={() => {
@@ -374,7 +366,7 @@ export const Accounting: React.FC = () => {
                                                             className="w-full px-4 py-3 text-left hover:bg-red-50 flex items-center gap-3 text-red-600"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
-                                                            Supprimer
+                                                            {t('common.delete')}
                                                         </button>
                                                     </div>
                                                 )}
@@ -425,12 +417,12 @@ export const Accounting: React.FC = () => {
 
             <ConfirmDialog
                 isOpen={deleteDialog.isOpen}
-                title="Supprimer la transaction"
+                title={t('common.delete')}
                 message={`Êtes-vous sûr de vouloir supprimer "${deleteDialog.description}" ?`}
                 onConfirm={confirmDelete}
                 onCancel={() => setDeleteDialog({ isOpen: false, id: '', description: '' })}
-                confirmText="Supprimer"
-                cancelText="Annuler"
+                confirmText={t('common.delete')}
+                cancelText={t('common.cancel')}
                 variant="danger"
             />
         </div>
