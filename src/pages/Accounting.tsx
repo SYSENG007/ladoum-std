@@ -168,49 +168,44 @@ export const Accounting: React.FC = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                <Card>
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-green-500 rounded-xl shadow-lg shadow-green-200">
-                            <TrendingUp className="w-6 h-6 text-white" />
+                        <div className="p-2 bg-green-100 rounded-lg">
+                            <TrendingUp className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                            <p className="text-sm text-green-700 font-medium">{t('accounting.income')}</p>
-                            <p className="text-2xl font-bold text-green-800">{formatCurrency(totals.income)}</p>
+                            <p className="text-sm text-slate-500 font-medium">{t('accounting.income')}</p>
+                            <p className="text-2xl font-bold text-slate-900">{formatCurrency(totals.income)}</p>
                         </div>
                     </div>
                 </Card>
-                <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+                <Card>
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-red-500 rounded-xl shadow-lg shadow-red-200">
-                            <TrendingDown className="w-6 h-6 text-white" />
+                        <div className="p-2 bg-red-100 rounded-lg">
+                            <TrendingDown className="w-5 h-5 text-red-600" />
                         </div>
                         <div>
-                            <p className="text-sm text-red-700 font-medium">{t('accounting.expense')}</p>
-                            <p className="text-2xl font-bold text-red-800">{formatCurrency(totals.expenses)}</p>
+                            <p className="text-sm text-slate-500 font-medium">{t('accounting.expense')}</p>
+                            <p className="text-2xl font-bold text-slate-900">{formatCurrency(totals.expenses)}</p>
                         </div>
                     </div>
                 </Card>
-                <Card className={clsx(
-                    "bg-gradient-to-br border",
-                    totals.balance >= 0
-                        ? "from-emerald-50 to-emerald-100 border-emerald-200"
-                        : "from-orange-50 to-orange-100 border-orange-200"
-                )}>
+                <Card>
                     <div className="flex items-center gap-3">
                         <div className={clsx(
-                            "p-3 rounded-xl shadow-lg",
-                            totals.balance >= 0 ? "bg-emerald-500 shadow-emerald-200" : "bg-orange-500 shadow-orange-200"
+                            "p-2 rounded-lg",
+                            totals.balance >= 0 ? "bg-emerald-100" : "bg-orange-100"
                         )}>
-                            <Wallet className="w-6 h-6 text-white" />
+                            <Wallet className={clsx(
+                                "w-5 h-5",
+                                totals.balance >= 0 ? "text-emerald-600" : "text-orange-600"
+                            )} />
                         </div>
                         <div>
-                            <p className={clsx(
-                                "text-sm font-medium",
-                                totals.balance >= 0 ? "text-emerald-700" : "text-orange-700"
-                            )}>{t('accounting.balance')}</p>
+                            <p className="text-sm text-slate-500 font-medium">{t('accounting.balance')}</p>
                             <p className={clsx(
                                 "text-2xl font-bold",
-                                totals.balance >= 0 ? "text-emerald-800" : "text-orange-800"
+                                totals.balance >= 0 ? "text-emerald-700" : "text-orange-700"
                             )}>{formatCurrency(totals.balance)}</p>
                         </div>
                     </div>
@@ -297,8 +292,8 @@ export const Accounting: React.FC = () => {
                                             <div className={clsx(
                                                 "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
                                                 transaction.type === 'Income'
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-red-100 text-red-700"
+                                                    ? "bg-green-50 text-green-700"
+                                                    : "bg-red-50 text-red-700"
                                             )}>
                                                 {transaction.type === 'Income' ? (
                                                     <ArrowUpCircle className="w-3.5 h-3.5" />

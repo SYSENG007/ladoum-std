@@ -30,7 +30,7 @@ export const ConsultationCard: React.FC<ConsultationCardProps> = ({
             case 'Completed':
                 return <Badge variant="success">Terminée</Badge>;
             case 'Cancelled':
-                return <Badge variant="neutral">Annulée</Badge>;
+                return <Badge variant="error">Annulée</Badge>;
         }
     };
 

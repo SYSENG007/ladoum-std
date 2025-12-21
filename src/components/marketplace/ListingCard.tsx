@@ -50,7 +50,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             case 'Reserved':
                 return <Badge variant="warning" className="flex items-center gap-1"><Clock className="w-3 h-3" />Réservé</Badge>;
             case 'Sold':
-                return <Badge variant="neutral" className="flex items-center gap-1"><Tag className="w-3 h-3" />Vendu</Badge>;
+                return <Badge variant="error" className="flex items-center gap-1"><Tag className="w-3 h-3" />Vendu</Badge>;
             case 'Closed':
                 return <Badge variant="neutral">Fermé</Badge>;
         }

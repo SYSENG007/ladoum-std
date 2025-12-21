@@ -239,10 +239,13 @@ export const Marketplace: React.FC = () => {
                                         key={status.value}
                                         onClick={() => setSelectedStatus(status.value)}
                                         className={clsx(
-                                            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                                            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border",
                                             selectedStatus === status.value
-                                                ? "bg-primary-100 text-primary-700"
-                                                : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                                ? status.value === 'Available' ? 'bg-green-100 text-green-700 border-green-200'
+                                                    : status.value === 'Reserved' ? 'bg-amber-100 text-amber-700 border-amber-200'
+                                                        : status.value === 'Sold' ? 'bg-red-100 text-red-700 border-red-200'
+                                                            : 'bg-primary-100 text-primary-700 border-primary-200'
+                                                : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
                                         )}
                                     >
                                         {status.icon}

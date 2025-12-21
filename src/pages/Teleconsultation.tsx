@@ -142,47 +142,47 @@ export const Teleconsultation: React.FC = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50">
+                <Card>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500 rounded-lg">
-                            <Calendar className="w-5 h-5 text-white" />
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                            <Calendar className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-blue-700">{scheduledCount}</p>
-                            <p className="text-sm text-blue-600">{t('teleconsultation.scheduled')}</p>
+                            <p className="text-sm text-slate-500 font-medium">{t('teleconsultation.scheduled')}</p>
+                            <p className="text-2xl font-bold text-slate-900">{scheduledCount}</p>
                         </div>
                     </div>
                 </Card>
-                <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50">
+                <Card>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-amber-500 rounded-lg">
-                            <MessageCircle className="w-5 h-5 text-white" />
+                        <div className="p-2 bg-amber-100 rounded-lg">
+                            <MessageCircle className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-amber-700">{inProgressCount}</p>
-                            <p className="text-sm text-amber-600">{t('teleconsultation.inProgress')}</p>
+                            <p className="text-sm text-slate-500 font-medium">{t('teleconsultation.inProgress')}</p>
+                            <p className="text-2xl font-bold text-slate-900">{inProgressCount}</p>
                         </div>
                     </div>
                 </Card>
-                <Card className="bg-gradient-to-br from-green-50 to-green-100/50">
+                <Card>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-500 rounded-lg">
-                            <Video className="w-5 h-5 text-white" />
+                        <div className="p-2 bg-green-100 rounded-lg">
+                            <Video className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-green-700">{completedCount}</p>
-                            <p className="text-sm text-green-600">{t('teleconsultation.completed')}</p>
+                            <p className="text-sm text-slate-500 font-medium">{t('teleconsultation.completed')}</p>
+                            <p className="text-2xl font-bold text-slate-900">{completedCount}</p>
                         </div>
                     </div>
                 </Card>
-                <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50">
+                <Card>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-500 rounded-lg">
-                            <Video className="w-5 h-5 text-white" />
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                            <Video className="w-5 h-5 text-purple-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-purple-700">{veterinarians.length}</p>
-                            <p className="text-sm text-purple-600">{t('teleconsultation.veterinarians')}</p>
+                            <p className="text-sm text-slate-500 font-medium">{t('teleconsultation.veterinarians')}</p>
+                            <p className="text-2xl font-bold text-slate-900">{veterinarians.length}</p>
                         </div>
                     </div>
                 </Card>
