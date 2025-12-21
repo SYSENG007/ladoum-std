@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import {
     Plus,
     TrendingUp,
@@ -20,6 +21,7 @@ import { EditTransactionModal } from '../components/accounting/EditTransactionMo
 import { AccountingService } from '../services/AccountingService';
 import { useData } from '../context/DataContext';
 import { useFarm } from '../context/FarmContext';
+import { useToast } from '../context/ToastContext';
 import clsx from 'clsx';
 import type { Transaction, TransactionCategory, TransactionType } from '../types';
 import { Link } from 'react-router-dom';
@@ -27,9 +29,15 @@ import { Link } from 'react-router-dom';
 export const Accounting: React.FC = () => {
     const { transactions, animals, refreshData } = useData();
     const { currentFarm } = useFarm();
+    const toast = useToast();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
+    const [deleteDialog, setDeleteDialog] = useState<{
+        isOpen: boolean;
+        id: string;
+        description: string;
+    }>({ isOpen: false, id: '', description: '' });
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -122,16 +130,19 @@ export const Accounting: React.FC = () => {
     };
 
     // Handle delete
-    const handleDelete = async (id: string, description: string) => {
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer "${description}" ?`)) {
-            return;
-        }
+    const handleDelete = (id: string, description: string) => {
+        setDeleteDialog({ isOpen: true, id, description });
+    };
+
+    const confirmDelete = async () => {
         try {
-            await AccountingService.delete(id);
+            await AccountingService.delete(deleteDialog.id);
             await refreshData();
+            setDeleteDialog({ isOpen: false, id: '', description: '' });
+            toast.success('Transaction supprimée');
         } catch (err) {
             console.error('Error deleting transaction:', err);
-            alert('Erreur lors de la suppression de la transaction.');
+            toast.error('Erreur lors de la suppression de la transaction.');
         }
     };
 
@@ -411,6 +422,17 @@ export const Accounting: React.FC = () => {
                     transaction={editingTransaction}
                 />
             )}
+
+            <ConfirmDialog
+                isOpen={deleteDialog.isOpen}
+                title="Supprimer la transaction"
+                message={`Êtes-vous sûr de vouloir supprimer "${deleteDialog.description}" ?`}
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteDialog({ isOpen: false, id: '', description: '' })}
+                confirmText="Supprimer"
+                cancelText="Annuler"
+                variant="danger"
+            />
         </div>
     );
 };

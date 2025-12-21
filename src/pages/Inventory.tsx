@@ -9,12 +9,14 @@ import { EditInventoryModal } from '../components/inventory/EditInventoryModal';
 import { InventoryService } from '../services/InventoryService';
 import { useData } from '../context/DataContext';
 import { useFarm } from '../context/FarmContext';
+import { useToast } from '../context/ToastContext';
 import clsx from 'clsx';
 import type { InventoryCategory, InventoryItem } from '../types';
 
 export const Inventory: React.FC = () => {
     const { refreshData } = useData();
     const { currentFarm } = useFarm();
+    const toast = useToast();
     const [selectedCategory, setSelectedCategory] = useState<InventoryCategory | 'all'>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -25,8 +27,14 @@ export const Inventory: React.FC = () => {
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
         item: InventoryItem | null;
-        delta: number;
-    }>({ isOpen: false, item: null, delta: 0 });
+        action: 'add' | 'remove' | null;
+        quantity: number;
+    }>({ isOpen: false, item: null, action: null, quantity: 1 });
+    const [deleteDialog, setDeleteDialog] = useState<{
+        isOpen: boolean;
+        itemId: string;
+        itemName: string;
+    }>({ isOpen: false, itemId: '', itemName: '' });
 
     // Load inventory data when farm changes
     React.useEffect(() => {
@@ -49,35 +57,43 @@ export const Inventory: React.FC = () => {
         await refreshData();
     };
 
-    const handleDelete = async (itemId: string, itemName: string) => {
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer "${itemName}" ?`)) {
-            return;
-        }
+    const handleDelete = (itemId: string, itemName: string) => {
+        setDeleteDialog({ isOpen: true, itemId, itemName });
+    };
+
+    const confirmDelete = async () => {
         try {
-            await InventoryService.delete(itemId);
+            await InventoryService.delete(deleteDialog.itemId);
             await loadInventory();
             await refreshData();
+            setDeleteDialog({ isOpen: false, itemId: '', itemName: '' });
+            toast.success(`"${deleteDialog.itemName}" supprimé avec succès`);
         } catch (err) {
             console.error('Error deleting inventory item:', err);
-            alert('Erreur lors de la suppression de l\'article.');
+            toast.error('Erreur lors de la suppression de l\'article.');
         }
     };
 
-    const handleQuickAdjust = (item: InventoryItem, delta: number) => {
-        setConfirmDialog({ isOpen: true, item, delta });
+    const handleQuickAdjust = (item: InventoryItem, action: 'add' | 'remove') => {
+        setConfirmDialog({ isOpen: true, item, action, quantity: 1 });
     };
 
     const confirmQuickAdjust = async () => {
-        if (!confirmDialog.item) return;
+        if (!confirmDialog.item || !confirmDialog.action) return;
+
+        const delta = confirmDialog.action === 'add' ? confirmDialog.quantity : -confirmDialog.quantity;
 
         try {
-            await InventoryService.adjustQuantity(confirmDialog.item.id, confirmDialog.delta);
+            await InventoryService.adjustQuantity(confirmDialog.item.id, delta);
             await loadInventory();
             await refreshData();
-            setConfirmDialog({ isOpen: false, item: null, delta: 0 });
+            const action = delta > 0 ? 'ajouté à' : 'retiré de';
+            const qty = Math.abs(delta);
+            toast.success(`${qty} ${confirmDialog.item.unit} ${action} "${confirmDialog.item.name}"`);
+            setConfirmDialog({ isOpen: false, item: null, action: null, quantity: 1 });
         } catch (err) {
             console.error('Error adjusting quantity:', err);
-            alert('Erreur lors de la mise à jour du stock.');
+            toast.error('Erreur lors de la mise à jour du stock.');
         }
     };
 
@@ -302,17 +318,17 @@ export const Inventory: React.FC = () => {
                                         {/* Quick Adjust Buttons */}
                                         <div className="flex items-center gap-2 mt-3">
                                             <button
-                                                onClick={() => handleQuickAdjust(item, -1)}
+                                                onClick={() => handleQuickAdjust(item, 'remove')}
                                                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors font-medium"
-                                                title="Retirer 1 unité"
+                                                title="Retirer du stock"
                                             >
                                                 <Minus className="w-4 h-4" />
                                                 <span className="text-sm">Retirer</span>
                                             </button>
                                             <button
-                                                onClick={() => handleQuickAdjust(item, 1)}
+                                                onClick={() => handleQuickAdjust(item, 'add')}
                                                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-colors font-medium"
-                                                title="Ajouter 1 unité"
+                                                title="Ajouter au stock"
                                             >
                                                 <Plus className="w-4 h-4" />
                                                 <span className="text-sm">Ajouter</span>
@@ -347,14 +363,71 @@ export const Inventory: React.FC = () => {
                 />
             )}
 
+            {/* Custom Stock Adjustment Modal */}
+            {confirmDialog.isOpen && confirmDialog.item && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+                        <h3 className="text-lg font-bold text-slate-900 mb-2">
+                            {confirmDialog.action === 'add' ? 'Ajouter au stock' : 'Retirer du stock'}
+                        </h3>
+                        <p className="text-sm text-slate-500 mb-4">
+                            {confirmDialog.action === 'add'
+                                ? `Combien de ${confirmDialog.item.unit} voulez-vous ajouter à "${confirmDialog.item.name}" ?`
+                                : `Combien de ${confirmDialog.item.unit} voulez-vous retirer de "${confirmDialog.item.name}" ?`}
+                        </p>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Quantité
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                max={confirmDialog.action === 'remove' ? confirmDialog.item.quantity : 9999}
+                                value={confirmDialog.quantity}
+                                onChange={(e) => setConfirmDialog({
+                                    ...confirmDialog,
+                                    quantity: Math.max(1, parseInt(e.target.value) || 1)
+                                })}
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-2xl font-bold"
+                                autoFocus
+                            />
+                            {confirmDialog.action === 'remove' && (
+                                <p className="text-xs text-slate-400 mt-1 text-center">
+                                    Stock actuel: {confirmDialog.item.quantity} {confirmDialog.item.unit}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3">
+                            <Button
+                                variant="secondary"
+                                className="flex-1"
+                                onClick={() => setConfirmDialog({ isOpen: false, item: null, action: null, quantity: 1 })}
+                            >
+                                Annuler
+                            </Button>
+                            <Button
+                                className="flex-1"
+                                onClick={confirmQuickAdjust}
+                                disabled={confirmDialog.action === 'remove' && confirmDialog.quantity > confirmDialog.item.quantity}
+                            >
+                                Confirmer
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <ConfirmDialog
-                isOpen={confirmDialog.isOpen}
-                title={confirmDialog.delta > 0 ? 'Ajouter au stock' : 'Retirer du stock'}
-                message={`Voulez-vous ${confirmDialog.delta > 0 ? 'ajouter' : 'retirer'} ${Math.abs(confirmDialog.delta)} ${confirmDialog.item?.unit || 'unité'} ${confirmDialog.delta > 0 ? 'à' : 'de'} "${confirmDialog.item?.name}" ?`}
-                onConfirm={confirmQuickAdjust}
-                onCancel={() => setConfirmDialog({ isOpen: false, item: null, delta: 0 })}
-                confirmText="Confirmer"
+                isOpen={deleteDialog.isOpen}
+                title="Supprimer l'article"
+                message={`Êtes-vous sûr de vouloir supprimer "${deleteDialog.itemName}" ?`}
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteDialog({ isOpen: false, itemId: '', itemName: '' })}
+                confirmText="Supprimer"
                 cancelText="Annuler"
+                variant="danger"
             />
         </div>
     );

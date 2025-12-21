@@ -1,15 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Activity, Syringe, Pill, Stethoscope, Plus, Calendar } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import type { HealthRecord } from '../../types';
+import { AddHealthEventModal } from './AddHealthEventModal';
+import type { Animal, HealthRecord } from '../../types';
 
 interface HealthTabProps {
     records?: HealthRecord[];
+    animal?: Animal;
+    onUpdate?: () => void;
 }
 
-export const HealthTab: React.FC<HealthTabProps> = ({ records = [] }) => {
+export const HealthTab: React.FC<HealthTabProps> = ({ records = [], animal, onUpdate }) => {
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
     const getIcon = (type: HealthRecord['type']) => {
         switch (type) {
             case 'Vaccination': return Syringe;
@@ -30,11 +35,24 @@ export const HealthTab: React.FC<HealthTabProps> = ({ records = [] }) => {
         }
     };
 
+    const handleAddSuccess = () => {
+        setIsAddModalOpen(false);
+        onUpdate?.();
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-slate-900">Historique Médical</h3>
-                <Button icon={Plus} size="sm">Ajouter un événement</Button>
+                {animal && (
+                    <Button
+                        icon={Plus}
+                        size="sm"
+                        onClick={() => setIsAddModalOpen(true)}
+                    >
+                        Ajouter un événement
+                    </Button>
+                )}
             </div>
 
             {records.length === 0 ? (
@@ -81,6 +99,16 @@ export const HealthTab: React.FC<HealthTabProps> = ({ records = [] }) => {
                         );
                     })}
                 </div>
+            )}
+
+            {/* Add Health Event Modal */}
+            {animal && (
+                <AddHealthEventModal
+                    isOpen={isAddModalOpen}
+                    onClose={() => setIsAddModalOpen(false)}
+                    onSuccess={handleAddSuccess}
+                    animal={animal}
+                />
             )}
         </div>
     );

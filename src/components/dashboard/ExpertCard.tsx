@@ -38,28 +38,28 @@ export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
     }, [animals]);
 
     return (
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-4 text-white relative overflow-hidden h-full">
             {/* Background Pattern */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
 
-            <div className="relative z-10">
-                <div className="flex items-start justify-between mb-6">
+            <div className="relative z-10 h-full flex flex-col justify-between">
+                <div className="flex items-start justify-between mb-3">
                     <div>
-                        <h3 className="text-2xl font-bold mb-1">Niveau {certificationStats.currentLevel}</h3>
-                        <p className="text-slate-400 text-sm">Bergerie Certifiée</p>
+                        <h3 className="text-xl font-bold mb-0.5">Niveau {certificationStats.currentLevel}</h3>
+                        <p className="text-slate-400 text-xs">Bergerie Certifiée</p>
                     </div>
-                    <CertificationBadge level={certificationStats.currentLevel} size="lg" className="shadow-lg shadow-yellow-900/20" />
+                    <CertificationBadge level={certificationStats.currentLevel} size="md" className="shadow-lg shadow-yellow-900/20" />
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-2">
                     <div>
-                        <div className="flex justify-between text-sm mb-2">
+                        <div className="flex justify-between text-xs mb-1">
                             <span className="text-slate-300">
-                                {certificationStats.currentLevel === 'Elite' ? 'Niveau Maximum Atteint!' : 'Progression vers Elite'}
+                                {certificationStats.currentLevel === 'Elite' ? 'Niveau Maximum!' : 'Progression Elite'}
                             </span>
                             <span className="font-bold text-yellow-400">{certificationStats.progress}%</span>
                         </div>
-                        <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 transition-all duration-500"
                                 style={{ width: `${certificationStats.progress}%` }}
@@ -68,16 +68,16 @@ export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
                     </div>
 
                     <div className="flex gap-4 text-xs text-slate-400">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                             <div className={clsx(
-                                "w-2 h-2 rounded-full",
+                                "w-1.5 h-1.5 rounded-full",
                                 certificationStats.certificationRate >= 80 ? "bg-green-500" : "bg-amber-500"
                             )} />
                             <span>Certifiés: {certificationStats.certificationRate}%</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                             <div className={clsx(
-                                "w-2 h-2 rounded-full",
+                                "w-1.5 h-1.5 rounded-full",
                                 certificationStats.goldRate >= 50 ? "bg-green-500" : "bg-amber-500"
                             )} />
                             <span>Gold+: {certificationStats.goldRate}%</span>

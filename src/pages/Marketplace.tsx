@@ -5,11 +5,13 @@ import {
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ListingCard } from '../components/marketplace/ListingCard';
 import { AddListingModal } from '../components/marketplace/AddListingModal';
 import { EditListingModal } from '../components/marketplace/EditListingModal';
 import { ListingDetailsModal } from '../components/marketplace/ListingDetailsModal';
 import { MarketplaceService } from '../services/MarketplaceService';
+import { useToast } from '../context/ToastContext';
 import clsx from 'clsx';
 import type { Listing, ListingCategory, ListingStatus, SenegalRegion } from '../types';
 
@@ -35,6 +37,7 @@ const REGIONS: SenegalRegion[] = [
 ];
 
 export const Marketplace: React.FC = () => {
+    const toast = useToast();
     const [listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -50,6 +53,10 @@ export const Marketplace: React.FC = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingListing, setEditingListing] = useState<Listing | null>(null);
     const [viewingListing, setViewingListing] = useState<Listing | null>(null);
+    const [deleteDialog, setDeleteDialog] = useState<{
+        isOpen: boolean;
+        listing: Listing | null;
+    }>({ isOpen: false, listing: null });
 
     // Load listings
     useEffect(() => {
@@ -69,16 +76,20 @@ export const Marketplace: React.FC = () => {
         }
     };
 
-    const handleDelete = async (listing: Listing) => {
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer "${listing.title}" ?`)) {
-            return;
-        }
+    const handleDelete = (listing: Listing) => {
+        setDeleteDialog({ isOpen: true, listing });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteDialog.listing) return;
         try {
-            await MarketplaceService.delete(listing.id);
+            await MarketplaceService.delete(deleteDialog.listing.id);
             await loadListings();
+            setDeleteDialog({ isOpen: false, listing: null });
+            toast.success('Annonce supprimée');
         } catch (err) {
             console.error('Error deleting listing:', err);
-            alert('Erreur lors de la suppression de l\'annonce');
+            toast.error('Erreur lors de la suppression de l\'annonce');
         }
     };
 
@@ -86,12 +97,13 @@ export const Marketplace: React.FC = () => {
         try {
             await MarketplaceService.updateStatus(listing.id, newStatus);
             await loadListings();
+            toast.success(`Statut mis à jour: ${newStatus === 'Available' ? 'Disponible' : newStatus === 'Reserved' ? 'Réservé' : 'Vendu'}`);
             if (viewingListing?.id === listing.id) {
                 setViewingListing({ ...listing, status: newStatus });
             }
         } catch (err) {
             console.error('Error updating status:', err);
-            alert('Erreur lors de la mise à jour du statut');
+            toast.error('Erreur lors de la mise à jour du statut');
         }
     };
 
@@ -327,6 +339,17 @@ export const Marketplace: React.FC = () => {
                     onStatusChange={handleStatusChange}
                 />
             )}
+
+            <ConfirmDialog
+                isOpen={deleteDialog.isOpen}
+                title="Supprimer l'annonce"
+                message={`Êtes-vous sûr de vouloir supprimer "${deleteDialog.listing?.title}" ?`}
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteDialog({ isOpen: false, listing: null })}
+                confirmText="Supprimer"
+                cancelText="Annuler"
+                variant="danger"
+            />
         </div>
     );
 };

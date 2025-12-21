@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { Animal } from '../types';
@@ -8,34 +8,39 @@ export const useAnimal = (id: string | undefined) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchAnimal = async () => {
-            if (!id) {
-                setLoading(false);
-                return;
+    const fetchAnimal = useCallback(async () => {
+        if (!id) {
+            setLoading(false);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const docRef = doc(db, 'animals', id);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                setAnimal({ id: docSnap.id, ...docSnap.data() } as Animal);
+                setError(null);
+            } else {
+                setAnimal(null);
+                setError("Animal non trouvé");
             }
-
-            try {
-                const docRef = doc(db, 'animals', id);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    setAnimal({ id: docSnap.id, ...docSnap.data() } as Animal);
-                    setError(null);
-                } else {
-                    setAnimal(null);
-                    setError("Animal non trouvé");
-                }
-                setLoading(false);
-            } catch (err) {
-                console.error("Error fetching animal:", err);
-                setError("Erreur lors du chargement");
-                setLoading(false);
-            }
-        };
-
-        fetchAnimal();
+        } catch (err) {
+            console.error("Error fetching animal:", err);
+            setError("Erreur lors du chargement");
+        } finally {
+            setLoading(false);
+        }
     }, [id]);
 
-    return { animal, loading, error };
+    useEffect(() => {
+        fetchAnimal();
+    }, [fetchAnimal]);
+
+    const refresh = useCallback(() => {
+        fetchAnimal();
+    }, [fetchAnimal]);
+
+    return { animal, loading, error, refresh };
 };

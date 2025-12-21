@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Share2, Download, Edit, LayoutDashboard, Activity, Utensils, GitFork, Ruler, Weight, History } from 'lucide-react';
+import { ArrowLeft, Share2, Download, Edit, LayoutDashboard, Activity, Utensils, GitFork, Ruler, Weight, History, ChevronDown, Check } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -10,19 +10,56 @@ import { HealthTab } from '../components/herd/HealthTab';
 import { NutritionTab } from '../components/herd/NutritionTab';
 import { TimelineTab } from '../components/herd/TimelineTab';
 import { HeatCyclePredictor } from '../components/reproduction/HeatCyclePredictor';
+import { EditAnimalModal } from '../components/herd/EditAnimalModal';
+import { AnimalService } from '../services/AnimalService';
 import { useAnimal } from '../hooks/useAnimal';
+import { useToast } from '../context/ToastContext';
 import clsx from 'clsx';
+
+type AnimalStatus = 'Active' | 'Sold' | 'Deceased';
+
+const statusOptions: { value: AnimalStatus; label: string; color: string }[] = [
+    { value: 'Active', label: 'Actif', color: 'bg-green-100 text-green-700' },
+    { value: 'Sold', label: 'Vendu', color: 'bg-blue-100 text-blue-700' },
+    { value: 'Deceased', label: 'Décédé', color: 'bg-slate-100 text-slate-700' },
+];
 
 export const AnimalDetails: React.FC = () => {
     const { id } = useParams();
-    const { animal, error } = useAnimal(id);
+    const { animal, error, refresh } = useAnimal(id);
+    const toast = useToast();
     const [activeTab, setActiveTab] = useState<'overview' | 'health' | 'nutrition' | 'pedigree' | 'history'>('overview');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+    const handleStatusChange = async (newStatus: AnimalStatus) => {
+        if (!animal || animal.status === newStatus) {
+            setIsStatusDropdownOpen(false);
+            return;
+        }
+
+        setIsUpdatingStatus(true);
+        try {
+            await AnimalService.update(animal.id, { status: newStatus });
+            toast.success(`Statut changé en "${statusOptions.find(s => s.value === newStatus)?.label}"`);
+            refresh();
+        } catch (err) {
+            console.error('Error updating status:', err);
+            toast.error('Erreur lors de la mise à jour du statut');
+        } finally {
+            setIsUpdatingStatus(false);
+            setIsStatusDropdownOpen(false);
+        }
+    };
 
     if (error || !animal) return <div className="p-12 text-center text-red-500">Animal non trouvé</div>;
 
     const lastMeasurement = animal.measurements && animal.measurements.length > 0
         ? animal.measurements[animal.measurements.length - 1]
         : null;
+
+    const currentStatus = statusOptions.find(s => s.value === animal.status) || statusOptions[0];
 
     const tabs = [
         { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
@@ -43,19 +80,19 @@ export const AnimalDetails: React.FC = () => {
                 <div className="flex gap-2">
                     <Button variant="outline" icon={Share2}>Partager</Button>
                     <Button variant="outline" icon={Download}>PDF</Button>
-                    <Button icon={Edit}>Modifier</Button>
+                    <Button icon={Edit} onClick={() => setIsEditModalOpen(true)}>Modifier</Button>
                 </div>
             </div>
 
             {/* Animal Header Card (Always Visible) */}
-            <div className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm flex flex-col md:flex-row">
+            <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm flex flex-col md:flex-row">
                 <div className="md:w-1/4 h-64 md:h-auto relative">
                     <img src={animal.photoUrl} alt={animal.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="p-6 md:p-8 flex-1">
                     <div className="flex items-start justify-between mb-4">
                         <div>
-                            <div className="flex items-center gap-4 mb-2">
+                            <div className="flex items-center gap-4 mb-2 flex-wrap">
                                 <h1 className="text-3xl font-bold text-slate-900">{animal.name}</h1>
                                 {animal.certification && (
                                     <CertificationBadge level={animal.certification.level} size="md" />
@@ -63,6 +100,44 @@ export const AnimalDetails: React.FC = () => {
                                 <Badge variant={animal.gender === 'Male' ? 'info' : 'success'}>
                                     {animal.gender === 'Male' ? 'Mâle' : 'Femelle'}
                                 </Badge>
+
+                                {/* Status Dropdown */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                                        disabled={isUpdatingStatus}
+                                        className={clsx(
+                                            "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+                                            currentStatus.color,
+                                            "hover:opacity-80 cursor-pointer"
+                                        )}
+                                    >
+                                        {isUpdatingStatus ? 'Mise à jour...' : currentStatus.label}
+                                        <ChevronDown className="w-4 h-4" />
+                                    </button>
+
+                                    {isStatusDropdownOpen && (
+                                        <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-20 min-w-[140px]">
+                                            {statusOptions.map(option => (
+                                                <button
+                                                    key={option.value}
+                                                    onClick={() => handleStatusChange(option.value)}
+                                                    className={clsx(
+                                                        "w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-slate-50 flex items-center justify-between gap-2",
+                                                        animal.status === option.value && "bg-slate-50"
+                                                    )}
+                                                >
+                                                    <span className={clsx("px-2 py-0.5 rounded-full text-xs", option.color)}>
+                                                        {option.label}
+                                                    </span>
+                                                    {animal.status === option.value && (
+                                                        <Check className="w-4 h-4 text-green-600" />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <p className="text-slate-500 font-mono text-lg">{animal.tagId}</p>
                         </div>
@@ -209,7 +284,11 @@ export const AnimalDetails: React.FC = () => {
                 )}
 
                 {activeTab === 'health' && (
-                    <HealthTab records={animal.healthRecords} />
+                    <HealthTab
+                        records={animal.healthRecords}
+                        animal={animal}
+                        onUpdate={() => window.location.reload()}
+                    />
                 )}
 
                 {activeTab === 'nutrition' && (
@@ -217,7 +296,7 @@ export const AnimalDetails: React.FC = () => {
                 )}
 
                 {activeTab === 'pedigree' && (
-                    <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                    <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                         <GitFork className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                         <p className="text-slate-500">Arbre généalogique interactif (Voir page Pédigrées)</p>
                         <Link to="/pedigree" className="text-primary-600 font-medium hover:underline mt-2 inline-block">
@@ -226,6 +305,25 @@ export const AnimalDetails: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Edit Animal Modal */}
+            <EditAnimalModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                onSuccess={() => {
+                    setIsEditModalOpen(false);
+                    refresh();
+                }}
+                animal={animal}
+            />
+
+            {/* Close dropdown when clicking outside */}
+            {isStatusDropdownOpen && (
+                <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setIsStatusDropdownOpen(false)}
+                />
+            )}
         </div>
     );
 };

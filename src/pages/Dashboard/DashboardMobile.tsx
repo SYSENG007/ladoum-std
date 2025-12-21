@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAnimals } from '../../hooks/useAnimals';
 import { useTasks } from '../../hooks/useTasks';
+import { useInventory } from '../../hooks/useInventory';
 import { useAuth } from '../../context/AuthContext';
 import { useFarm } from '../../context/FarmContext';
 import { useData } from '../../context/DataContext';
@@ -24,6 +25,7 @@ export const DashboardMobile: React.FC = () => {
     const navigate = useNavigate();
     const { animals } = useAnimals();
     const { tasks } = useTasks();
+    const { lowStockItems } = useInventory();
     const { user, userProfile } = useAuth();
     const { currentFarm } = useFarm();
     const { transactions } = useData();
@@ -70,10 +72,19 @@ export const DashboardMobile: React.FC = () => {
     }, [animals]);
 
     const healthRemindersCount = useMemo(() => {
-        return tasks.filter(t => t.type === 'Health' && t.status !== 'Done').length;
-    }, [tasks]);
+        // Count health tasks not done
+        const healthTasksCount = tasks.filter(t => t.type === 'Health' && t.status !== 'Done').length;
 
-    const activeAlertsCount = heatAlertsCount + healthRemindersCount;
+        // Count healthRecords with nextDueDate (upcoming vaccinations, treatments)
+        const healthRecordsCount = animals.reduce((count, animal) => {
+            const recordsWithDueDate = (animal.healthRecords || []).filter(r => r.nextDueDate);
+            return count + recordsWithDueDate.length;
+        }, 0);
+
+        return healthTasksCount + healthRecordsCount;
+    }, [tasks, animals]);
+
+    const activeAlertsCount = heatAlertsCount + healthRemindersCount + lowStockItems.length;
 
     return (
         <div className="h-full flex flex-col overflow-hidden">
@@ -150,36 +161,68 @@ export const DashboardMobile: React.FC = () => {
                 </Card>
             </div>
 
-            {/* Rappels & Alertes - Compact */}
+            {/* Rappels & Alertes - Clean Design */}
             <div className="mb-3 flex-shrink-0">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-bold text-slate-900">Rappels & Alertes</h2>
                     <span className={clsx(
-                        "text-xs font-semibold px-2 py-0.5 rounded-full",
-                        activeAlertsCount > 0 ? "text-red-500" : "bg-emerald-100 text-emerald-600"
+                        "text-xs font-semibold px-2.5 py-1 rounded-full",
+                        activeAlertsCount > 0
+                            ? "bg-red-100 text-red-500"
+                            : "bg-pink-100 text-pink-500"
                     )}>
-                        {activeAlertsCount} Actifs
+                        {activeAlertsCount} Actif{activeAlertsCount !== 1 ? 's' : ''}
                     </span>
                 </div>
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                        <Heart className="w-4 h-4 text-pink-500" />
-                        <p className="text-xs font-medium text-slate-700 uppercase">Chaleurs à surveiller</p>
-                    </div>
-                    <p className="text-xs text-slate-400 italic pl-6">Aucune chaleur prévue.</p>
+                <Card className="p-0 overflow-hidden">
+                    {/* Chaleurs à surveiller - Click to go to reproduction */}
+                    <button
+                        onClick={() => navigate('/reproduction')}
+                        className="w-full p-4 border-b border-slate-100 text-left hover:bg-pink-50 transition-colors"
+                    >
+                        <div className="flex items-center gap-2 mb-1">
+                            <Heart className="w-4 h-4 text-pink-500" />
+                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Chaleurs à surveiller</p>
+                        </div>
+                        <p className="text-xs text-slate-400 italic pl-6">
+                            {heatAlertsCount > 0
+                                ? `${heatAlertsCount} brebis à surveiller`
+                                : 'Aucune chaleur prévue.'}
+                        </p>
+                    </button>
 
-                    <div className="flex items-center gap-2">
-                        <Stethoscope className="w-4 h-4 text-emerald-500" />
-                        <p className="text-xs font-medium text-slate-700 uppercase">Santé à venir</p>
-                    </div>
-                    <p className="text-xs text-slate-400 italic pl-6">Aucun rappel sanitaire.</p>
+                    {/* Santé à venir - Click to go to tasks */}
+                    <button
+                        onClick={() => navigate('/tasks')}
+                        className="w-full p-4 border-b border-slate-100 text-left hover:bg-blue-50 transition-colors"
+                    >
+                        <div className="flex items-center gap-2 mb-1">
+                            <Stethoscope className="w-4 h-4 text-blue-500" />
+                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Santé à venir</p>
+                        </div>
+                        <p className="text-xs text-slate-400 italic pl-6">
+                            {healthRemindersCount > 0
+                                ? `${healthRemindersCount} rappel${healthRemindersCount > 1 ? 's' : ''} sanitaire${healthRemindersCount > 1 ? 's' : ''}`
+                                : 'Aucun rappel sanitaire.'}
+                        </p>
+                    </button>
 
-                    <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4 text-slate-400" />
-                        <p className="text-xs font-medium text-slate-700 uppercase">Alertes stock</p>
-                    </div>
-                    <p className="text-xs text-slate-400 italic pl-6">Aucune alerte stock.</p>
-                </div>
+                    {/* Alertes Stock - Click to go to inventory */}
+                    <button
+                        onClick={() => navigate('/inventory')}
+                        className="w-full p-4 text-left hover:bg-blue-50 transition-colors"
+                    >
+                        <div className="flex items-center gap-2 mb-1">
+                            <Package className="w-4 h-4 text-blue-500" />
+                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Alertes Stock</p>
+                        </div>
+                        <p className="text-xs text-slate-400 italic pl-6">
+                            {lowStockItems.length > 0
+                                ? `${lowStockItems.length} article${lowStockItems.length > 1 ? 's' : ''} en stock critique`
+                                : 'Aucune alerte stock.'}
+                        </p>
+                    </button>
+                </Card>
             </div>
 
             {/* Sujets en Vedette - Flexible space */}

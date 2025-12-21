@@ -148,7 +148,7 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between p-4 border-b border-slate-100">
                     <h2 className="text-lg font-bold text-slate-900">
                         Enregistrer un événement reproducteur
@@ -161,7 +161,7 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto flex-1">
                     {/* Animal Selection */}
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">

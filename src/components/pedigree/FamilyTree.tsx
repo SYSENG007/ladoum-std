@@ -143,7 +143,7 @@ export const FamilyTree: React.FC<FamilyTreeProps> = ({ rootAnimal, theme = 'gre
     };
 
     return (
-        <div ref={treeRef} className={clsx("p-8 rounded-3xl overflow-auto", themeStyles[theme])}>
+        <div ref={treeRef} className={clsx("p-8 rounded-2xl overflow-auto", themeStyles[theme])}>
             <div className="inline-flex gap-0 min-w-max items-center">
                 {/* Generation 3 - Great-Grandparents */}
                 <div className="flex flex-col justify-center gap-8">

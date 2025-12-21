@@ -137,7 +137,7 @@ export const Join: React.FC = () => {
     if (error && !invitation) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+                <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
                     <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <XCircle className="w-8 h-8 text-red-600" />
                     </div>
@@ -154,7 +154,7 @@ export const Join: React.FC = () => {
     if (isAlreadyMember) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+                <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle className="w-8 h-8 text-blue-600" />
                     </div>
@@ -173,7 +173,7 @@ export const Join: React.FC = () => {
     if (success) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+                <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
                     <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle className="w-8 h-8 text-emerald-600" />
                     </div>
@@ -191,7 +191,7 @@ export const Join: React.FC = () => {
         // Redirect to register with token - will auto-load invitation and prefill email
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+                <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
                     <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Users className="w-8 h-8 text-emerald-600" />
                     </div>
@@ -216,7 +216,7 @@ export const Join: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full">
+            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
                 <div className="text-center mb-6">
                     <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Users className="w-8 h-8 text-emerald-600" />

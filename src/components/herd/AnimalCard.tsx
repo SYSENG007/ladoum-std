@@ -5,8 +5,10 @@ import type { Animal } from '../../types';
 import logo from '../../assets/logo.jpg';
 import { Badge } from '../ui/Badge';
 import { CertificationBadge } from '../ui/CertificationBadge';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { EditAnimalModal } from './EditAnimalModal';
 import { AnimalService } from '../../services/AnimalService';
+import { useToast } from '../../context/ToastContext';
 
 interface AnimalCardProps {
     animal: Animal;
@@ -14,25 +16,29 @@ interface AnimalCardProps {
 }
 
 export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
+    const toast = useToast();
     const [showMenu, setShowMenu] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-    const handleDelete = async (e: React.MouseEvent) => {
+    const handleDeleteClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        setShowMenu(false);
+        setIsDeleteDialogOpen(true);
+    };
 
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer ${animal.name} ?`)) {
-            return;
-        }
-
+    const confirmDelete = async () => {
         setIsDeleting(true);
         try {
             await AnimalService.delete(animal.id);
+            setIsDeleteDialogOpen(false);
+            toast.success(`${animal.name} supprimé avec succès`);
             onUpdate?.();
         } catch (err) {
             console.error('Error deleting animal:', err);
-            alert('Erreur lors de la suppression de l\'animal.');
+            toast.error('Erreur lors de la suppression de l\'animal.');
         } finally {
             setIsDeleting(false);
         }
@@ -52,7 +58,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
     return (
         <>
             <Link to={`/herd/${animal.id}`} className="block group relative">
-                <div className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
                     <div className="relative aspect-square overflow-hidden">
                         <img
                             src={animal.photoUrl || logo}
@@ -90,18 +96,18 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
                                 </button>
 
                                 {showMenu && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
+                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 overflow-hidden">
                                         <button
                                             onClick={handleEdit}
-                                            className="w-full px-4 py-3 text-left hover:bg-slate-50 flex items-center gap-3 text-slate-700"
+                                            className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-slate-700 dark:text-slate-200"
                                         >
                                             <Edit2 className="w-4 h-4" />
                                             Modifier
                                         </button>
                                         <button
-                                            onClick={handleDelete}
+                                            onClick={handleDeleteClick}
                                             disabled={isDeleting}
-                                            className="w-full px-4 py-3 text-left hover:bg-red-50 flex items-center gap-3 text-red-600 disabled:opacity-50"
+                                            className="w-full px-4 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-red-600 dark:text-red-400 disabled:opacity-50"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                             {isDeleting ? 'Suppression...' : 'Supprimer'}
@@ -133,29 +139,29 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
                                 <div className="grid grid-cols-4 gap-2 text-center">
                                     {/* HG - Hauteur Garrot */}
                                     <div>
-                                        <p className="text-[10px] text-slate-500 font-medium">HG</p>
-                                        <p className="text-sm font-bold text-slate-900">
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">HG</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">
                                             {hg ? <>{hg}<span className="text-[10px] font-normal text-slate-400">cm</span></> : '-'}
                                         </p>
                                     </div>
                                     {/* LCS - Longueur Corps */}
                                     <div>
-                                        <p className="text-[10px] text-slate-500 font-medium">LCS</p>
-                                        <p className="text-sm font-bold text-slate-900">
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">LCS</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">
                                             {lcs ? <>{lcs}<span className="text-[10px] font-normal text-slate-400">cm</span></> : '-'}
                                         </p>
                                     </div>
                                     {/* TP - Tour Poitrine */}
                                     <div>
-                                        <p className="text-[10px] text-slate-500 font-medium">TP</p>
-                                        <p className="text-sm font-bold text-slate-900">
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">TP</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">
                                             {tp ? <>{tp}<span className="text-[10px] font-normal text-slate-400">cm</span></> : '-'}
                                         </p>
                                     </div>
                                     {/* Masse */}
                                     <div>
-                                        <p className="text-[10px] text-slate-500 font-medium">Masse</p>
-                                        <p className="text-sm font-bold text-slate-900">
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Masse</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">
                                             {masse ? <>{masse}<span className="text-[10px] font-normal text-slate-400">kg</span></> : '-'}
                                         </p>
                                     </div>
@@ -171,6 +177,17 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
                 onClose={() => setIsEditModalOpen(false)}
                 onSuccess={handleEditSuccess}
                 animal={animal}
+            />
+
+            <ConfirmDialog
+                isOpen={isDeleteDialogOpen}
+                title="Supprimer l'animal"
+                message={`Êtes-vous sûr de vouloir supprimer ${animal.name} ?`}
+                onConfirm={confirmDelete}
+                onCancel={() => setIsDeleteDialogOpen(false)}
+                confirmText="Supprimer"
+                cancelText="Annuler"
+                variant="danger"
             />
         </>
     );

@@ -94,7 +94,7 @@ export const DashboardDesktop: React.FC = () => {
                     {/* KPI Row - Total Sujets (1 col) + ExpertCard (2 cols) */}
                     <div className="grid grid-cols-3 gap-4 flex-shrink-0">
                         {/* Total Sujets Card */}
-                        <Card className="p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/herd')}>
+                        <Card className="p-5 cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between" onClick={() => navigate('/herd')}>
                             <div className="flex items-start justify-between">
                                 <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-100">
                                     <Users className="w-5 h-5 text-blue-600" />
@@ -103,7 +103,7 @@ export const DashboardDesktop: React.FC = () => {
                             <div className="mt-3">
                                 <h3 className="text-2xl font-bold text-slate-900">{stats.total}</h3>
                                 <p className="text-sm text-slate-500">Total Sujets</p>
-                                <div className="flex gap-3 mt-2 text-xs">
+                                <div className="flex gap-3 mt-1 text-xs">
                                     <span className="text-blue-600 font-medium">♂ {stats.males} Mâles</span>
                                     <span className="text-pink-600 font-medium">♀ {stats.females} Femelles</span>
                                 </div>

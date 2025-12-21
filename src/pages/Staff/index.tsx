@@ -7,6 +7,7 @@ import { StaffService } from '../../services/StaffService';
 import { AttendanceService } from '../../services/AttendanceService';
 import { useFarm } from '../../context/FarmContext';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import type { FarmMember } from '../../types/farm';
 import type { StaffInvitation, Attendance } from '../../types/staff';
 import clsx from 'clsx';
@@ -16,6 +17,7 @@ type TabType = 'members' | 'attendance' | 'planning' | 'performance';
 export const Staff: React.FC = () => {
     const { currentFarm } = useFarm();
     const { user, userProfile } = useAuth();
+    const toast = useToast();
 
     const [activeTab, setActiveTab] = useState<TabType>('members');
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -62,8 +64,9 @@ export const Staff: React.FC = () => {
         try {
             await AttendanceService.checkIn(user.uid, userProfile.displayName || 'Membre', currentFarm.id);
             await loadData();
+            toast.success('Pointage arrivée enregistré');
         } catch (err: any) {
-            alert(err.message || 'Erreur lors du pointage');
+            toast.error(err.message || 'Erreur lors du pointage');
         }
     };
 
@@ -339,7 +342,7 @@ export const Staff: React.FC = () => {
                             <button
                                 onClick={() => {
                                     navigator.clipboard.writeText(`${window.location.origin}/join?token=${shareInvitation.token}`);
-                                    alert('Lien copié !');
+                                    toast.success('Lien copié !');
                                 }}
                                 className="flex items-center justify-center gap-2 p-3 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                             >

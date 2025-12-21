@@ -121,7 +121,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ isOpen, on
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 rounded-t-3xl">
                     <div className="flex items-center justify-between">

@@ -198,9 +198,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (confirm(`Supprimer "${task.title}" ?`)) {
-                                            onDelete(task.id);
-                                        }
+                                        onDelete(task.id);
                                         setShowMenu(false);
                                     }}
                                     className="w-full px-4 py-2.5 text-left hover:bg-red-50 flex items-center gap-3 text-sm text-red-600 border-t border-slate-100"

@@ -129,9 +129,9 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                {/* Header */}
-                <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex items-center justify-between rounded-t-3xl">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Header - Fixed */}
+                <div className="bg-white border-b border-slate-100 p-6 flex items-center justify-between rounded-t-3xl flex-shrink-0">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900">Ajouter un animal</h2>
                         <p className="text-sm text-slate-500">Enregistrez un nouvel animal dans le cheptel</p>
@@ -144,8 +144,8 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                     </button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                {/* Form - Scrollable */}
+                <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-6 overflow-y-auto flex-1">
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
                             {error}
@@ -387,6 +387,6 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                     </div>
                 </form>
             </div>
-        </div>
+        </div >
     );
 };

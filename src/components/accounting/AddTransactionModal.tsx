@@ -114,9 +114,9 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-100">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Header - Fixed */}
+                <div className="flex items-center justify-between p-6 border-b border-slate-100 flex-shrink-0">
                     <h2 className="text-xl font-bold text-slate-900">Nouvelle transaction</h2>
                     <button
                         onClick={onClose}
@@ -126,8 +126,8 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                     </button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                {/* Form - Scrollable */}
+                <form onSubmit={handleSubmit} className="px-6 pb-6 pt-5 space-y-5 overflow-y-auto flex-1">
                     {error && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
                             {error}

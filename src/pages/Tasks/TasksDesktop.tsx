@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { List, Kanban, Calendar, Plus, CheckCircle, Clock, AlertCircle, Ban, Edit2, Trash2, MoreVertical } from 'lucide-react';
 import { TaskFilters, type TaskFilterState } from '../../components/tasks/TaskFilters';
 import { TaskBoard } from '../../components/tasks/TaskBoard';
@@ -10,6 +11,7 @@ import { EditTaskModal } from '../../components/tasks/EditTaskModal';
 import { useTasks } from '../../hooks/useTasks';
 import { useData } from '../../context/DataContext';
 import { useFarm } from '../../context/FarmContext';
+import { useToast } from '../../context/ToastContext';
 import { TaskService } from '../../services/TaskService';
 import type { TaskStatus, Task } from '../../types';
 import clsx from 'clsx';
@@ -19,6 +21,7 @@ export const TasksDesktop: React.FC = () => {
     const { tasks, error } = useTasks();
     const { refreshData } = useData();
     const { currentFarm } = useFarm();
+    const toast = useToast();
     const [filters, setFilters] = useState<TaskFilterState>({
         search: '',
         assignee: '',
@@ -28,21 +31,29 @@ export const TasksDesktop: React.FC = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
+    const [deleteDialog, setDeleteDialog] = useState<{
+        isOpen: boolean;
+        taskId: string;
+        taskTitle: string;
+    }>({ isOpen: false, taskId: '', taskTitle: '' });
 
     const handleAddSuccess = async () => {
         await refreshData();
     };
 
-    const handleDelete = async (taskId: string, taskTitle: string) => {
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer la tâche "${taskTitle}" ?`)) {
-            return;
-        }
+    const handleDelete = (taskId: string, taskTitle: string) => {
+        setDeleteDialog({ isOpen: true, taskId, taskTitle });
+    };
+
+    const confirmDelete = async () => {
         try {
-            await TaskService.delete(taskId);
+            await TaskService.delete(deleteDialog.taskId);
             await refreshData();
+            setDeleteDialog({ isOpen: false, taskId: '', taskTitle: '' });
+            toast.success('Tâche supprimée');
         } catch (err) {
             console.error('Error deleting task:', err);
-            alert('Erreur lors de la suppression de la tâche.');
+            toast.error('Erreur lors de la suppression de la tâche.');
         }
     };
 
@@ -293,6 +304,17 @@ export const TasksDesktop: React.FC = () => {
                     task={editingTask}
                 />
             )}
+
+            <ConfirmDialog
+                isOpen={deleteDialog.isOpen}
+                title="Supprimer la tâche"
+                message={`Êtes-vous sûr de vouloir supprimer "${deleteDialog.taskTitle}" ?`}
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteDialog({ isOpen: false, taskId: '', taskTitle: '' })}
+                confirmText="Supprimer"
+                cancelText="Annuler"
+                variant="danger"
+            />
         </div>
     );
 };

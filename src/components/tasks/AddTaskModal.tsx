@@ -153,9 +153,9 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-                {/* Header */}
-                <div className="sticky top-0 bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 flex items-center justify-between rounded-t-3xl">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Header - Fixed */}
+                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 flex items-center justify-between rounded-t-3xl flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-white/20 rounded-xl">
                             <Sparkles className="w-6 h-6 text-white" />
@@ -173,8 +173,8 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                     </button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                {/* Form - Scrollable */}
+                <form onSubmit={handleSubmit} className="px-6 pb-6 pt-6 space-y-6 overflow-y-auto flex-1">
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3">
                             <AlertCircle className="w-5 h-5 flex-shrink-0" />

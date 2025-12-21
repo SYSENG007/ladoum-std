@@ -5,6 +5,7 @@ import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { useInventory } from '../../hooks/useInventory';
+import { useTasks } from '../../hooks/useTasks';
 import { getUpcomingHeats } from '../../utils/heatPrediction';
 import type { Animal } from '../../types';
 
@@ -12,27 +13,63 @@ interface RemindersCardProps {
     animals: Animal[];
 }
 
+interface HealthReminder {
+    id: string;
+    animalId?: string;
+    animalName?: string;
+    type: string;
+    date: string;
+    description: string;
+    source: 'healthRecord' | 'task';
+}
+
 export const RemindersCard: React.FC<RemindersCardProps> = ({ animals }) => {
     const navigate = useNavigate();
     const { lowStockItems } = useInventory();
+    const { tasks } = useTasks();
 
-    // Calculate health reminders from real animal data
+    // Calculate health reminders from MULTIPLE sources
     const healthReminders = useMemo(() => {
-        return animals.flatMap(animal =>
+        const reminders: HealthReminder[] = [];
+
+        // 1. Health records with nextDueDate (vaccinations, treatments scheduled)
+        animals.forEach(animal => {
             (animal.healthRecords || [])
                 .filter(record => record.nextDueDate)
-                .map(record => ({
-                    id: record.id,
-                    animalId: animal.id,
-                    animalName: animal.name,
-                    type: record.type,
-                    date: record.nextDueDate,
-                    description: record.description
-                }))
-        )
-            .sort((a, b) => (a.date! > b.date! ? 1 : -1))
-            .slice(0, 3); // Top 3 upcoming
-    }, [animals]);
+                .forEach(record => {
+                    reminders.push({
+                        id: record.id,
+                        animalId: animal.id,
+                        animalName: animal.name,
+                        type: record.type,
+                        date: record.nextDueDate!,
+                        description: record.description,
+                        source: 'healthRecord'
+                    });
+                });
+        });
+
+        // 2. Health tasks not done
+        tasks
+            .filter(task => task.type === 'Health' && task.status !== 'Done')
+            .forEach(task => {
+                const animal = task.animalId ? animals.find(a => a.id === task.animalId) : undefined;
+                reminders.push({
+                    id: task.id,
+                    animalId: task.animalId,
+                    animalName: animal?.name,
+                    type: 'Tâche santé',
+                    date: task.date,
+                    description: task.title,
+                    source: 'task'
+                });
+            });
+
+        // Sort by date and return top items
+        return reminders
+            .sort((a, b) => (a.date > b.date ? 1 : -1))
+            .slice(0, 5);
+    }, [animals, tasks]);
 
     // Heat cycle reminders - upcoming heats in next 5 days
     const heatReminders = useMemo(() => {
@@ -65,9 +102,9 @@ export const RemindersCard: React.FC<RemindersCardProps> = ({ animals }) => {
                         <p className="text-slate-500 dark:text-slate-400 text-sm">Santé, Reproduction et Stock</p>
                     </div>
                 </div>
-                {totalReminders > 0 && (
-                    <Badge variant="warning">{totalReminders} Actif{totalReminders > 1 ? 's' : ''}</Badge>
-                )}
+                <Badge variant={totalReminders > 0 ? "warning" : "neutral"}>
+                    {totalReminders} Actif{totalReminders !== 1 ? 's' : ''}
+                </Badge>
             </div>
 
             <div className="space-y-6">
@@ -124,7 +161,7 @@ export const RemindersCard: React.FC<RemindersCardProps> = ({ animals }) => {
                         {healthReminders.map((reminder) => (
                             <button
                                 key={reminder.id}
-                                onClick={() => handleHealthReminderClick(reminder.animalId)}
+                                onClick={() => reminder.animalId ? handleHealthReminderClick(reminder.animalId) : navigate('/tasks')}
                                 className="w-full flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-600 hover:border-primary-200 dark:hover:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all text-left"
                             >
                                 <Calendar className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
