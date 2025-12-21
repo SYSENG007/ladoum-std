@@ -385,7 +385,8 @@ export const Profile: React.FC = () => {
                                                         onClick={async () => {
                                                             if (window.confirm(`Voulez-vous vraiment annuler l'invitation pour ${invitation.displayName} ?`)) {
                                                                 try {
-                                                                    await StaffService.cancelInvitation(invitation.id);
+                                                                    if (!userProfile?.farmId) return;
+                                                                    await StaffService.cancelInvitation(userProfile.farmId, invitation.id);
                                                                     setPendingInvitations(prev => prev.filter(i => i.id !== invitation.id));
                                                                 } catch (err) {
                                                                     console.error('Error canceling invitation:', err);
