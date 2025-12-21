@@ -27,21 +27,13 @@ export const FarmService = {
     ): Promise<Farm> {
         const now = new Date().toISOString();
 
-        const owner: FarmMember = {
-            userId: ownerId,
-            displayName: ownerName,
-            email: ownerEmail,
-            role: 'owner',
-            canAccessFinances: true,
-            status: 'active',
-            joinedAt: now,
-        };
-
+        // Create farm document with memberIds
         const farm: Omit<Farm, 'id'> = {
             name,
             location,
             ownerId,
-            members: [owner],
+            memberIds: [ownerId],
+            members: [],  // Keep empty for now, will be deprecated later
             settings,
             createdAt: now,
             updatedAt: now,
@@ -49,6 +41,25 @@ export const FarmService = {
 
         const docRef = doc(collection(db, COLLECTION_NAME));
         await setDoc(docRef, farm);
+
+        // Add owner to members subcollection using FarmMemberService
+        const { FarmMemberService } = await import('./FarmMemberService');
+        await FarmMemberService.addMember(docRef.id, {
+            userId: ownerId,
+            displayName: ownerName,
+            email: ownerEmail,
+            role: 'owner',
+            permissions: {
+                canAccessFinances: true,
+                canManageAnimals: true,
+                canManageTasks: true,
+                canManageInventory: true,
+                canManageStaff: true,
+                canViewReports: true
+            },
+            status: 'active',
+            joinedAt: now
+        });
 
         return { id: docRef.id, ...farm };
     },
@@ -65,14 +76,13 @@ export const FarmService = {
 
     /**
      * Récupérer toutes les fermes d'un utilisateur
+     * Maintenant filtre par memberIds au lieu de members array
      */
     async getByUserId(userId: string): Promise<Farm[]> {
-        // Récupérer toutes les fermes et filtrer côté client
-        // En production, on utiliserait une sous-collection ou un index
         const snapshot = await getDocs(collection(db, COLLECTION_NAME));
         return snapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as Farm))
-            .filter(farm => farm.members.some(m => m.userId === userId));
+            .filter(farm => farm.memberIds && farm.memberIds.includes(userId));
     },
 
     /**
@@ -91,6 +101,7 @@ export const FarmService = {
         member: Omit<FarmMember, 'id'>
     ): Promise<void> {
         const newMember: FarmMember = {
+            id: member.userId,
             ...member,
             joinedAt: member.joinedAt || new Date().toISOString(),
         };

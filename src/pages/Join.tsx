@@ -141,35 +141,22 @@ export const Join: React.FC = () => {
                 return;
             }
 
-            console.log('[Join] Step 1: Mark invitation as accepted');
-            // Mark invitation as accepted FIRST
-            await StaffService.acceptInvitation(invitation.id, user.uid);
+            console.log('[Join] Accepting invitation with atomic operation');
 
-            console.log('[Join] Step 2: Update user profile with farm');
-            // Update user's farm (this they CAN do - their own profile)
+            // Accept invitation atomically (creates member + updates invitation + updates farm)
+            await StaffService.acceptInvitation({
+                farmId: invitation.farmId,
+                invitationId: invitation.id,
+                userId: user.uid,
+                displayName: userProfile.displayName || invitation.displayName,
+                email: user.email!
+            });
+
+            console.log('[Join] Updating user profile with farm');
+            // Update user's farm profile
             await UserService.setFarm(user.uid, invitation.farmId, invitation.role);
             if (!userProfile.onboardingCompleted) {
                 await UserService.completeOnboarding(user.uid);
-            }
-
-            console.log('[Join] Step 3: Try to add member to farm');
-            // Try to add to farm - this might fail due to permissions
-            // but that's OK, we'll add a background process to handle this
-            try {
-                await FarmService.addMember(invitation.farmId, {
-                    userId: user.uid,
-                    displayName: userProfile.displayName || invitation.displayName,
-                    email: invitation.email,
-                    role: invitation.role,
-                    canAccessFinances: invitation.canAccessFinances,
-                    status: 'active',
-                    joinedAt: new Date().toISOString()
-                });
-                console.log('[Join] Successfully added to farm members');
-            } catch (farmError: any) {
-                // If we can't add to farm (permission issue), that's OK
-                // The user profile is updated, and they'll have access once farm syncs
-                console.warn('[Join] Could not add to farm members (will sync later):', farmError.message);
             }
 
             console.log('[Join] Step 4: Refresh user profile in context');
@@ -380,8 +367,8 @@ export const Join: React.FC = () => {
                     {invitation?.role === 'manager' && (
                         <div className="flex justify-between items-center">
                             <span className="text-sm text-slate-500">Accès finances</span>
-                            <span className={`font-semibold ${invitation?.canAccessFinances ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                {invitation?.canAccessFinances ? 'Oui' : 'Non'}
+                            <span className={`font-semibold ${invitation?.permissions.canAccessFinances ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                {invitation?.permissions.canAccessFinances ? 'Oui' : 'Non'}
                             </span>
                         </div>
                     )}

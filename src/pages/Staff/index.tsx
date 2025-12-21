@@ -4,7 +4,9 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { InviteMemberModal } from '../../components/staff/InviteMemberModal';
 import { InvitationStats } from '../../components/staff/InvitationStats';
+import { MigrationHelper } from '../../components/staff/MigrationHelper';
 import { StaffService } from '../../services/StaffService';
+import { FarmMemberService } from '../../services/FarmMemberService';
 import { AttendanceService } from '../../services/AttendanceService';
 import { useFarm } from '../../context/FarmContext';
 import { useAuth } from '../../context/AuthContext';
@@ -29,24 +31,33 @@ export const Staff: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [shareInvitation, setShareInvitation] = useState<StaffInvitation | null>(null);
 
-    // Check if current user can manage staff (based on their role in farm members)
-    const currentUserMember = currentFarm?.members?.find(m => m.userId === user?.uid);
-    const canManageStaff = currentUserMember?.role === 'owner' || currentUserMember?.role === 'manager' || currentFarm?.ownerId === user?.uid;
+    // Check if current user can manage staff (based on their role)
+    const currentUserMember = members.find(m => m.userId === user?.uid);
+    const canManageStaff = currentUserMember?.permissions.canManageStaff || currentFarm?.ownerId === user?.uid;
 
     useEffect(() => {
         loadData();
     }, [currentFarm?.id]);
 
     const loadData = async () => {
-        if (!currentFarm?.id) return;
+        if (!currentFarm?.id) {
+            console.log('[Staff] No farm ID, skipping load');
+            return;
+        }
+
         setLoading(true);
 
         try {
-            // Load members from farm
-            setMembers(currentFarm.members || []);
+            console.log('[Staff] Loading data for farm:', currentFarm.id);
+
+            // Load members from subcollection
+            const farmMembers = await FarmMemberService.getMembers(currentFarm.id);
+            console.log('[Staff] Loaded members:', farmMembers.length, farmMembers);
+            setMembers(farmMembers);
 
             // Load pending invitations
             const invitations = await StaffService.getPendingInvitations(currentFarm.id);
+            console.log('[Staff] Loaded invitations:', invitations.length);
             setPendingInvitations(invitations);
 
             // Load all invitations for stats
@@ -57,8 +68,11 @@ export const Staff: React.FC = () => {
             const today = new Date().toISOString().split('T')[0];
             const attendance = await AttendanceService.getByFarmAndDateRange(currentFarm.id, today, today);
             setTodayAttendance(attendance);
-        } catch (err) {
-            console.error('Error loading staff data:', err);
+
+            console.log('[Staff] Data loaded successfully');
+        } catch (err: any) {
+            console.error('[Staff] Error loading staff data:', err);
+            console.error('[Staff] Error details:', err.message, err.code);
         } finally {
             setLoading(false);
         }
@@ -154,6 +168,9 @@ export const Staff: React.FC = () => {
                 </div>
             </div>
 
+            {/* Migration Helper */}
+            <MigrationHelper />
+
             {/* Tabs */}
             <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 flex-shrink-0">
                 {tabs.map(tab => (
@@ -205,7 +222,7 @@ export const Staff: React.FC = () => {
                                             </div>
                                             <p className="text-sm text-slate-500">{getRoleLabel(member.role)}</p>
                                             <p className="text-xs text-slate-400 mt-1">{member.email}</p>
-                                            {member.canAccessFinances && member.role === 'manager' && (
+                                            {member.permissions.canAccessFinances && member.role === 'manager' && (
                                                 <span className="inline-flex items-center gap-1 text-xs text-amber-600 mt-2">
                                                     💰 Accès finances
                                                 </span>
@@ -263,7 +280,8 @@ export const Staff: React.FC = () => {
                                                                 <button
                                                                     onClick={async () => {
                                                                         try {
-                                                                            await StaffService.extendInvitation(invitation.id);
+                                                                            if (!currentFarm?.id) return;
+                                                                            await StaffService.extendInvitation(currentFarm.id, invitation.id);
                                                                             toast.success('Invitation prolongée de 7 jours');
                                                                             loadData();
                                                                         } catch (err) {
@@ -289,10 +307,11 @@ export const Staff: React.FC = () => {
                                                     </button>
                                                     <button
                                                         onClick={() => {
+                                                            if (!currentFarm?.id) return;
                                                             if (window.confirm(
                                                                 `Annuler l'invitation de ${invitation.displayName} ?\n\nL'invitation sera marquée comme annulée mais conservée dans l'historique.`
                                                             )) {
-                                                                StaffService.cancelInvitation(invitation.id)
+                                                                StaffService.cancelInvitation(currentFarm.id, invitation.id)
                                                                     .then(() => {
                                                                         toast.success('Invitation annulée');
                                                                         loadData();
@@ -310,7 +329,8 @@ export const Staff: React.FC = () => {
                                                     <button
                                                         onClick={async () => {
                                                             try {
-                                                                await StaffService.deleteInvitation(invitation.id);
+                                                                if (!currentFarm?.id) return;
+                                                                await StaffService.deleteInvitation(currentFarm.id, invitation.id);
                                                                 toast.success('Invitation supprimée');
                                                                 loadData();
                                                             } catch (err) {

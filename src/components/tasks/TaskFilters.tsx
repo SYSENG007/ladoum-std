@@ -52,7 +52,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({ filters, onChange }) =
                 >
                     <option value="">Tous les membres</option>
                     {farmMembers.map(member => (
-                        <option key={member.userId} value={member.userId}>{member.displayName || member.name}</option>
+                        <option key={member.userId} value={member.userId}>{member.displayName}</option>
                     ))}
                 </select>
 

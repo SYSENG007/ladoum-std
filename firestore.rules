@@ -38,18 +38,86 @@ service cloud.firestore {
     
     // Farms
     match /farms/{farmId} {
-      allow read: if isAuthenticated() && hasFarmAccess(farmId);
+      // Read access: must be in memberIds array
+      allow read: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid ||
+        request.auth.uid in resource.data.memberIds
+      );
+      
+      // Create: any authenticated user can create a farm
       allow create: if isAuthenticated();
-      // Allow update if:
-      // 1. User is the owner, OR
-      // 2. User is adding themselves as a member (accepting invitation)
+      
+      // Update: 
+      // 1. Owner can update anything, OR
+      // 2. User can add themselves to memberIds ONLY (when accepting invitation)
       allow update: if isAuthenticated() && (
         resource.data.ownerId == request.auth.uid ||
-        // Allow if user is just adding themselves to members array
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'updatedAt']) &&
-         request.resource.data.members.size() == resource.data.members.size() + 1)
+        // Allow self-adding to memberIds array only
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds', 'updatedAt']) &&
+         request.resource.data.memberIds.hasAll(resource.data.memberIds) &&
+         request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1 &&
+         request.auth.uid in request.resource.data.memberIds)
       );
+      
+      // Delete: only owner
       allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      
+      // Members Subcollection
+      match /members/{userId} {
+        // Read: if you're a member of this farm (check memberIds of parent farm)
+        allow read: if isAuthenticated() && 
+          request.auth.uid in get(/databases/$(database)/documents/farms/$(farmId)).data.memberIds;
+        
+        // Create/Update: 
+        // 1. Owner can add/modify any member, OR
+        // 2. User can create/update their own member document (invitation acceptance)
+        allow create, update: if isAuthenticated() && (
+          get(/databases/$(database)/documents/farms/$(farmId)).data.ownerId == request.auth.uid ||
+          userId == request.auth.uid
+        );
+        
+        // Delete: only owner can remove members
+        allow delete: if isAuthenticated() && 
+          get(/databases/$(database)/documents/farms/$(farmId)).data.ownerId == request.auth.uid;
+      }
+      
+      // =========================================================================
+      // INVITATIONS SUBCOLLECTION (New Architecture)
+      // =========================================================================
+      match /invitations/{invitationId} {
+        // READ: Farm members can view invitations
+        allow read: if isAuthenticated() && 
+          request.auth.uid in get(/databases/$(database)/documents/farms/$(farmId)).data.memberIds;
+        
+        // CREATE: Only farm owner can create invitations
+        allow create: if isAuthenticated() && 
+          get(/databases/$(database)/documents/farms/$(farmId)).data.ownerId == request.auth.uid &&
+          request.resource.data.farmId == farmId &&
+          request.resource.data.status == 'pending';
+        
+        // UPDATE: Accept invitation (matching email) OR manage (owner only)
+        allow update: if isAuthenticated() && (
+          // Accept invitation - anyone with matching email
+          (request.resource.data.status == 'accepted' &&
+           resource.data.status == 'pending' &&
+           request.auth.token.email.lower() == resource.data.email.lower()) ||
+          
+          // Manage invitation - only farm owner
+          get(/databases/$(database)/documents/farms/$(farmId)).data.ownerId == request.auth.uid
+        );
+        
+        // DELETE: Only farm owner
+        allow delete: if isAuthenticated() &&
+          get(/databases/$(database)/documents/farms/$(farmId)).data.ownerId == request.auth.uid;
+      }
+    }
+    
+    // =========================================================================
+    // INVITATION TOKEN LOOKUP (Collection Group Query)
+    // =========================================================================
+    // Allow public read by token for invitation acceptance flow
+    match /{path=**}/invitations/{invitationId} {
+      allow read: if resource.data.status == 'pending';
     }
     
     // Animals - accessible by farm members
@@ -89,7 +157,9 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid;
     }
     
-    // Invitations
+    // =========================================================================
+    // INVITATIONS - Legacy (Root Collection) - BACKWARD COMPATIBILITY
+    // =========================================================================
     // Allow unauthenticated reads so users can validate invitation tokens before registering
     // Only authenticated users can create/update/delete invitations
     match /invitations/{invitationId} {

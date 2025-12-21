@@ -329,10 +329,10 @@ export const Profile: React.FC = () => {
                                     className="flex items-center gap-3 p-3 rounded-lg border border-slate-200"
                                 >
                                     <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-600 font-medium">
-                                        {member.name?.charAt(0).toUpperCase() || '?'}
+                                        {member.displayName?.charAt(0).toUpperCase() || '?'}
                                     </div>
                                     <div className="flex-1">
-                                        <p className="font-medium text-slate-900">{member.name || 'Membre'}</p>
+                                        <p className="font-medium text-slate-900">{member.displayName || 'Membre'}</p>
                                         <p className="text-xs text-slate-500">{member.email}</p>
                                     </div>
                                     <span className={clsx("px-2 py-1 text-xs rounded-full font-medium flex items-center gap-1", roleInfo.color)}>

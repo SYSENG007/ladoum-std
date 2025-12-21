@@ -201,9 +201,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     <div className="flex items-center gap-2">
                         <div
                             className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-sm"
-                            title={assignee.displayName || assignee.name}
+                            title={assignee.displayName}
                         >
-                            {getInitials(assignee.displayName || assignee.name || 'U')}
+                            {getInitials(assignee.displayName || 'U')}
                         </div>
                     </div>
                 ) : (

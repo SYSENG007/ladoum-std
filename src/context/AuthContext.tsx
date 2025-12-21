@@ -120,36 +120,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const userId = credential.user.uid;
 
             if (staffInv) {
-                // Flow Invitation : Accepter l'invitation automatiquement
+                // Flow Invitation: Accept invitation with atomic operation
                 console.log('[Auth] Creating staff member profile with invitation');
 
-                // STEP 1: Créer le profil utilisateur basique
+                // STEP 1: Create basic user profile
                 await UserService.create(userId, email, displayName);
 
-                // STEP 2: Marquer l'invitation comme acceptée
-                await StaffService.acceptInvitation(staffInv.id, userId);
+                // STEP 2: Accept invitation atomically (creates member + updates invitation + updates farm)
+                try {
+                    await StaffService.acceptInvitation({
+                        farmId: staffInv.farmId,
+                        invitationId: staffInv.id,
+                        userId: credential.user.uid,
+                        displayName: displayName,
+                        email: email
+                    });
+                    console.log('[Auth] Successfully accepted invitation and created member');
+                } catch (acceptError: any) {
+                    console.error('[Auth] Failed to accept invitation:', acceptError);
+                    throw new Error(`Failed to join farm: ${acceptError.message}`);
+                }
 
-                // STEP 3: Configurer la ferme de l'utilisateur et marquer l'onboarding terminé
-                // FAIRE ÇA D'ABORD avant d'ajouter à la ferme (pour éviter erreur permission)
+                // STEP 3: Update user profile with farm and complete onboarding
                 await UserService.setFarm(userId, staffInv.farmId, staffInv.role);
                 await UserService.completeOnboarding(userId);
-
-                // STEP 4: Essayer d'ajouter à la ferme (peut échouer à cause des permissions)
-                try {
-                    await FarmService.addMember(staffInv.farmId, {
-                        userId: credential.user.uid,
-                        displayName,
-                        email,
-                        role: staffInv.role,
-                        canAccessFinances: staffInv.canAccessFinances || false,
-                        status: 'active',
-                        joinedAt: new Date().toISOString()
-                    });
-                    console.log('[Auth] Successfully added to farm members');
-                } catch (farmError: any) {
-                    // Si échec (permission), ce n'est pas grave - l'utilisateur est configuré
-                    console.warn('[Auth] Could not add to farm members (will sync later):', farmError.message);
-                }
             } else {
                 // Flow Normal / Owner - créer profil sans ferme
                 await UserService.create(userId, email, displayName);
@@ -202,18 +196,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
 
                 if (staffInv) {
-                    // Flow Staff direct
+                    // Flow Staff direct: Accept invitation with atomic operation
                     await UserService.create(googleUser.uid, email, displayName);
-                    await FarmService.addMember(staffInv.farmId, {
-                        userId: googleUser.uid,
-                        displayName,
-                        email,
-                        role: staffInv.role,
-                        canAccessFinances: staffInv.canAccessFinances,
-                        status: 'active',
-                        joinedAt: new Date().toISOString()
-                    });
-                    await StaffService.acceptInvitation(staffInv.id, googleUser.uid);
+
+                    try {
+                        await StaffService.acceptInvitation({
+                            farmId: staffInv.farmId,
+                            invitationId: staffInv.id,
+                            userId: googleUser.uid,
+                            displayName: displayName,
+                            email: email
+                        });
+                    } catch (acceptError: any) {
+                        console.error('[Auth] Failed to accept invitation:', acceptError);
+                        throw new Error(`Failed to join farm: ${acceptError.message}`);
+                    }
+
                     await UserService.setFarm(googleUser.uid, staffInv.farmId, staffInv.role);
                     await UserService.completeOnboarding(googleUser.uid);
                 } else {
@@ -229,18 +227,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const alreadyMember = farm?.members.some(m => m.userId === userId);
 
                 if (!alreadyMember) {
-                    await FarmService.addMember(staffInv.farmId, {
-                        userId,
-                        displayName: profile.displayName,
-                        email: profile.email,
-                        role: staffInv.role,
-                        canAccessFinances: staffInv.canAccessFinances,
-                        status: 'active',
-                        joinedAt: new Date().toISOString()
-                    });
-                    await StaffService.acceptInvitation(staffInv.id, userId);
+                    // Accept invitation with atomic operation
+                    try {
+                        await StaffService.acceptInvitation({
+                            farmId: staffInv.farmId,
+                            invitationId: staffInv.id,
+                            userId: userId,
+                            displayName: profile.displayName,
+                            email: profile.email
+                        });
+                    } catch (acceptError: any) {
+                        console.error('[Auth] Failed to accept invitation:', acceptError);
+                        throw new Error(`Failed to join farm: ${acceptError.message}`);
+                    }
 
-                    // Si l'utilisateur n'avait pas de ferme, lui mettre celle-ci
+                    // If user didn't have a farm, set this one
                     if (!profile.farmId) {
                         await UserService.setFarm(userId, staffInv.farmId, staffInv.role);
                         await UserService.completeOnboarding(userId);

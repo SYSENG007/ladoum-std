@@ -82,7 +82,14 @@ export interface StaffInvitation {
     email: string;
     displayName: string;
     role: 'manager' | 'worker';
-    canAccessFinances: boolean;
+    permissions: {
+        canAccessFinances: boolean;
+        canManageAnimals: boolean;
+        canManageTasks: boolean;
+        canManageInventory: boolean;
+        canManageStaff: boolean;
+        canViewReports: boolean;
+    };
     invitedBy: string;
     inviterName: string;
     token: string; // Unique token for accepting invitation

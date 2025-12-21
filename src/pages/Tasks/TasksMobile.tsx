@@ -150,9 +150,9 @@ export const TasksMobile: React.FC = () => {
                                             <span className="flex items-center gap-1 text-xs text-slate-500">
                                                 <User className="w-3 h-3" />
                                                 <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">
-                                                    {(assignee.displayName || assignee.name || 'U').charAt(0).toUpperCase()}
+                                                    {(assignee.displayName || 'U').charAt(0).toUpperCase()}
                                                 </span>
-                                                <span>{assignee.displayName || assignee.name}</span>
+                                                <span>{assignee.displayName}</span>
                                             </span>
                                         )}
                                         {linkedAnimal && (

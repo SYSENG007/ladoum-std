@@ -8,25 +8,37 @@ export interface Farm {
     name: string;
     location?: string;
     ownerId: string;
-    members: FarmMember[];
+    memberIds: string[];       // NEW: Array of member UIDs for permission checks
+    members: FarmMember[];     // DEPRECATED: Will be moved to subcollection
     settings: FarmSettings;
     createdAt: string;
     updatedAt: string;
+    migratedAt?: string;      // Timestamp when farm was migrated to subcollections
 }
 
-// Membre d'une ferme
+// Permissions granulaires d'un membre
+export interface FarmPermissions {
+    canAccessFinances: boolean;
+    canManageAnimals: boolean;
+    canManageTasks: boolean;
+    canManageInventory: boolean;
+    canManageStaff: boolean;     // Peut inviter/retirer des membres
+    canViewReports: boolean;
+}
+
+// Membre d'une ferme (utilisé dans subcollection farms/{id}/members)
 export interface FarmMember {
-    id?: string;           // ID du document dans Firestore
+    id: string;            // = userId (document ID)
     userId: string;
     displayName: string;
-    name?: string;         // Alias pour displayName (compatibilité)
     email: string;
     phone?: string;
     photoUrl?: string;
     role: 'owner' | 'manager' | 'worker';
-    canAccessFinances: boolean; // Configurable pour managers
+    permissions: FarmPermissions;  // NEW: Permissions granulaires
     status: 'active' | 'inactive' | 'pending';
     joinedAt: string;
+    invitedBy?: string;    // UID de celui qui a invité
 }
 
 // Paramètres de la ferme

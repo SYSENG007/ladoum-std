@@ -236,9 +236,9 @@ export const TasksDesktop: React.FC = () => {
                                                                 <span className="flex items-center gap-1">
                                                                     <User className="w-3 h-3" />
                                                                     <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">
-                                                                        {(assignee.displayName || assignee.name || 'U').charAt(0).toUpperCase()}
+                                                                        {(assignee.displayName || 'U').charAt(0).toUpperCase()}
                                                                     </span>
-                                                                    {assignee.displayName || assignee.name}
+                                                                    {assignee.displayName}
                                                                 </span>
                                                             </>
                                                         )}

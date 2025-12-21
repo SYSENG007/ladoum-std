@@ -84,7 +84,14 @@ ${getInviteLink()}
                 email: formData.email,
                 displayName: formData.displayName,
                 role: formData.role,
-                canAccessFinances: formData.role === 'manager' ? formData.canAccessFinances : false,
+                permissions: {
+                    canAccessFinances: formData.role === 'manager' ? formData.canAccessFinances : false,
+                    canManageAnimals: formData.role === 'manager',
+                    canManageTasks: true,
+                    canManageInventory: formData.role === 'manager',
+                    canManageStaff: false,
+                    canViewReports: true
+                },
                 invitedBy: user.uid,
                 inviterName: userProfile.displayName || 'Propriétaire'
             });

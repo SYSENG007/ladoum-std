@@ -326,7 +326,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                         <option value="">Non assigné</option>
                                         {(currentFarm?.members || []).map(member => (
                                             <option key={member.userId} value={member.userId}>
-                                                {member.displayName || member.name} ({member.role === 'owner' ? 'Propriétaire' : member.role === 'manager' ? 'Gérant' : 'Employé'})
+                                                {member.displayName} ({member.role === 'owner' ? 'Propriétaire' : member.role === 'manager' ? 'Gérant' : 'Employé'})
                                             </option>
                                         ))}
                                     </select>
