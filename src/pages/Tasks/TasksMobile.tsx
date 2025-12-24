@@ -7,7 +7,8 @@ import { useFarm } from '../../context/FarmContext';
 import { useTranslation } from '../../context/SettingsContext';
 import { TaskService } from '../../services/TaskService';
 import { AddTaskModal } from '../../components/tasks/AddTaskModal';
-import { Plus, CheckCircle, Clock, XCircle, Circle, User, Tag } from 'lucide-react';
+import { EditTaskModal } from '../../components/tasks/EditTaskModal';
+import { Plus, CheckCircle, Clock, XCircle, Circle, User, Tag, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import type { TaskStatus } from '../../types';
 
@@ -18,10 +19,14 @@ export const TasksMobile: React.FC = () => {
     const { currentFarm } = useFarm();
     const { t } = useTranslation();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<typeof tasks[0] | null>(null);
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
     const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+    const menuButtonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
     const STATUS_OPTIONS: { id: TaskStatus; label: string; icon: React.ReactNode }[] = [
         { id: 'Todo', label: t('task.todo'), icon: <Circle className="w-5 h-5 text-slate-400" strokeWidth={1.5} /> },
@@ -38,6 +43,15 @@ export const TasksMobile: React.FC = () => {
             case 'In Progress': return <Clock className="w-5 h-5 text-amber-500" strokeWidth={1.5} />;
             case 'Blocked': return <XCircle className="w-5 h-5 text-red-500" strokeWidth={1.5} />;
             default: return <Circle className="w-5 h-5 text-slate-400" strokeWidth={1.5} />;
+        }
+    };
+
+    const getTypeIcon = (type: string) => {
+        switch (type) {
+            case 'Health': return '💊';
+            case 'Feeding': return '🌾';
+            case 'Reproduction': return '🐑';
+            default: return '📋';
         }
     };
 
@@ -63,6 +77,36 @@ export const TasksMobile: React.FC = () => {
     const closeDropdown = () => {
         setOpenDropdownId(null);
         setDropdownPosition(null);
+    };
+
+    const handleOpenMenu = (taskId: string) => {
+        const button = menuButtonRefs.current[taskId];
+        if (button) {
+            const rect = button.getBoundingClientRect();
+            setMenuPosition({
+                top: rect.bottom + 8,
+                left: rect.right - 160 // Align menu to right edge
+            });
+            setOpenMenuId(taskId);
+        }
+    };
+
+    const closeMenu = () => {
+        setOpenMenuId(null);
+        setMenuPosition(null);
+    };
+
+    const handleEditTask = (task: typeof tasks[0]) => {
+        setEditingTask(task);
+        closeMenu();
+    };
+
+    const handleDeleteTask = async (taskId: string) => {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+            closeMenu();
+            await TaskService.delete(taskId);
+            await refreshData();
+        }
     };
 
     const getPriorityLabel = (priority: string) => {
@@ -135,9 +179,10 @@ export const TasksMobile: React.FC = () => {
                                 {/* Task Content */}
                                 <div className="flex-1 min-w-0">
                                     <p className={clsx(
-                                        "font-semibold text-sm text-slate-900",
+                                        "font-semibold text-sm text-slate-900 flex items-center gap-1.5",
                                         task.status === 'Done' && "line-through text-slate-400"
                                     )}>
+                                        <span>{getTypeIcon(task.type)}</span>
                                         {task.title}
                                     </p>
                                     <p className="text-xs text-slate-400 mt-1">
@@ -166,12 +211,21 @@ export const TasksMobile: React.FC = () => {
 
                                 {/* Priority Badge */}
                                 <span className={clsx(
-                                    "text-[10px] px-1.5 py-0.5 rounded font-medium",
+                                    "text-[10px] px-1.5 py-0.5 rounded font-medium self-start mt-0.5",
                                     task.priority === 'High' ? "bg-red-100 text-red-700" :
                                         task.priority === 'Medium' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
                                 )}>
                                     {getPriorityLabel(task.priority)}
                                 </span>
+
+                                {/* Three-dot Menu Button */}
+                                <button
+                                    ref={el => { menuButtonRefs.current[task.id] = el; }}
+                                    onClick={() => handleOpenMenu(task.id)}
+                                    className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors self-start"
+                                >
+                                    <MoreVertical className="w-4 h-4 text-slate-400" />
+                                </button>
                             </div>
                         </div>
                     );
@@ -224,10 +278,63 @@ export const TasksMobile: React.FC = () => {
                 document.body
             )}
 
+            {/* Task Menu Portal - Edit/Delete options */}
+            {openMenuId && menuPosition && createPortal(
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 z-[9998]"
+                        onClick={closeMenu}
+                    />
+
+                    {/* Menu */}
+                    <div
+                        className="fixed bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-[9999] w-[160px]"
+                        style={{
+                            top: menuPosition.top,
+                            left: menuPosition.left
+                        }}
+                    >
+                        <button
+                            onClick={() => {
+                                const task = tasks.find(t => t.id === openMenuId);
+                                if (task) handleEditTask(task);
+                            }}
+                            className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-slate-50 transition-colors"
+                        >
+                            <Edit2 className="w-4 h-4 text-slate-600" />
+                            <span className="text-sm font-medium text-slate-700">
+                                {t('common.edit')}
+                            </span>
+                        </button>
+                        <button
+                            onClick={() => handleDeleteTask(openMenuId)}
+                            className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-red-50 transition-colors border-t border-slate-100"
+                        >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                            <span className="text-sm font-medium text-red-600">
+                                {t('common.delete')}
+                            </span>
+                        </button>
+                    </div>
+                </>,
+                document.body
+            )}
+
             <AddTaskModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onSuccess={async () => await refreshData()}
+            />
+
+            <EditTaskModal
+                isOpen={!!editingTask}
+                task={editingTask}
+                onClose={() => setEditingTask(null)}
+                onSuccess={async () => {
+                    await refreshData();
+                    setEditingTask(null);
+                }}
             />
         </div>
     );

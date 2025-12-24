@@ -9,20 +9,20 @@ interface EditTaskModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
-    task: Task;
+    task: Task | null;
 }
 
 export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSuccess, task }) => {
     const { animals } = useAnimals();
     const [formData, setFormData] = useState({
-        title: task.title,
-        date: task.date,
-        status: task.status,
-        priority: task.priority,
-        type: task.type,
-        assignedTo: task.assignedTo || '',
-        animalId: task.animalId || '',
-        description: task.description || ''
+        title: task?.title || '',
+        date: task?.date || '',
+        status: (task?.status || 'Todo') as TaskStatus,
+        priority: (task?.priority || 'Medium') as TaskPriority,
+        type: (task?.type || 'General') as TaskType,
+        assignedTo: task?.assignedTo || '',
+        animalId: task?.animalId || '',
+        description: task?.description || ''
     });
 
     const [loading, setLoading] = useState(false);
@@ -30,6 +30,8 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, o
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!task) return; // Guard against null task
+
         setLoading(true);
         setError(null);
 
@@ -65,7 +67,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, o
         }
     };
 
-    if (!isOpen) return null;
+    if (!isOpen || !task) return null;
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

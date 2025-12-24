@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 
 import { Button } from '../../components/ui/Button';
-import { List, Kanban, Calendar, Plus, CheckCircle, Clock, AlertCircle, Ban, Edit2, Trash2, MoreVertical, User, Tag } from 'lucide-react';
+import { List, Kanban, Plus, CheckCircle, Clock, AlertCircle, Ban, Edit2, Trash2, MoreVertical, User, Tag } from 'lucide-react';
 import { TaskFilters, type TaskFilterState } from '../../components/tasks/TaskFilters';
 import { TaskBoard } from '../../components/tasks/TaskBoard';
-import { TaskCalendar } from '../../components/tasks/TaskCalendar';
 import { AddTaskModal } from '../../components/tasks/AddTaskModal';
 import { EditTaskModal } from '../../components/tasks/EditTaskModal';
 import { useTasks } from '../../hooks/useTasks';
@@ -20,7 +19,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 
 
 export const TasksDesktop: React.FC = () => {
-    const [view, setView] = useState<'list' | 'kanban' | 'calendar'>('kanban');
+    const [view, setView] = useState<'list' | 'kanban'>('kanban');
     const { tasks, error } = useTasks();
     const { animals } = useAnimals();
     const { refreshData } = useData();
@@ -93,11 +92,19 @@ export const TasksDesktop: React.FC = () => {
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case 'Done': return <CheckCircle className="w-5 h-5 text-green-500" />;
-            case 'In Progress': return <Clock className="w-5 h-5 text-amber-500" />;
-            case 'Blocked': return <Ban className="w-5 h-5 text-red-500" />;
-            case 'Todo': return <AlertCircle className="w-5 h-5 text-slate-400" />;
-            default: return null;
+            case 'Done': return <CheckCircle className="w-5 h-5 text-green-500" strokeWidth={1.5} />;
+            case 'In Progress': return <Clock className="w-5 h-5 text-amber-500" strokeWidth={1.5} />;
+            case 'Blocked': return <Ban className="w-5 h-5 text-red-500" strokeWidth={1.5} />;
+            default: return <AlertCircle className="w-5 h-5 text-slate-400" strokeWidth={1.5} />;
+        }
+    };
+
+    const getTypeIcon = (type: string) => {
+        switch (type) {
+            case 'Health': return '💊';
+            case 'Feeding': return '🌾';
+            case 'Reproduction': return '🐑';
+            default: return '📋';
         }
     };
 
@@ -132,13 +139,6 @@ export const TasksDesktop: React.FC = () => {
                         title={t('common.board') || "Tableau"}
                     >
                         <Kanban className="w-5 h-5" />
-                    </button>
-                    <button
-                        onClick={() => setView('calendar')}
-                        className={clsx("p-2 rounded-lg transition-all", view === 'calendar' ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700")}
-                        title={t('common.calendar') || "Calendrier"}
-                    >
-                        <Calendar className="w-5 h-5" />
                     </button>
                 </div>
 
@@ -225,7 +225,10 @@ export const TasksDesktop: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <div className="flex-1">
-                                                    <h3 className={clsx("font-medium text-slate-900", task.status === 'Done' && "line-through text-slate-400")}>{task.title}</h3>
+                                                    <h3 className={clsx("font-medium text-slate-900 flex items-center gap-2", task.status === 'Done' && "line-through text-slate-400")}>
+                                                        <span className="text-lg">{getTypeIcon(task.type)}</span>
+                                                        {task.title}
+                                                    </h3>
                                                     <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
                                                         <span>{task.date}</span>
                                                         <span>•</span>
@@ -314,10 +317,6 @@ export const TasksDesktop: React.FC = () => {
                             if (task) handleDelete(taskId, task.title);
                         }}
                     />
-                )}
-
-                {view === 'calendar' && (
-                    <TaskCalendar tasks={filteredTasks} />
                 )}
             </div>
 

@@ -334,8 +334,8 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                             </div>
                         </div>
 
-                        {/* Related Animal (optional) */}
-                        {(formData.type === 'Health' || formData.type === 'Reproduction') && animals.length > 0 && (
+                        {/* Related Animal (optional) - Always show for all task types */}
+                        {animals.length > 0 && (
                             <div>
                                 <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Animal concerné (optionnel)
@@ -346,7 +346,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                     className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                 >
                                     <option value="">Aucun animal spécifique</option>
-                                    {animals.slice(0, 10).map(animal => (
+                                    {animals.map(animal => (
                                         <option key={animal.id} value={animal.id}>
                                             {animal.name} ({animal.tagId})
                                         </option>

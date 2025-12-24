@@ -8,6 +8,7 @@ import { Herd } from './pages/Herd';
 import { AnimalDetails } from './pages/AnimalDetails';
 import { Pedigree } from './pages/Pedigree';
 import { Tasks } from './pages/Tasks';
+import { Calendar } from './pages/Calendar';
 import { Reproduction } from './pages/Reproduction';
 import { Inventory } from './pages/Inventory';
 import { Accounting } from './pages/Accounting';
@@ -87,6 +88,7 @@ function App() {
                     <Route path="/pedigree" element={<Pedigree />} />
                     <Route path="/reproduction" element={<Reproduction />} />
                     <Route path="/tasks" element={<Tasks />} />
+                    <Route path="/calendar" element={<Calendar />} />
                     <Route path="/inventory" element={<Inventory />} />
                     <Route path="/accounting" element={<Accounting />} />
                     <Route path="/marketplace" element={<Marketplace />} />
