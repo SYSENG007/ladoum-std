@@ -22,6 +22,28 @@ export default {
           900: '#064e3b',
           950: '#022c22',
         },
+        // Semantic theme colors using CSS variables
+        'bg-primary': 'rgb(var(--color-bg-primary) / <alpha-value>)',
+        'bg-secondary': 'rgb(var(--color-bg-secondary) / <alpha-value>)',
+        'bg-elevated': 'rgb(var(--color-bg-elevated) / <alpha-value>)',
+        'bg-muted': 'rgb(var(--color-bg-muted) / <alpha-value>)',
+
+        'text-primary': 'rgb(var(--color-text-primary) / <alpha-value>)',
+        'text-secondary': 'rgb(var(--color-text-secondary) / <alpha-value>)',
+        'text-muted': 'rgb(var(--color-text-muted) / <alpha-value>)',
+        'text-disabled': 'rgb(var(--color-text-disabled) / <alpha-value>)',
+
+        'border-default': 'rgb(var(--color-border-default) / <alpha-value>)',
+        'border-subtle': 'rgb(var(--color-border-subtle) / <alpha-value>)',
+        'border-bold': 'rgb(var(--color-border-bold) / <alpha-value>)',
+
+        'surface-card': 'rgb(var(--color-surface-card) / <alpha-value>)',
+        'surface-modal': 'rgb(var(--color-surface-modal) / <alpha-value>)',
+        'surface-input': 'rgb(var(--color-surface-input) / <alpha-value>)',
+        'surface-hover': 'rgb(var(--color-surface-hover) / <alpha-value>)',
+
+        'overlay-hover': 'rgb(var(--color-overlay-hover) / <alpha-value>)',
+        'overlay-focus': 'rgb(var(--color-overlay-focus) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Poppins', 'sans-serif'],

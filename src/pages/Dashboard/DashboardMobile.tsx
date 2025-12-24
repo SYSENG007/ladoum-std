@@ -98,8 +98,8 @@ export const DashboardMobile: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-3 flex-shrink-0 px-1">
                 <div>
-                    <h1 className="text-lg font-bold text-slate-900">{t('page.dashboard')}</h1>
-                    <p className="text-xs text-slate-500">{t('dashboard.welcome')}</p>
+                    <h1 className="text-2xl font-bold text-text-primary">{t('page.dashboard')}</h1>
+                    <p className="text-sm text-text-muted">{t('dashboard.welcome')}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <NotificationCenter />
@@ -112,15 +112,15 @@ export const DashboardMobile: React.FC = () => {
                 </div>
             </div>
 
-            {/* Farm Card */}
-            <Card className="p-3 bg-gradient-to-r from-emerald-500 to-emerald-600 mb-3 flex-shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-white font-bold">
+            {/* Farm Card - Clean horizontal design */}
+            <Card className="p-4 mb-3 flex-shrink-0">
+                <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0 shadow-sm">
                         {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
                     </div>
-                    <div className="text-white">
-                        <h2 className="font-bold text-sm">{currentFarm?.name || t('dashboard.myFarm')}</h2>
-                        <p className="text-[10px] text-white/80">{t('dashboard.subtitle')}</p>
+                    <div className="flex-1">
+                        <h2 className="font-bold text-lg text-text-primary mb-1">{currentFarm?.name || t('dashboard.myFarm')}</h2>
+                        <p className="text-sm text-text-muted leading-snug">{t('dashboard.subtitle')}</p>
                     </div>
                 </div>
             </Card>
@@ -133,10 +133,10 @@ export const DashboardMobile: React.FC = () => {
                         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                             <Users className="w-4 h-4 text-blue-600" />
                         </div>
-                        <span className="text-xs font-semibold text-emerald-500">+12%</span>
+                        <span className="text-sm font-semibold text-emerald-500">+12%</span>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mt-2">{stats.total}</h3>
-                    <p className="text-xs text-slate-500">{t('dashboard.totalAnimals')}</p>
+                    <h3 className="text-3xl font-bold text-text-primary mt-2">{stats.total}</h3>
+                    <p className="text-sm text-text-muted">{t('dashboard.totalAnimals')}</p>
                 </Card>
 
                 {/* Naissances */}
@@ -147,8 +147,8 @@ export const DashboardMobile: React.FC = () => {
                         </div>
                         <span className="text-xs font-semibold text-emerald-500">+12%</span>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mt-2">{stats.births}</h3>
-                    <p className="text-xs text-slate-500">{t('dashboard.births90d')}</p>
+                    <h3 className="text-3xl font-bold text-text-primary mt-2">{stats.births}</h3>
+                    <p className="text-sm text-text-muted">{t('dashboard.births90d')}</p>
                 </Card>
 
                 {/* Revenus - Full width */}
@@ -159,11 +159,11 @@ export const DashboardMobile: React.FC = () => {
                                 <DollarSign className="w-4 h-4 text-amber-600" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900">{stats.revenue}</h3>
-                                <p className="text-xs text-slate-500">{t('dashboard.revenue')}</p>
+                                <h3 className="text-2xl font-bold text-text-primary">{stats.revenue}</h3>
+                                <p className="text-sm text-text-muted">{t('dashboard.revenue')}</p>
                             </div>
                         </div>
-                        <span className="text-xs font-semibold text-slate-400">0%</span>
+                        <span className="text-sm font-semibold text-text-disabled">0%</span>
                     </div>
                 </Card>
             </div>
@@ -171,9 +171,9 @@ export const DashboardMobile: React.FC = () => {
             {/* Rappels & Alertes - Clean Design */}
             <div className="mb-3 flex-shrink-0">
                 <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-sm font-bold text-slate-900">{t('dashboard.reminders')}</h2>
+                    <h2 className="text-base font-bold text-text-primary">{t('dashboard.reminders')}</h2>
                     <span className={clsx(
-                        "text-xs font-semibold px-2.5 py-1 rounded-full",
+                        "text-sm font-semibold px-3 py-1.5 rounded-full",
                         activeAlertsCount > 0
                             ? "bg-red-100 text-red-500"
                             : "bg-pink-100 text-pink-500"
@@ -188,10 +188,10 @@ export const DashboardMobile: React.FC = () => {
                         className="w-full p-4 border-b border-slate-100 text-left hover:bg-pink-50 transition-colors"
                     >
                         <div className="flex items-center gap-2 mb-1">
-                            <Heart className="w-4 h-4 text-pink-500" />
-                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">{t('dashboard.heats')}</p>
+                            <Heart className="w-5 h-5 text-pink-500" />
+                            <p className="text-sm font-bold text-text-primary uppercase tracking-wide">{t('dashboard.heats')}</p>
                         </div>
-                        <p className="text-xs text-slate-400 italic pl-6">
+                        <p className="text-sm text-text-muted pl-7">
                             {heatAlertsCount > 0
                                 ? `${heatAlertsCount} ${t('dashboard.heatsToWatch')}`
                                 : t('dashboard.noHeats')}
@@ -204,10 +204,10 @@ export const DashboardMobile: React.FC = () => {
                         className="w-full p-4 border-b border-slate-100 text-left hover:bg-blue-50 transition-colors"
                     >
                         <div className="flex items-center gap-2 mb-1">
-                            <Stethoscope className="w-4 h-4 text-blue-500" />
-                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">{t('dashboard.health')}</p>
+                            <Stethoscope className="w-5 h-5 text-blue-500" />
+                            <p className="text-sm font-bold text-text-primary uppercase tracking-wide">{t('dashboard.health')}</p>
                         </div>
-                        <p className="text-xs text-slate-400 italic pl-6">
+                        <p className="text-sm text-text-muted pl-7">
                             {healthRemindersCount > 0
                                 ? `${healthRemindersCount} ${t('dashboard.healthReminders')}`
                                 : t('dashboard.noHealth')}
@@ -220,10 +220,10 @@ export const DashboardMobile: React.FC = () => {
                         className="w-full p-4 text-left hover:bg-blue-50 transition-colors"
                     >
                         <div className="flex items-center gap-2 mb-1">
-                            <Package className="w-4 h-4 text-blue-500" />
-                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">{t('dashboard.stockAlerts')}</p>
+                            <Package className="w-5 h-5 text-blue-500" />
+                            <p className="text-sm font-bold text-text-primary uppercase tracking-wide">{t('dashboard.stockAlerts')}</p>
                         </div>
-                        <p className="text-xs text-slate-400 italic pl-6">
+                        <p className="text-sm text-text-muted pl-7">
                             {lowStockItems.length > 0
                                 ? `${lowStockItems.length} ${t('dashboard.lowStock')}`
                                 : t('dashboard.noStock')}
@@ -235,8 +235,8 @@ export const DashboardMobile: React.FC = () => {
             {/* Sujets en Vedette - Flexible space */}
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 <div className="flex items-center justify-between mb-2 flex-shrink-0">
-                    <h2 className="text-sm font-bold text-slate-900">{t('dashboard.featuredAnimals')}</h2>
-                    <button onClick={() => navigate('/herd')} className="text-xs text-emerald-600 font-medium flex items-center gap-0.5">
+                    <h2 className="text-base font-bold text-text-primary">{t('dashboard.featuredAnimals')}</h2>
+                    <button onClick={() => navigate('/herd')} className="text-sm text-emerald-600 font-medium flex items-center gap-1">
                         {t('dashboard.viewAll')} <ChevronRight className="w-3 h-3" />
                     </button>
                 </div>
@@ -248,7 +248,7 @@ export const DashboardMobile: React.FC = () => {
                             key={filter}
                             onClick={() => setCarouselFilter(filter)}
                             className={clsx(
-                                "px-2.5 py-1 text-xs rounded-full",
+                                "px-3 py-1.5 text-sm rounded-full font-medium",
                                 carouselFilter === filter ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"
                             )}
                         >
@@ -269,19 +269,19 @@ export const DashboardMobile: React.FC = () => {
                                 <div className="h-24 relative overflow-hidden">
                                     <img src={animal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'} alt={animal.name} className="w-full h-full object-cover" />
                                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                                        <p className="text-white font-semibold text-xs">{animal.name}</p>
-                                        <p className="text-white/70 text-[10px]">{animal.tagId || `LAD-${animal.id?.slice(-3)}`}</p>
+                                        <p className="text-white font-semibold text-sm">{animal.name}</p>
+                                        <p className="text-white/80 text-xs">{animal.tagId || `LAD-${animal.id?.slice(-3)}`}</p>
                                     </div>
                                 </div>
                                 <div className="p-2 grid grid-cols-3 gap-1 text-center">
-                                    <div><p className="text-[8px] text-slate-400">HG</p><p className="text-[10px] font-medium">{animal.height || '-'}</p></div>
-                                    <div><p className="text-[8px] text-slate-400">LCS</p><p className="text-[10px] font-medium">{animal.length || '-'}</p></div>
-                                    <div><p className="text-[8px] text-slate-400">TP</p><p className="text-[10px] font-medium">{animal.chestGirth || '-'}</p></div>
+                                    <div><p className="text-xs text-text-muted">HG</p><p className="text-sm font-semibold text-text-primary">{animal.height || '-'}</p></div>
+                                    <div><p className="text-xs text-text-muted">LCS</p><p className="text-sm font-semibold text-text-primary">{animal.length || '-'}</p></div>
+                                    <div><p className="text-xs text-text-muted">TP</p><p className="text-sm font-semibold text-text-primary">{animal.chestGirth || '-'}</p></div>
                                 </div>
                             </div>
                         )) : (
-                            <div className="w-full flex items-center justify-center text-slate-400">
-                                <p className="text-xs">{t('dashboard.noAnimals')}</p>
+                            <div className="w-full flex items-center justify-center text-text-muted">
+                                <p className="text-sm">{t('dashboard.noAnimals')}</p>
                             </div>
                         )}
                     </div>

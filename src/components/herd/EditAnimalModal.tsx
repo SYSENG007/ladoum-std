@@ -81,14 +81,14 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                 {/* Header - Fixed */}
                 <div className="bg-white border-b border-slate-100 p-6 flex items-center justify-between rounded-t-3xl flex-shrink-0">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900">Modifier l'animal</h2>
-                        <p className="text-sm text-slate-500">Mettez à jour les informations de {animal.name}</p>
+                        <h2 className="text-2xl font-bold text-text-primary">Modifier l'animal</h2>
+                        <p className="text-sm text-text-muted">Mettez à jour les informations de {animal.name}</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+                        className="p-2 hover:bg-overlay-hover rounded-xl transition-colors"
                     >
-                        <X className="w-6 h-6 text-slate-400" />
+                        <X className="w-6 h-6 text-text-muted" />
                     </button>
                 </div>
 
@@ -102,37 +102,37 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
 
                     {/* Basic Information */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-slate-900">Informations de base</h3>
+                        <h3 className="font-semibold text-text-primary">Informations de base</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Nom <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                     <input
                                         type="text"
                                         required
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Numéro d'identification <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
-                                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                     <input
                                         type="text"
                                         required
                                         value={formData.tagId}
                                         onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     />
                                 </div>
                             </div>
@@ -140,14 +140,14 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Sexe <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     required
                                     value={formData.gender}
                                     onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 >
                                     <option value="Male">Mâle</option>
                                     <option value="Female">Femelle</option>
@@ -155,31 +155,31 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Date de naissance <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
-                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                     <input
                                         type="date"
                                         required
                                         value={formData.birthDate}
                                         onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Statut <span className="text-red-500">*</span>
                             </label>
                             <select
                                 required
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Sold' | 'Deceased' })}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                             >
                                 <option value="Active">Actif</option>
                                 <option value="Sold">Vendu</option>
@@ -190,11 +190,11 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
 
                     {/* Measurements */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-slate-900">Mensurations (optionnel)</h3>
+                        <h3 className="font-semibold text-text-primary">Mensurations (optionnel)</h3>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Poids (kg)
                                 </label>
                                 <input
@@ -202,12 +202,12 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                     step="0.1"
                                     value={formData.weight}
                                     onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Hauteur au garrot (cm)
                                 </label>
                                 <input
@@ -215,12 +215,12 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                     step="0.1"
                                     value={formData.height_hg}
                                     onChange={(e) => setFormData({ ...formData, height_hg: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Longueur corps (cm)
                                 </label>
                                 <input
@@ -228,12 +228,12 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                     step="0.1"
                                     value={formData.length_lcs}
                                     onChange={(e) => setFormData({ ...formData, length_lcs: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Tour de poitrine (cm)
                                 </label>
                                 <input
@@ -241,7 +241,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                     step="0.1"
                                     value={formData.chest_tp}
                                     onChange={(e) => setFormData({ ...formData, chest_tp: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 />
                             </div>
                         </div>

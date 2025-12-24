@@ -185,7 +185,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                     {/* Quick Templates */}
                     {showQuickTemplates && (
                         <div className="bg-gradient-to-br from-emerald-50 to-blue-50 p-4 rounded-2xl border border-emerald-100">
-                            <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
                                 <Sparkles className="w-4 h-4 text-emerald-600" />
                                 Modèles rapides
                             </h3>
@@ -199,7 +199,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                     >
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="text-lg">{getTypeIcon(template.type)}</span>
-                                            <span className="text-sm font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                                            <span className="text-sm font-bold text-text-primary group-hover:text-emerald-600 transition-colors">
                                                 {template.title}
                                             </span>
                                         </div>
@@ -218,7 +218,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                     {/* Basic Information */}
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Titre de la tâche <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -226,51 +226,51 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                 required
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                 placeholder="Ex: Vaccination Clavelée"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Description (optionnel)
                             </label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 rows={3}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none"
                                 placeholder="Ajoutez des détails sur cette tâche..."
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Date d'échéance <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                 <input
                                     type="date"
                                     required
                                     value={formData.date}
                                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                                     min={new Date().toISOString().split('T')[0]}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                 />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Type <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     required
                                     value={formData.type}
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value as TaskType })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                 >
                                     <option value="General">📋 Général</option>
                                     <option value="Health">💊 Santé</option>
@@ -280,14 +280,14 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Priorité <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     required
                                     value={formData.priority}
                                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as TaskPriority })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                 >
                                     <option value="Low">🔵 Basse</option>
                                     <option value="Medium">🟡 Moyenne</option>
@@ -298,13 +298,13 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Statut
                                 </label>
                                 <select
                                     value={formData.status}
                                     onChange={(e) => setFormData({ ...formData, status: e.target.value as TaskStatus })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                 >
                                     <option value="Todo">À faire</option>
                                     <option value="In Progress">En cours</option>
@@ -313,15 +313,15 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Assigné à
                                 </label>
                                 <div className="relative">
-                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                     <select
                                         value={formData.assignedTo}
                                         onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none"
                                     >
                                         <option value="">Non assigné</option>
                                         {(currentFarm?.members || []).map(member => (
@@ -337,13 +337,13 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                         {/* Related Animal (optional) */}
                         {(formData.type === 'Health' || formData.type === 'Reproduction') && animals.length > 0 && (
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Animal concerné (optionnel)
                                 </label>
                                 <select
                                     value={formData.relatedAnimalId}
                                     onChange={(e) => setFormData({ ...formData, relatedAnimalId: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                 >
                                     <option value="">Aucun animal spécifique</option>
                                     {animals.slice(0, 10).map(animal => (

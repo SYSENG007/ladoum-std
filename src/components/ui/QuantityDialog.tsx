@@ -80,12 +80,12 @@ export const QuantityDialog: React.FC<QuantityDialogProps> = ({
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                    <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+                    <h3 className="text-xl font-bold text-text-primary">{title}</h3>
                     <button
                         onClick={onCancel}
-                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-overlay-hover rounded-lg transition-colors"
                     >
-                        <X className="w-5 h-5 text-slate-400" />
+                        <X className="w-5 h-5 text-text-muted" />
                     </button>
                 </div>
 
@@ -104,10 +104,10 @@ export const QuantityDialog: React.FC<QuantityDialogProps> = ({
                                 const val = parseFloat(e.target.value);
                                 setQuantity(isNaN(val) ? 0 : val);
                             }}
-                            className="flex-1 text-center text-2xl font-bold py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
+                            className="flex-1 text-center text-2xl font-bold py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
                         />
                         {unit && (
-                            <span className="text-lg font-medium text-slate-500 min-w-[3rem]">
+                            <span className="text-lg font-medium text-text-muted min-w-[3rem]">
                                 {unit}
                             </span>
                         )}

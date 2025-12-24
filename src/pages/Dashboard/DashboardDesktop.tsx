@@ -108,8 +108,13 @@ export const DashboardDesktop: React.FC = () => {
             <div className="flex gap-6 flex-1 min-h-0 overflow-hidden">
                 {/* Left Side */}
                 <div className="flex-1 flex flex-col gap-5 min-w-0 overflow-hidden">
-                    {/* KPI Row - Total Sujets (1 col) + ExpertCard (2 cols) */}
+                    {/* KPI Row - ExpertCard (2 cols) + Total Sujets (1 col) */}
                     <div className="grid grid-cols-3 gap-4 flex-shrink-0">
+                        {/* ExpertCard - Certification Progress (spans 2 columns) */}
+                        <div className="col-span-2">
+                            <ExpertCard animals={animals} />
+                        </div>
+
                         {/* Total Sujets Card */}
                         <Card className="p-5 cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between" onClick={() => navigate('/herd')}>
                             <div className="flex items-start justify-between">
@@ -126,11 +131,6 @@ export const DashboardDesktop: React.FC = () => {
                                 </div>
                             </div>
                         </Card>
-
-                        {/* ExpertCard - Certification Progress (spans 2 columns) */}
-                        <div className="col-span-2">
-                            <ExpertCard animals={animals} />
-                        </div>
                     </div>
 
                     {/* Sujets en Vedette */}

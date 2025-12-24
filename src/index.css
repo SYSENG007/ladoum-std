@@ -5,9 +5,104 @@
 @tailwind utilities;
 
 @layer base {
+
+  /* CSS Variables for Theme-Aware Colors */
+  :root {
+    /* Backgrounds */
+    --color-bg-primary: 255 255 255;
+    /* white */
+    --color-bg-secondary: 248 250 252;
+    /* slate-50 */
+    --color-bg-elevated: 255 255 255;
+    /* white - for cards */
+    --color-bg-muted: 241 245 249;
+    /* slate-100 */
+
+    /* Text */
+    --color-text-primary: 15 23 42;
+    /* slate-900 */
+    --color-text-secondary: 71 85 105;
+    /* slate-600 */
+    --color-text-muted: 100 116 139;
+    /* slate-500 */
+    --color-text-disabled: 148 163 184;
+    /* slate-400 */
+
+    /* Borders */
+    --color-border-default: 226 232 240;
+    /* slate-200 */
+    --color-border-subtle: 241 245 249;
+    /* slate-100 */
+    --color-border-bold: 203 213 225;
+    /* slate-300 */
+
+    /* Surfaces */
+    --color-surface-card: 255 255 255;
+    /* white */
+    --color-surface-modal: 255 255 255;
+    /* white */
+    --color-surface-input: 255 255 255;
+    /* white */
+    --color-surface-hover: 248 250 252;
+    /* slate-50 */
+
+    /* Overlays */
+    --color-overlay-hover: 241 245 249;
+    /* slate-100 */
+    --color-overlay-focus: 226 232 240;
+    /* slate-200 */
+  }
+
+  .dark {
+    /* Backgrounds */
+    --color-bg-primary: 15 23 42;
+    /* slate-900 */
+    --color-bg-secondary: 30 41 59;
+    /* slate-800 */
+    --color-bg-elevated: 30 41 59;
+    /* slate-800 - for cards */
+    --color-bg-muted: 51 65 85;
+    /* slate-700 */
+
+    /* Text */
+    --color-text-primary: 241 245 249;
+    /* slate-100 */
+    --color-text-secondary: 203 213 225;
+    /* slate-300 */
+    --color-text-muted: 148 163 184;
+    /* slate-400 */
+    --color-text-disabled: 100 116 139;
+    /* slate-500 */
+
+    /* Borders */
+    --color-border-default: 51 65 85;
+    /* slate-700 */
+    --color-border-subtle: 30 41 59;
+    /* slate-800 */
+    --color-border-bold: 71 85 105;
+    /* slate-600 */
+
+    /* Surfaces */
+    --color-surface-card: 30 41 59;
+    /* slate-800 */
+    --color-surface-modal: 30 41 59;
+    /* slate-800 */
+    --color-surface-input: 30 41 59;
+    /* slate-800 */
+    --color-surface-hover: 51 65 85;
+    /* slate-700 */
+
+    /* Overlays */
+    --color-overlay-hover: 51 65 85;
+    /* slate-700 */
+    --color-overlay-focus: 71 85 105;
+    /* slate-600 */
+  }
+
   body {
-    @apply font-sans text-slate-800 bg-slate-50;
-    @apply dark:bg-slate-900 dark:text-slate-100;
+    @apply font-sans;
+    background-color: rgb(var(--color-bg-secondary));
+    color: rgb(var(--color-text-primary));
   }
 }
 

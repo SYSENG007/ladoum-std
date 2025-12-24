@@ -208,15 +208,15 @@ ${getInviteLink()}
                             <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <Link className="w-7 h-7 text-emerald-600" />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900">Invitation créée !</h3>
-                            <p className="text-sm text-slate-500 mt-1">
+                            <h3 className="text-lg font-bold text-text-primary">Invitation créée !</h3>
+                            <p className="text-sm text-text-muted mt-1">
                                 Pour <strong>{invitation.displayName}</strong> ({invitation.role === 'manager' ? 'Manager' : 'Employé'})
                             </p>
                         </div>
 
                         {/* Invite Link */}
                         <div className="bg-slate-50 rounded-xl p-3">
-                            <p className="text-xs text-slate-500 mb-2">Lien d'invitation</p>
+                            <p className="text-xs text-text-muted mb-2">Lien d'invitation</p>
                             <div className="flex items-center gap-2">
                                 <input
                                     type="text"
@@ -241,7 +241,7 @@ ${getInviteLink()}
 
                         {/* Share Buttons */}
                         <div className="space-y-3">
-                            <p className="text-sm font-medium text-slate-700 text-center">Partager via</p>
+                            <p className="text-sm font-medium text-text-secondary text-center">Partager via</p>
 
                             <div className="grid grid-cols-2 gap-3">
                                 {/* WhatsApp - Most popular, first position */}
@@ -291,7 +291,7 @@ ${getInviteLink()}
                         </div>
 
                         {/* Expiry Notice */}
-                        <p className="text-xs text-center text-slate-400">
+                        <p className="text-xs text-center text-text-muted">
                             Ce lien expire dans 7 jours
                         </p>
 
@@ -333,17 +333,17 @@ ${getInviteLink()}
 
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Email <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                 <input
                                     type="email"
                                     required
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     placeholder="membre@email.com"
                                 />
                             </div>
@@ -351,17 +351,17 @@ ${getInviteLink()}
 
                         {/* Name */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Nom complet <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                 <input
                                     type="text"
                                     required
                                     value={formData.displayName}
                                     onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     placeholder="Prénom Nom"
                                 />
                             </div>
@@ -369,7 +369,7 @@ ${getInviteLink()}
 
                         {/* Role Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-3">
+                            <label className="block text-sm font-medium text-text-secondary mb-3">
                                 Rôle <span className="text-red-500">*</span>
                             </label>
                             <div className="grid grid-cols-2 gap-3">
@@ -385,7 +385,7 @@ ${getInviteLink()}
                                     <p className={`font-semibold ${formData.role === 'manager' ? 'text-emerald-700' : 'text-slate-700'}`}>
                                         Manager
                                     </p>
-                                    <p className="text-xs text-slate-500 mt-1">Gère le staff et les tâches</p>
+                                    <p className="text-xs text-text-muted mt-1">Gère le staff et les tâches</p>
                                 </button>
 
                                 <button
@@ -400,7 +400,7 @@ ${getInviteLink()}
                                     <p className={`font-semibold ${formData.role === 'worker' ? 'text-emerald-700' : 'text-slate-700'}`}>
                                         Employé
                                     </p>
-                                    <p className="text-xs text-slate-500 mt-1">Exécute les tâches</p>
+                                    <p className="text-xs text-text-muted mt-1">Exécute les tâches</p>
                                 </button>
                             </div>
                         </div>

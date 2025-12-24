@@ -56,14 +56,14 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                 {/* Header */}
                 <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex items-center justify-between rounded-t-3xl">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900">Modifier l'article</h2>
-                        <p className="text-sm text-slate-500">Mettez à jour les informations de {item.name}</p>
+                        <h2 className="text-2xl font-bold text-text-primary">Modifier l'article</h2>
+                        <p className="text-sm text-text-muted">Mettez à jour les informations de {item.name}</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+                        className="p-2 hover:bg-overlay-hover rounded-xl transition-colors"
                     >
-                        <X className="w-6 h-6 text-slate-400" />
+                        <X className="w-6 h-6 text-text-muted" />
                     </button>
                 </div>
 
@@ -77,7 +77,7 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Nom de l'article <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -85,19 +85,19 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Catégorie <span className="text-red-500">*</span>
                             </label>
                             <select
                                 required
                                 value={formData.category}
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value as InventoryCategory })}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                             >
                                 <option value="Feed">Alimentation</option>
                                 <option value="Medicine">Santé</option>
@@ -107,7 +107,7 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Quantité <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -116,12 +116,12 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                                     required
                                     value={formData.quantity}
                                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Unité <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -129,13 +129,13 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                                     required
                                     value={formData.unit}
                                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Seuil minimum <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -144,9 +144,9 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                                 required
                                 value={formData.minThreshold}
                                 onChange={(e) => setFormData({ ...formData, minThreshold: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                             />
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p className="text-xs text-text-muted mt-1">
                                 Une alerte sera affichée si la quantité descend en dessous de ce seuil
                             </p>
                         </div>

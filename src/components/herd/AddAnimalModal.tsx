@@ -172,64 +172,64 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-surface-modal rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header - Fixed */}
-                <div className="bg-white border-b border-slate-100 p-6 flex items-center justify-between rounded-t-3xl flex-shrink-0">
+                <div className="bg-surface-modal border-b border-border-subtle p-6 flex items-center justify-between rounded-t-3xl flex-shrink-0">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900">Ajouter un animal</h2>
-                        <p className="text-sm text-slate-500">Enregistrez un nouvel animal dans le cheptel</p>
+                        <h2 className="text-2xl font-bold text-text-primary">Ajouter un animal</h2>
+                        <p className="text-sm text-text-muted">Enregistrez un nouvel animal dans le cheptel</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+                        className="p-2 hover:bg-overlay-hover rounded-xl transition-colors"
                     >
-                        <X className="w-6 h-6 text-slate-400" />
+                        <X className="w-6 h-6 text-text-muted" />
                     </button>
                 </div>
 
                 {/* Form - Scrollable */}
                 <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-6 overflow-y-auto flex-1">
                     {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl">
                             {error}
                         </div>
                     )}
 
                     {/* Basic Information */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-slate-900">Informations de base</h3>
+                        <h3 className="font-semibold text-text-primary">Informations de base</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Nom <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                     <input
                                         type="text"
                                         required
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                         placeholder="Ex: Bella"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Numéro d'identification <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
-                                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                     <input
                                         type="text"
                                         required
                                         value={formData.tagId}
                                         onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                         placeholder="Ex: LAD-001"
                                     />
                                 </div>
@@ -238,14 +238,14 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Sexe <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     required
                                     value={formData.gender}
                                     onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 >
                                     <option value="">Sélectionner...</option>
                                     <option value="Male">Mâle</option>
@@ -254,31 +254,31 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Date de naissance <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
-                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
                                     <input
                                         type="date"
                                         required
                                         value={formData.birthDate}
                                         onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Race <span className="text-red-500">*</span>
                             </label>
                             <select
                                 required
                                 value={formData.breed}
                                 onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                             >
                                 <option value="Ladoum">Ladoum</option>
                                 <option value="Bali-Bali">Bali-Bali</option>
@@ -291,11 +291,11 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
 
                     {/* Measurements */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-slate-900">Mensurations (optionnel)</h3>
+                        <h3 className="font-semibold text-text-primary">Mensurations (optionnel)</h3>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Poids (kg)
                                 </label>
                                 <input
@@ -303,13 +303,13 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                     step="0.1"
                                     value={formData.weight}
                                     onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     placeholder="0.0"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Hauteur (cm)
                                 </label>
                                 <input
@@ -317,13 +317,13 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                     step="0.1"
                                     value={formData.height}
                                     onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     placeholder="Hauteur au garrot"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Longueur (cm)
                                 </label>
                                 <input
@@ -331,13 +331,13 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                     step="0.1"
                                     value={formData.length}
                                     onChange={(e) => setFormData({ ...formData, length: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     placeholder="Longueur corps"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Tour de poitrine (cm)
                                 </label>
                                 <input
@@ -345,7 +345,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                     step="0.1"
                                     value={formData.chestGirth}
                                     onChange={(e) => setFormData({ ...formData, chestGirth: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     placeholder="Tour de poitrine"
                                 />
                             </div>
@@ -383,7 +383,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm font-medium text-text-secondary mb-2">
                                             Prix d'achat (FCFA) <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -396,7 +396,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm font-medium text-text-secondary mb-2">
                                             Date d'achat
                                         </label>
                                         <input
