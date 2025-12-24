@@ -6,6 +6,7 @@ interface ImageUploadProps {
     onChange: (url: string) => void;
     label?: string;
     required?: boolean;
+    farmId?: string; // Added for farm-specific folder organization
 }
 
 // Cloudinary configuration
@@ -16,7 +17,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     value,
     onChange,
     label = "Photo",
-    required = false
+    required = false,
+    farmId // Extract farmId prop
 }) => {
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
@@ -88,6 +90,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+        // Add farm-specific folder if farmId is provided
+        if (farmId) {
+            formData.append('folder', `ladoum-std/farms/${farmId}`);
+        }
 
         const response = await fetch(
             `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,

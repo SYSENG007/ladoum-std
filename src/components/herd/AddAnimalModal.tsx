@@ -76,8 +76,8 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                 photoUrl: formData.photoUrl || '',
                 measurements: hasMeasurements ? [measurementData] : [],
                 farmId: currentFarm?.id || '',
-                sireId: formData.sireId || undefined,
-                damId: formData.damId || undefined
+                ...(formData.sireId && { sireId: formData.sireId }),
+                ...(formData.damId && { damId: formData.damId })
             };
 
             console.log('Animal data to save:', animalData);
@@ -358,6 +358,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                         onChange={(url) => setFormData({ ...formData, photoUrl: url })}
                         label="Photo de l'animal"
                         required={false}
+                        farmId={currentFarm?.id}
                     />
 
                     {/* Purchase Information */}

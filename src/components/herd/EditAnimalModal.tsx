@@ -253,6 +253,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                         onChange={(url) => setFormData({ ...formData, photoUrl: url })}
                         label="Photo de l'animal"
                         required={false}
+                        farmId={animal.farmId}
                     />
 
                     {/* Actions */}
