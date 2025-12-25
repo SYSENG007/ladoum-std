@@ -11,6 +11,7 @@ import { NutritionTab } from '../components/herd/NutritionTab';
 import { TimelineTab } from '../components/herd/TimelineTab';
 import { HeatCyclePredictor } from '../components/reproduction/HeatCyclePredictor';
 import { EditAnimalModal } from '../components/herd/EditAnimalModal';
+import { AddMeasurementModal } from '../components/herd/AddMeasurementModal';
 import { AnimalService } from '../services/AnimalService';
 import { useAnimal } from '../hooks/useAnimal';
 import { useToast } from '../context/ToastContext';
@@ -26,10 +27,11 @@ const statusOptions: { value: AnimalStatus; label: string; color: string }[] = [
 
 export const AnimalDetails: React.FC = () => {
     const { id } = useParams();
-    const { animal, error, refresh } = useAnimal(id);
+    const { animal, error, loading, refresh } = useAnimal(id);
     const toast = useToast();
     const [activeTab, setActiveTab] = useState<'overview' | 'health' | 'nutrition' | 'pedigree' | 'history'>('overview');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
@@ -53,7 +55,27 @@ export const AnimalDetails: React.FC = () => {
         }
     };
 
-    if (error || !animal) return <div className="p-12 text-center text-red-500">Animal non trouvé</div>;
+    // Show loading state while fetching
+    if (loading) {
+        return (
+            <div className="p-12 text-center">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                <p className="mt-4 text-slate-500">Chargement...</p>
+            </div>
+        );
+    }
+
+    // Show error only after loading is complete
+    if (error || !animal) {
+        return (
+            <div className="p-12 text-center">
+                <p className="text-red-500 text-lg">{error || 'Animal non trouvé'}</p>
+                <Link to="/herd" className="mt-4 inline-block text-primary-600 hover:text-primary-700">
+                    ← Retour au troupeau
+                </Link>
+            </div>
+        );
+    }
 
     const lastMeasurement = animal.measurements && animal.measurements.length > 0
         ? animal.measurements[animal.measurements.length - 1]
@@ -178,6 +200,17 @@ export const AnimalDetails: React.FC = () => {
                                 </span>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Add Measurement Button */}
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                        <button
+                            onClick={() => setIsMeasurementModalOpen(true)}
+                            className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 transition-colors"
+                        >
+                            <Ruler className="w-4 h-4" />
+                            Ajouter une mesure
+                        </button>
                     </div>
                 </div>
             </div>
@@ -312,6 +345,17 @@ export const AnimalDetails: React.FC = () => {
                 onClose={() => setIsEditModalOpen(false)}
                 onSuccess={() => {
                     setIsEditModalOpen(false);
+                    refresh();
+                }}
+                animal={animal}
+            />
+
+            {/* Add Measurement Modal */}
+            <AddMeasurementModal
+                isOpen={isMeasurementModalOpen}
+                onClose={() => setIsMeasurementModalOpen(false)}
+                onSuccess={() => {
+                    setIsMeasurementModalOpen(false);
                     refresh();
                 }}
                 animal={animal}

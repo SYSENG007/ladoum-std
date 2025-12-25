@@ -122,7 +122,7 @@ export const TasksMobile: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-3 flex-shrink-0 px-1">
                 <div>
-                    <h1 className="text-lg font-bold text-slate-900">{t('page.tasks')}</h1>
+                    <h1 className="text-lg font-bold text-text-primary">{t('page.tasks')}</h1>
                     <p className="text-xs text-slate-500">{tasks.length} {t('page.tasks').toLowerCase()}</p>
                 </div>
                 <button
@@ -179,7 +179,7 @@ export const TasksMobile: React.FC = () => {
                                 {/* Task Content */}
                                 <div className="flex-1 min-w-0">
                                     <p className={clsx(
-                                        "font-semibold text-sm text-slate-900 flex items-center gap-1.5",
+                                        "font-semibold text-sm text-text-primary flex items-center gap-1.5",
                                         task.status === 'Done' && "line-through text-slate-400"
                                     )}>
                                         <span>{getTypeIcon(task.type)}</span>

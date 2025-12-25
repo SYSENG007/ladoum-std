@@ -25,11 +25,21 @@ export const HeatCyclePredictor: React.FC<HeatCyclePredictorProps> = ({ animal, 
     const statusColor = getStatusColor(status);
 
     if (!prediction) {
+        // Check if animal is pregnant to show appropriate message
+        const isPregnant = status === 'Pregnant';
+
         return (
             <Card>
                 <div className="text-center py-6 text-slate-500">
                     <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                    <p className="text-sm">Pas assez de données pour prédire les chaleurs.</p>
+                    {isPregnant ? (
+                        <>
+                            <p className="text-sm font-medium text-slate-700">Animal gestante</p>
+                            <p className="text-xs mt-1">Les prédictions de chaleurs reprendront après la mise bas.</p>
+                        </>
+                    ) : (
+                        <p className="text-sm">Pas assez de données pour prédire les chaleurs.</p>
+                    )}
                 </div>
             </Card>
         );

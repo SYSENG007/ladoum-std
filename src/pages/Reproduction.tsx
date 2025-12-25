@@ -44,7 +44,7 @@ export const Reproduction: React.FC = () => {
                         const matingDate = new Date(record.date);
                         const today = new Date();
                         const daysSinceMating = Math.floor((today.getTime() - matingDate.getTime()) / (1000 * 60 * 60 * 24));
-                        const gestationPeriod = 150; // ~5 months for sheep
+                        const gestationPeriod = 145; // Updated: 145 ± 5 days for Ladoum sheep
                         const daysRemaining = gestationPeriod - daysSinceMating;
 
                         // Check if there's a birth after this mating
@@ -101,7 +101,7 @@ export const Reproduction: React.FC = () => {
         { id: 'births' as const, label: 'Naissances', icon: Baby },
         { id: 'planning' as const, label: 'Simulation', icon: TrendingUp },
         { id: 'matrix' as const, label: 'Matrice', icon: Grid3X3 },
-        { id: 'calendar' as const, label: 'Chaleurs', icon: Calendar },
+        { id: 'calendar' as const, label: 'Calendrier', icon: Calendar }, // Rebranded from 'Chaleurs'
     ];
 
     return (

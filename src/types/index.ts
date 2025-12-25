@@ -72,7 +72,12 @@ export interface HeatPrediction {
 
 // Current reproductive status of a female
 export type ReproductiveStatus =
-    | 'Available' | 'InHeat' | 'Pregnant' | 'Lactating' | 'Resting';
+    | 'Available'
+    | 'InHeat'
+    | 'AwaitingConfirmation'  // 0-20 days post-mating: monitoring for heat return (failed) or ultrasound
+    | 'Pregnant'
+    | 'Lactating'
+    | 'Resting';
 
 // Gestation prediction result
 export interface GestationPrediction {

@@ -71,6 +71,153 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
             const animal = animals.find(a => a.id === selectedAnimalId);
             if (!animal) throw new Error('Animal not found');
 
+            // === VALIDATION LOGIC ===
+            const eventDateObj = new Date(eventDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            eventDateObj.setHours(0, 0, 0, 0);
+
+            // 1. No future events
+            if (eventDateObj > today) {
+                alert('❌ Impossible d\'enregistrer un événement dans le futur.');
+                setSaving(false);
+                return;
+            }
+
+            // 2. Event must be after animal's birth
+            const birthDate = new Date(animal.birthDate);
+            birthDate.setHours(0, 0, 0, 0);
+            if (eventDateObj < birthDate) {
+                alert(`❌ L'événement ne peut pas se produire avant la naissance de ${animal.name} (${new Date(animal.birthDate).toLocaleDateString('fr-FR')}).`);
+                setSaving(false);
+                return;
+            }
+
+            // 3. Cannot register events on deceased animals
+            if (animal.status === 'Deceased') {
+                alert(`❌ Impossible d'enregistrer un événement pour ${animal.name} qui est décédé(e).`);
+                setSaving(false);
+                return;
+            }
+
+            // 4. Cannot register events on sold animals (except past events)
+            if (animal.status === 'Sold') {
+                alert(`❌ Impossible d'enregistrer un événement pour ${animal.name} qui a été vendu(e).`);
+                setSaving(false);
+                return;
+            }
+
+            // 5. Mating-specific validations
+            if (eventType === 'Mating' && mateId) {
+                const mate = animals.find(a => a.id === mateId);
+                if (!mate) {
+                    alert('❌ Partenaire non trouvé.');
+                    setSaving(false);
+                    return;
+                }
+
+                // Cannot mate with deceased animal
+                if (mate.status === 'Deceased') {
+                    alert(`❌ Impossible d'enregistrer une saillie avec ${mate.name} qui est décédé(e).`);
+                    setSaving(false);
+                    return;
+                }
+
+                // Cannot mate with sold animal
+                if (mate.status === 'Sold') {
+                    alert(`❌ Impossible d'enregistrer une saillie avec ${mate.name} qui a été vendu(e).`);
+                    setSaving(false);
+                    return;
+                }
+
+                // Check if mate was alive at event date (if we track death dates in future)
+                // For now, deceased animals are excluded from selection
+            }
+
+            // 6. Birth-specific validations
+            if (eventType === 'Birth') {
+                const existingRecords = animal.reproductionRecords || [];
+
+                // Find most recent mating before this birth
+                const previousMatings = existingRecords
+                    .filter(r => r.type === 'Mating' && new Date(r.date) < eventDateObj)
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                if (previousMatings.length > 0) {
+                    const lastMating = previousMatings[0];
+                    const matingDate = new Date(lastMating.date);
+                    const daysSinceMating = Math.floor((eventDateObj.getTime() - matingDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                    // Gestation too short (< 140 days)
+                    if (daysSinceMating < 140) {
+                        alert(`❌ Gestation trop courte: ${daysSinceMating} jours depuis la dernière saillie. Minimum: 140 jours.`);
+                        setSaving(false);
+                        return;
+                    }
+
+                    // Gestation too long (> 160 days)
+                    if (daysSinceMating > 160) {
+                        const proceed = confirm(`⚠️ Gestation très longue: ${daysSinceMating} jours depuis la dernière saillie (normal: 140-150 jours). Continuer quand même?`);
+                        if (!proceed) {
+                            setSaving(false);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // 7. Ultrasound-specific validations
+            if (eventType === 'Ultrasound') {
+                const existingRecords = animal.reproductionRecords || [];
+
+                // Find most recent mating before this ultrasound
+                const previousMatings = existingRecords
+                    .filter(r => r.type === 'Mating' && new Date(r.date) < eventDateObj)
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                if (previousMatings.length > 0) {
+                    const lastMating = previousMatings[0];
+                    const matingDate = new Date(lastMating.date);
+                    const daysSinceMating = Math.floor((eventDateObj.getTime() - matingDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                    // Ultrasound too early (< 20 days)
+                    if (daysSinceMating < 20) {
+                        alert(`❌ Échographie trop tôt: ${daysSinceMating} jours après la saillie. Attendez au moins 20 jours pour un résultat fiable.`);
+                        setSaving(false);
+                        return;
+                    }
+                }
+            }
+
+            // 8. Weaning-specific validations
+            if (eventType === 'Weaning') {
+                const existingRecords = animal.reproductionRecords || [];
+
+                // Must have a birth before weaning
+                const previousBirths = existingRecords
+                    .filter(r => r.type === 'Birth' && new Date(r.date) < eventDateObj)
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                if (previousBirths.length === 0) {
+                    alert('❌ Impossible d\'enregistrer un sevrage sans naissance préalable.');
+                    setSaving(false);
+                    return;
+                }
+
+                const lastBirth = previousBirths[0];
+                const birthDate = new Date(lastBirth.date);
+                const daysSinceBirth = Math.floor((eventDateObj.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                // Weaning too early (< 30 days)
+                if (daysSinceBirth < 30) {
+                    alert(`❌ Sevrage trop tôt: ${daysSinceBirth} jours après la naissance. Minimum recommandé: 30 jours.`);
+                    setSaving(false);
+                    return;
+                }
+            }
+
+            // === END VALIDATION ===
+
             const newRecord: ReproductionRecord = {
                 id: `rep-${Date.now()}`,
                 date: eventDate,
@@ -144,6 +291,7 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
 
         } catch (error) {
             console.error('Error saving reproduction event:', error);
+            alert('❌ Erreur lors de l\'enregistrement. Veuillez réessayer.');
         } finally {
             setSaving(false);
         }
@@ -233,6 +381,7 @@ export const ReproductionEventModal: React.FC<ReproductionEventModalProps> = ({
                                 type="date"
                                 value={eventDate}
                                 onChange={(e) => setEventDate(e.target.value)}
+                                max={new Date().toISOString().split('T')[0]}
                                 className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-slate-50"
                                 required
                             />

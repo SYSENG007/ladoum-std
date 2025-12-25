@@ -3,6 +3,7 @@ import { useAnimals } from '../../hooks/useAnimals';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+import { Link } from 'react-router-dom';
 import {
     Calculator,
     Calendar,
@@ -10,7 +11,8 @@ import {
     CheckCircle,
     TrendingUp,
     Ruler,
-    Activity
+    Activity,
+    ExternalLink
 } from 'lucide-react';
 import {
     calculateInbreedingCoefficient,
@@ -22,6 +24,7 @@ import {
     scoreMorphometricCompatibility
 } from '../../utils/morphometrics';
 import type { BreedingCompatibility, Animal } from '../../types';
+import { getLatestMeasurements } from '../../utils/morphometrics';
 
 interface SimulationResult extends BreedingCompatibility {
     sire: Animal;
@@ -54,6 +57,10 @@ export const BreedingCalculator: React.FC = () => {
 
         if (!sire || !dam) return;
 
+        // Check if measurements are available
+        const sireMeasurements = getLatestMeasurements(sire);
+        const damMeasurements = getLatestMeasurements(dam);
+
         // Calculate inbreeding coefficient
         const inbreedingCoefficient = calculateInbreedingCoefficient(sireId, damId, animals);
         const inbreedingRisk = getInbreedingRisk(inbreedingCoefficient);
@@ -85,9 +92,9 @@ export const BreedingCalculator: React.FC = () => {
             recommendation = 'NotRecommended';
         }
 
-        // Due date: Today + 150 days (sheep gestation)
+        // Due date: Today + 145 days (sheep gestation - user confirmed)
         const today = new Date();
-        const due = new Date(today.setDate(today.getDate() + 150));
+        const due = new Date(today.setDate(today.getDate() + 145));
         const dueDate = due.toLocaleDateString('fr-FR');
 
         setResult({
@@ -183,6 +190,59 @@ export const BreedingCalculator: React.FC = () => {
                 Lancer la simulation
             </Button>
 
+            {/* Warning for missing measurements */}
+            {sireId && damId && (() => {
+                const sire = animals.find(a => a.id === sireId);
+                const dam = animals.find(a => a.id === damId);
+                if (!sire || !dam) return null;
+
+                const sireMeasurements = getLatestMeasurements(sire);
+                const damMeasurements = getLatestMeasurements(dam);
+                const missingMeasurements = [];
+
+                if (!sireMeasurements) missingMeasurements.push({ animal: sire, role: 'Père' });
+                if (!damMeasurements) missingMeasurements.push({ animal: dam, role: 'Mère' });
+
+                if (missingMeasurements.length > 0) {
+                    return (
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-amber-900 mb-2">
+                                        ⚠️ Mesures manquantes pour prédictions précises
+                                    </p>
+                                    <p className="text-xs text-amber-700 mb-3">
+                                        Les prédictions morphométriques nécessitent les mesures HG, LCS et TP.
+                                    </p>
+                                    <div className="space-y-2">
+                                        {missingMeasurements.map(({ animal, role }) => (
+                                            <div key={animal.id} className="flex items-center justify-between bg-white rounded-lg p-2 border border-amber-100">
+                                                <div className="flex items-center gap-2">
+                                                    <Ruler className="w-4 h-4 text-amber-600" />
+                                                    <span className="text-sm text-slate-700">
+                                                        <strong>{animal.name}</strong> ({role}) - Jamais mesuré(e)
+                                                    </span>
+                                                </div>
+                                                <Link
+                                                    to={`/herd/${animal.id}`}
+                                                    className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                                                >
+                                                    Ajouter mesures
+                                                    <ExternalLink className="w-3 h-3" />
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+                return null;
+            })()}
+
+
             {result && (
                 <div className="space-y-4">
                     {/* Overall Score */}
@@ -249,10 +309,10 @@ export const BreedingCalculator: React.FC = () => {
                                 </p>
                                 <div className="flex items-center justify-center gap-1 mt-1">
                                     <TrendingUp className={`w-3 h-3 ${result.morphometricPrediction.comparedToHerdAverage.hg >= 0
-                                            ? 'text-green-500' : 'text-red-500'
+                                        ? 'text-green-500' : 'text-red-500'
                                         }`} />
                                     <span className={`text-xs ${result.morphometricPrediction.comparedToHerdAverage.hg >= 0
-                                            ? 'text-green-600' : 'text-red-600'
+                                        ? 'text-green-600' : 'text-red-600'
                                         }`}>
                                         {result.morphometricPrediction.comparedToHerdAverage.hg >= 0 ? '+' : ''}
                                         {result.morphometricPrediction.comparedToHerdAverage.hg}%
@@ -266,10 +326,10 @@ export const BreedingCalculator: React.FC = () => {
                                 </p>
                                 <div className="flex items-center justify-center gap-1 mt-1">
                                     <TrendingUp className={`w-3 h-3 ${result.morphometricPrediction.comparedToHerdAverage.lcs >= 0
-                                            ? 'text-green-500' : 'text-red-500'
+                                        ? 'text-green-500' : 'text-red-500'
                                         }`} />
                                     <span className={`text-xs ${result.morphometricPrediction.comparedToHerdAverage.lcs >= 0
-                                            ? 'text-green-600' : 'text-red-600'
+                                        ? 'text-green-600' : 'text-red-600'
                                         }`}>
                                         {result.morphometricPrediction.comparedToHerdAverage.lcs >= 0 ? '+' : ''}
                                         {result.morphometricPrediction.comparedToHerdAverage.lcs}%
@@ -283,10 +343,10 @@ export const BreedingCalculator: React.FC = () => {
                                 </p>
                                 <div className="flex items-center justify-center gap-1 mt-1">
                                     <TrendingUp className={`w-3 h-3 ${result.morphometricPrediction.comparedToHerdAverage.tp >= 0
-                                            ? 'text-green-500' : 'text-red-500'
+                                        ? 'text-green-500' : 'text-red-500'
                                         }`} />
                                     <span className={`text-xs ${result.morphometricPrediction.comparedToHerdAverage.tp >= 0
-                                            ? 'text-green-600' : 'text-red-600'
+                                        ? 'text-green-600' : 'text-red-600'
                                         }`}>
                                         {result.morphometricPrediction.comparedToHerdAverage.tp >= 0 ? '+' : ''}
                                         {result.morphometricPrediction.comparedToHerdAverage.tp}%

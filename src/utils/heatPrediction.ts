@@ -7,13 +7,13 @@ import type { Animal, HeatPrediction, GestationPrediction, ReproductionRecord, R
 
 // Default cycle parameters for Ladoum sheep
 const DEFAULT_CYCLE_LENGTH = 17; // days
-const SURVEILLANCE_WINDOW = 2; // ±2 days for heat
+const SURVEILLANCE_WINDOW = 2; // ±2 days for heat (user confirmed)
 const GESTATION_SURVEILLANCE_WINDOW = 5; // ±5 days for birth
 const POST_PARTUM_DELAY = 45; // days after birth before returning to heat
 const LACTATION_DELAY_FACTOR = 1.2; // Cycle can be extended during heavy lactation
 
-// Gestation period for sheep
-const GESTATION_PERIOD = 150; // days (~5 months)
+// Gestation period for sheep (user confirmed: 145 ± 5 days)
+const GESTATION_PERIOD = 145; // days (~5 months)
 
 /**
  * Extract heat events from reproduction records
@@ -98,8 +98,18 @@ export function getReproductiveStatus(animal: Animal): ReproductiveStatus {
 
                 if (negativeUltrasound) continue; // Skip to next record
 
-                // If mating was within gestation period (extended for overdue) and no birth recorded after
-                if (daysSinceRecord < GESTATION_PERIOD + 15) { // Allow 15 days overdue
+                // 0-20 days: Awaiting Confirmation (critical heat detection window)
+                if (daysSinceRecord >= 0 && daysSinceRecord <= 20) {
+                    // Check if there's a birth or abortion after this
+                    const hasOutcomeAfter = sortedRecords.some(
+                        r => (r.type === 'Birth' || r.type === 'Abortion') &&
+                            new Date(r.date) > recordDate
+                    );
+                    if (!hasOutcomeAfter) return 'AwaitingConfirmation';
+                }
+
+                // 21-165 days: Assumed pregnant (should get ultrasound by now)
+                if (daysSinceRecord > 20 && daysSinceRecord < GESTATION_PERIOD + 15) { // Allow 15 days overdue
                     // Check if there's a birth or abortion after this
                     const hasOutcomeAfter = sortedRecords.some(
                         r => (r.type === 'Birth' || r.type === 'Abortion') &&
@@ -117,7 +127,7 @@ export function getReproductiveStatus(animal: Animal): ReproductiveStatus {
                     continue;
                 }
 
-                // Positive Ultrasound
+                // Positive Ultrasound - transition from AwaitingConfirmation to Pregnant
                 if (daysSinceRecord < GESTATION_PERIOD + 15) {
                     const hasOutcomeAfter = sortedRecords.some(
                         r => (r.type === 'Birth' || r.type === 'Abortion') &&
@@ -172,15 +182,24 @@ export function predictNextHeat(animal: Animal): HeatPrediction | null {
     // Determine base date for prediction based on status
     switch (status) {
         case 'Pregnant':
-            // Cannot predict - return null or estimated post-partum date
+            // Cannot predict heat for pregnant animals - return null
+            // Heat predictions will resume after birth is recorded
+            return null;
+
+        case 'AwaitingConfirmation':
+            // 0-20 days post-mating: Monitor for heat return at day 17
+            // If no heat = likely pregnant, if heat returns = failed mating
             const lastMating = records?.find(r => r.type === 'Mating' || r.type === 'Ultrasound');
             if (lastMating) {
-                const expectedBirth = new Date(lastMating.date);
-                expectedBirth.setDate(expectedBirth.getDate() + GESTATION_PERIOD);
-                baseDate = new Date(expectedBirth);
-                baseDate.setDate(baseDate.getDate() + POST_PARTUM_DELAY);
+                const matingDate = new Date(lastMating.date);
+                const daysSinceMating = Math.floor((today.getTime() - matingDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                // Predict heat return at day 17 (typical cycle length)
+                const predictedReturn = new Date(matingDate);
+                predictedReturn.setDate(predictedReturn.getDate() + DEFAULT_CYCLE_LENGTH);
+                baseDate = predictedReturn;
             } else {
-                return null;
+                return null; // Shouldn't happen, but fallback
             }
             break;
 
@@ -315,6 +334,7 @@ export function formatReproductiveStatus(status: ReproductiveStatus): string {
     const statusLabels: Record<ReproductiveStatus, string> = {
         'Available': 'Disponible',
         'InHeat': 'En chaleur',
+        'AwaitingConfirmation': 'En attente', // Short form for UI
         'Pregnant': 'Gestante',
         'Lactating': 'Allaitante',
         'Resting': 'Repos'
@@ -329,6 +349,7 @@ export function getStatusColor(status: ReproductiveStatus): string {
     const statusColors: Record<ReproductiveStatus, string> = {
         'Available': 'success',
         'InHeat': 'warning',
+        'AwaitingConfirmation': 'info', // Blue for monitoring period
         'Pregnant': 'info',
         'Lactating': 'info',
         'Resting': 'default'

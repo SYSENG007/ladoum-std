@@ -117,7 +117,7 @@ export const TasksDesktop: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 flex-shrink-0">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">{t('page.tasks')}</h1>
+                    <h1 className="text-2xl font-bold text-text-primary">{t('page.tasks')}</h1>
                     <p className="text-slate-500">{t('task.subtitle')}</p>
                 </div>
                 <Button icon={Plus} onClick={() => setIsAddModalOpen(true)}>{t('task.newTask')}</Button>
@@ -128,14 +128,14 @@ export const TasksDesktop: React.FC = () => {
                 <div className="flex bg-slate-100 p-1 rounded-xl">
                     <button
                         onClick={() => setView('list')}
-                        className={clsx("p-2 rounded-lg transition-all", view === 'list' ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700")}
+                        className={clsx("p-2 rounded-lg transition-all", view === 'list' ? "bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200")}
                         title={t('common.list') || "Liste"}
                     >
                         <List className="w-5 h-5" />
                     </button>
                     <button
                         onClick={() => setView('kanban')}
-                        className={clsx("p-2 rounded-lg transition-all", view === 'kanban' ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700")}
+                        className={clsx("p-2 rounded-lg transition-all", view === 'kanban' ? "bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200")}
                         title={t('common.board') || "Tableau"}
                     >
                         <Kanban className="w-5 h-5" />
@@ -225,7 +225,7 @@ export const TasksDesktop: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <div className="flex-1">
-                                                    <h3 className={clsx("font-medium text-slate-900 flex items-center gap-2", task.status === 'Done' && "line-through text-slate-400")}>
+                                                    <h3 className={clsx("font-medium text-text-primary flex items-center gap-2", task.status === 'Done' && "line-through text-slate-400 dark:text-slate-500")}>
                                                         <span className="text-lg">{getTypeIcon(task.type)}</span>
                                                         {task.title}
                                                     </h3>

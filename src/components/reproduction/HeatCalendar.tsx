@@ -4,6 +4,7 @@ import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Calendar, ChevronLeft, ChevronRight, AlertCircle, Heart, Plus, Baby } from 'lucide-react';
 import { ReproductionEventModal } from './ReproductionEventModal';
+import { EventDetailModal } from './EventDetailModal';
 import clsx from 'clsx';
 import {
     getUpcomingHeats,
@@ -15,7 +16,7 @@ import {
 } from '../../utils/heatPrediction';
 import type { Animal, HeatPrediction, GestationPrediction, ReproductionRecord } from '../../types';
 
-interface CalendarEvent {
+export interface CalendarEvent {
     type: 'heat' | 'mating' | 'birth' | 'abortion' | 'ultrasound' | 'birth_prediction';
     animal: Animal;
     date: string;
@@ -38,6 +39,8 @@ export const HeatCalendar: React.FC = () => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [showEventModal, setShowEventModal] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
     const females = useMemo(() =>
         animals.filter(a => a.gender === 'Female' && a.status === 'Active'),
@@ -478,8 +481,14 @@ export const HeatCalendar: React.FC = () => {
                                     return (
                                         <div
                                             key={idx}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedEvent(event);
+                                                setShowDetailModal(true);
+                                            }}
                                             className={clsx(
-                                                "text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 truncate",
+                                                "text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 truncate cursor-pointer",
+                                                "hover:ring-2 hover:ring-white/50 transition-all",
                                                 isPeak ? `${colors.dot} text-white font-medium` : `${colors.bg} ${colors.text}`
                                             )}
                                             title={titleText}
@@ -499,44 +508,50 @@ export const HeatCalendar: React.FC = () => {
                     ))}
                 </div>
 
-                {/* Legend */}
-                <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-slate-500">
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded bg-pink-500"></div>
-                        <span>Chaleur (pic)</span>
+                {/* Legend - Enhanced */}
+                <div className="mt-6 pt-4 border-t border-slate-200">
+                    <h4 className="text-xs font-semibold text-slate-700 mb-3">Légende du calendrier</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-pink-500 flex-shrink-0"></div>
+                            <span className="text-slate-600">Chaleur (date pic)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-pink-100 border border-pink-200 flex-shrink-0"></div>
+                            <span className="text-slate-600">Fenêtre chaleur (±2j)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-purple-500 flex-shrink-0"></div>
+                            <span className="text-slate-600">Saillie confirmée</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-blue-500 flex-shrink-0"></div>
+                            <span className="text-slate-600">Échographie</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-green-500 flex-shrink-0"></div>
+                            <span className="text-slate-600">Mise-bas réelle</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-orange-500 flex-shrink-0"></div>
+                            <span className="text-slate-600">Mise-bas (date prévue)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-orange-100 border border-orange-200 flex-shrink-0"></div>
+                            <span className="text-slate-600">Fenêtre mise-bas (±5j)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-red-500 flex-shrink-0"></div>
+                            <span className="text-slate-600">Avortement</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded bg-pink-100"></div>
-                        <span>Fenêtre surveillance</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded bg-purple-500"></div>
-                        <span>Saillie</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded bg-green-500"></div>
-                        <span>Mise bas</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded bg-red-500"></div>
-                        <span>Avortement</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded bg-blue-500"></div>
-                        <span>Échographie</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded bg-orange-500"></div>
-                        <span>Mise-bas (pic)</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded bg-orange-100"></div>
-                        <span>Fenêtre mise-bas (±5j)</span>
-                    </div>
+                    <p className="text-xs text-slate-500 mt-3 italic">
+                        💡 Cliquez sur un événement pour voir les détails complets
+                    </p>
                 </div>
             </Card>
 
-            {/* Event Modal */}
+            {/* Event Modals */}
             <ReproductionEventModal
                 isOpen={showEventModal}
                 onClose={() => {
@@ -544,6 +559,15 @@ export const HeatCalendar: React.FC = () => {
                     setSelectedDate(null);
                 }}
                 initialDate={selectedDate}
+            />
+
+            <EventDetailModal
+                isOpen={showDetailModal}
+                onClose={() => {
+                    setShowDetailModal(false);
+                    setSelectedEvent(null);
+                }}
+                event={selectedEvent}
             />
         </div>
     );
