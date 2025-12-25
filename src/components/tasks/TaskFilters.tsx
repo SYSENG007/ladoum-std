@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
+import { FarmMemberService } from '../../services/FarmMemberService';
 import { Button } from '../ui/Button';
+import type { FarmMember } from '../../types/farm';
 
 export interface TaskFilterState {
     search: string;
@@ -17,7 +19,27 @@ interface TaskFiltersProps {
 
 export const TaskFilters: React.FC<TaskFiltersProps> = ({ filters, onChange }) => {
     const { currentFarm } = useFarm();
-    const farmMembers = currentFarm?.members || [];
+    const [farmMembers, setFarmMembers] = useState<FarmMember[]>([]);
+
+    // Load members from subcollection
+    useEffect(() => {
+        const loadMembers = async () => {
+            if (!currentFarm?.id) {
+                setFarmMembers([]);
+                return;
+            }
+
+            try {
+                const members = await FarmMemberService.getMembers(currentFarm.id);
+                setFarmMembers(members);
+            } catch (error) {
+                console.error('[TaskFilters] Error loading members:', error);
+                setFarmMembers([]);
+            }
+        };
+
+        loadMembers();
+    }, [currentFarm?.id]);
 
     const handleChange = (key: keyof TaskFilterState, value: string) => {
         onChange({ ...filters, [key]: value });

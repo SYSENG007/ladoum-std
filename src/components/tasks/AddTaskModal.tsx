@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar as CalendarIcon, User as UserIcon, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { TaskService } from '../../services/TaskService';
+import { FarmMemberService } from '../../services/FarmMemberService';
 import { useFarm } from '../../context/FarmContext';
 import { useAnimals } from '../../hooks/useAnimals';
 import type { Task, TaskPriority, TaskStatus, TaskType } from '../../types';
+import type { FarmMember } from '../../types/farm';
 import clsx from 'clsx';
 
 interface AddTaskModalProps {
@@ -16,6 +18,7 @@ interface AddTaskModalProps {
 export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const { currentFarm } = useFarm();
     const { animals } = useAnimals();
+    const [members, setMembers] = useState<FarmMember[]>([]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -30,6 +33,26 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showQuickTemplates, setShowQuickTemplates] = useState(true);
+
+    // Load members from subcollection
+    useEffect(() => {
+        const loadMembers = async () => {
+            if (!currentFarm?.id) {
+                setMembers([]);
+                return;
+            }
+
+            try {
+                const farmMembers = await FarmMemberService.getMembers(currentFarm.id);
+                setMembers(farmMembers);
+            } catch (error) {
+                console.error('[AddTaskModal] Error loading members:', error);
+                setMembers([]);
+            }
+        };
+
+        loadMembers();
+    }, [currentFarm?.id]);
 
     // Quick task templates
     const taskTemplates = [
@@ -324,7 +347,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                         className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none"
                                     >
                                         <option value="">Non assigné</option>
-                                        {(currentFarm?.members || []).map(member => (
+                                        {members.map(member => (
                                             <option key={member.userId} value={member.userId}>
                                                 {member.displayName} ({member.role === 'owner' ? 'Propriétaire' : member.role === 'manager' ? 'Gérant' : 'Employé'})
                                             </option>
