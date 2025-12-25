@@ -193,7 +193,6 @@ export function predictNextHeat(animal: Animal): HeatPrediction | null {
             const lastMating = records?.find(r => r.type === 'Mating' || r.type === 'Ultrasound');
             if (lastMating) {
                 const matingDate = new Date(lastMating.date);
-                const daysSinceMating = Math.floor((today.getTime() - matingDate.getTime()) / (1000 * 60 * 60 * 24));
 
                 // Predict heat return at day 17 (typical cycle length)
                 const predictedReturn = new Date(matingDate);
