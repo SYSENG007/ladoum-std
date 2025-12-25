@@ -57,10 +57,6 @@ export const BreedingCalculator: React.FC = () => {
 
         if (!sire || !dam) return;
 
-        // Check if measurements are available
-        const sireMeasurements = getLatestMeasurements(sire);
-        const damMeasurements = getLatestMeasurements(dam);
-
         // Calculate inbreeding coefficient
         const inbreedingCoefficient = calculateInbreedingCoefficient(sireId, damId, animals);
         const inbreedingRisk = getInbreedingRisk(inbreedingCoefficient);

@@ -2,8 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useAnimals } from '../../hooks/useAnimals';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { Link } from 'react-router-dom';
-import { Grid3X3, ArrowUpDown, Filter, Info, TrendingUp, AlertTriangle, Ruler, ExternalLink } from 'lucide-react';
+import { Grid3X3, ArrowUpDown, Filter, Info, TrendingUp, AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 import {
     calculateInbreedingCoefficient,
@@ -11,8 +10,7 @@ import {
 } from '../../utils/genetics';
 import {
     predictOffspringMorphometrics,
-    scoreMorphometricCompatibility,
-    getLatestMeasurements
+    scoreMorphometricCompatibility
 } from '../../utils/morphometrics';
 import type { Animal, BreedingCompatibility } from '../../types';
 

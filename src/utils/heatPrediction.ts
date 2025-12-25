@@ -171,6 +171,7 @@ export function getReproductiveStatus(animal: Animal): ReproductiveStatus {
 export function predictNextHeat(animal: Animal): HeatPrediction | null {
     if (animal.gender !== 'Female') return null;
 
+    const today = new Date(); // Declare here to avoid usage before declaration
     const status = getReproductiveStatus(animal);
     const records = animal.reproductionRecords;
     const avgCycleLength = calculateAverageCycleLength(records);
@@ -261,7 +262,6 @@ export function predictNextHeat(animal: Animal): HeatPrediction | null {
     }
 
     // Ensure prediction is in the future
-    const today = new Date();
     while (baseDate <= today) {
         baseDate.setDate(baseDate.getDate() + adjustedCycleLength);
     }
