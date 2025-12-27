@@ -26,7 +26,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
         status: 'Todo' as TaskStatus,
         priority: 'Medium' as TaskPriority,
         type: 'General' as TaskType,
-        assignedTo: '',
+        assignedTo: [] as string[], // Support multi-assignment
         relatedAnimalId: ''
     });
 
@@ -108,7 +108,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
 
         try {
             // Build task data without undefined values (Firestore hangs on undefined)
-            const taskData: Record<string, string> = {
+            const taskData: Record<string, string | string[]> = {
                 title: formData.title,
                 date: formData.date,
                 status: formData.status,
@@ -118,8 +118,11 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
             };
 
             // Only add optional fields if they have values
-            if (formData.assignedTo) {
-                taskData.assignedTo = formData.assignedTo;
+            // Smart assignment save: array if multiple, string if single, omit if none
+            if (formData.assignedTo && formData.assignedTo.length > 0) {
+                taskData.assignedTo = formData.assignedTo.length === 1
+                    ? formData.assignedTo[0]  // Single assignment: save as string
+                    : formData.assignedTo;    // Multiple: save as array
             }
             if (formData.relatedAnimalId) {
                 taskData.animalId = formData.relatedAnimalId;
@@ -140,7 +143,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                 status: 'Todo',
                 priority: 'Medium',
                 type: 'General',
-                assignedTo: '',
+                assignedTo: [],
                 relatedAnimalId: ''
             });
             setShowQuickTemplates(true);
@@ -337,16 +340,22 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
 
                             <div>
                                 <label className="block text-sm font-medium text-text-secondary mb-2">
-                                    Assigné à
+                                    Assigné à <span className="text-xs text-text-muted">(sélection multiple possible)</span>
                                 </label>
-                                <div className="relative">
-                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5" />
+
+                                {/* Multi-select dropdown */}
+                                <div className="relative mb-2">
+                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted w-5 h-5 pointer-events-none z-10" />
                                     <select
+                                        multiple
                                         value={formData.assignedTo}
-                                        onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none"
+                                        onChange={(e) => {
+                                            const selected = Array.from(e.target.selectedOptions, opt => opt.value);
+                                            setFormData({ ...formData, assignedTo: selected });
+                                        }}
+                                        className="w-full pl-10 pr-4 py-2 rounded-xl bg-surface-input border border-border-default text-text-primary focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                        size={Math.min(members.length + 1, 5)}
                                     >
-                                        <option value="">Non assigné</option>
                                         {members.map(member => (
                                             <option key={member.userId} value={member.userId}>
                                                 {member.displayName} ({member.role === 'owner' ? 'Propriétaire' : member.role === 'manager' ? 'Gérant' : 'Employé'})
@@ -354,6 +363,37 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                         ))}
                                     </select>
                                 </div>
+
+                                {/* Chips display */}
+                                {formData.assignedTo.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {formData.assignedTo.map(userId => {
+                                            const member = members.find(m => m.userId === userId);
+                                            if (!member) return null;
+                                            return (
+                                                <div
+                                                    key={userId}
+                                                    className="inline-flex items-center gap-1.5 bg-primary-100 text-primary-700 px-3 py-1.5 rounded-lg text-sm"
+                                                >
+                                                    <UserIcon className="w-3.5 h-3.5" />
+                                                    <span>{member.displayName}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData({
+                                                                ...formData,
+                                                                assignedTo: formData.assignedTo.filter(id => id !== userId)
+                                                            });
+                                                        }}
+                                                        className="hover:bg-primary-200 rounded-full p-0.5 transition-colors"
+                                                    >
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

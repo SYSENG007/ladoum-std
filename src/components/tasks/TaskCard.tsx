@@ -3,7 +3,9 @@ import { Calendar, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 import { useFarm } from '../../context/FarmContext';
 import { useAnimals } from '../../hooks/useAnimals';
 import { useTranslation } from '../../context/SettingsContext';
+import { FarmMemberService } from '../../services/FarmMemberService';
 import type { Task } from '../../types';
+import type { FarmMember } from '../../types/farm';
 import clsx from 'clsx';
 
 interface TaskCardProps {
@@ -27,11 +29,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     const { animals } = useAnimals();
     const { t } = useTranslation();
     const [showMenu, setShowMenu] = useState(false);
+    const [members, setMembers] = useState<FarmMember[]>([]);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    // Find assignee from farm members
-    const assignee = (currentFarm?.members || []).find(m => m.userId === task.assignedTo);
     const linkedAnimal = task.animalId ? animals.find(a => a.id === task.animalId) : null;
+
+    // Load farm members  
+    useEffect(() => {
+        const loadMembers = async () => {
+            if (!currentFarm?.id) {
+                setMembers([]);
+                return;
+            }
+            try {
+                const farmMembers = await FarmMemberService.getMembers(currentFarm.id);
+                setMembers(farmMembers);
+            } catch (error) {
+                console.error('[TaskCard] Error loading members:', error);
+                setMembers([]);
+            }
+        };
+        loadMembers();
+    }, [currentFarm?.id]);
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -196,24 +215,51 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     <span className="font-medium">{dueInfo.label}</span>
                 </div>
 
-                {/* Assignee */}
-                {assignee ? (
-                    <div className="flex items-center gap-2">
-                        <div
-                            className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-sm"
-                            title={assignee.displayName}
-                        >
-                            {getInitials(assignee.displayName || 'U')}
+                {/* Assignees - Support single or multiple */}
+                {(() => {
+                    const assignedIds = Array.isArray(task.assignedTo) ? task.assignedTo : task.assignedTo ? [task.assignedTo] : [];
+                    const assignees = assignedIds
+                        .map(id => members.find(m => m.userId === id))
+                        .filter(Boolean) as FarmMember[];
+
+                    if (assignees.length === 0) {
+                        return (
+                            <div
+                                className="w-7 h-7 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center"
+                                title={t('task.unassigned')}
+                            >
+                                <span className="text-[10px] text-slate-400">?</span>
+                            </div>
+                        );
+                    }
+
+                    const maxVisible = 3;
+                    const visibleAssignees = assignees.slice(0, maxVisible);
+                    const remaining = assignees.length - maxVisible;
+
+                    return (
+                        <div className="flex items-center -space-x-2">
+                            {visibleAssignees.map((assignee, idx) => (
+                                <div
+                                    key={assignee.userId}
+                                    className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-sm border-2 border-white"
+                                    title={assignee.displayName}
+                                    style={{ zIndex: visibleAssignees.length - idx }}
+                                >
+                                    {getInitials(assignee.displayName || 'U')}
+                                </div>
+                            ))}
+                            {remaining > 0 && (
+                                <div
+                                    className="w-7 h-7 rounded-full bg-slate-400 flex items-center justify-center text-white text-[10px] font-bold shadow-sm border-2 border-white"
+                                    title={`+${remaining} ${remaining === 1 ? 'autre' : 'autres'}: ${assignees.slice(maxVisible).map(a => a.displayName).join(', ')}`}
+                                >
+                                    +{remaining}
+                                </div>
+                            )}
                         </div>
-                    </div>
-                ) : (
-                    <div
-                        className="w-7 h-7 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center"
-                        title={t('task.unassigned')}
-                    >
-                        <span className="text-[10px] text-slate-400">?</span>
-                    </div>
-                )}
+                    );
+                })()}
             </div>
         </div>
     );

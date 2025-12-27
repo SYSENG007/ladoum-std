@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Button } from '../../components/ui/Button';
 import { List, Kanban, Plus, CheckCircle, Clock, AlertCircle, Ban, Edit2, Trash2, MoreVertical, User, Tag } from 'lucide-react';
@@ -13,7 +13,9 @@ import { useFarm } from '../../context/FarmContext';
 import { useToast } from '../../context/ToastContext';
 import { useTranslation } from '../../context/SettingsContext';
 import { TaskService } from '../../services/TaskService';
+import { FarmMemberService } from '../../services/FarmMemberService';
 import type { TaskStatus, Task } from '../../types';
+import type { FarmMember } from '../../types/farm';
 import clsx from 'clsx';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 
@@ -40,6 +42,20 @@ export const TasksDesktop: React.FC = () => {
         taskId: string;
         taskTitle: string;
     }>({ isOpen: false, taskId: '', taskTitle: '' });
+    const [members, setMembers] = useState<FarmMember[]>([]);
+
+    useEffect(() => {
+        const loadMembers = async () => {
+            if (!currentFarm?.id) return;
+            try {
+                const farmMembers = await FarmMemberService.getMembers(currentFarm.id);
+                setMembers(farmMembers);
+            } catch (error) {
+                console.error('[TasksDesktop] Error loading members:', error);
+            }
+        };
+        loadMembers();
+    }, [currentFarm?.id]);
 
     const handleAddSuccess = async () => {
         await refreshData();
@@ -153,7 +169,10 @@ export const TasksDesktop: React.FC = () => {
                         <div className="flex-1 overflow-y-auto">
                             <div className="divide-y divide-slate-100">
                                 {filteredTasks.map(task => {
-                                    const assignee = (currentFarm?.members || []).find(m => m.userId === task.assignedTo);
+                                    const assignedIds = Array.isArray(task.assignedTo) ? task.assignedTo : task.assignedTo ? [task.assignedTo] : [];
+                                    const assignees = assignedIds
+                                        .map(id => members.find(m => m.userId === id))
+                                        .filter(Boolean) as FarmMember[];
                                     const linkedAnimal = task.animalId ? animals.find(a => a.id === task.animalId) : null;
                                     return (
                                         <div key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
@@ -233,15 +252,31 @@ export const TasksDesktop: React.FC = () => {
                                                         <span>{task.date}</span>
                                                         <span>•</span>
                                                         <span>{task.type}</span>
-                                                        {assignee && (
+                                                        {assignees.length > 0 && (
                                                             <>
                                                                 <span>•</span>
-                                                                <span className="flex items-center gap-1">
+                                                                <span className="flex items-center gap-1.5">
                                                                     <User className="w-3 h-3" />
-                                                                    <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">
-                                                                        {(assignee.displayName || 'U').charAt(0).toUpperCase()}
-                                                                    </span>
-                                                                    {assignee.displayName}
+                                                                    <div className="flex items-center -space-x-1.5">
+                                                                        {assignees.slice(0, 3).map((assignee, idx) => (
+                                                                            <div
+                                                                                key={assignee.userId}
+                                                                                className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[9px] font-bold border-2 border-white shadow-sm"
+                                                                                title={assignee.displayName}
+                                                                                style={{ zIndex: 10 - idx }}
+                                                                            >
+                                                                                {(assignee.displayName || 'U').charAt(0).toUpperCase()}
+                                                                            </div>
+                                                                        ))}
+                                                                        {assignees.length > 3 && (
+                                                                            <div
+                                                                                className="w-5 h-5 rounded-full bg-slate-400 flex items-center justify-center text-white text-[8px] font-bold border-2 border-white shadow-sm"
+                                                                                title={`+${assignees.length - 3} ${assignees.length - 3 === 1 ? 'autre' : 'autres'}: ${assignees.slice(3).map(a => a.displayName).join(', ')}`}
+                                                                            >
+                                                                                +{assignees.length - 3}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
                                                                 </span>
                                                             </>
                                                         )}
@@ -250,7 +285,7 @@ export const TasksDesktop: React.FC = () => {
                                                                 <span>•</span>
                                                                 <span className="flex items-center gap-1 text-primary-600">
                                                                     <Tag className="w-3 h-3" />
-                                                                    {linkedAnimal.name}
+                                                                    <span>{linkedAnimal.name}</span>
                                                                     <span className="text-slate-400">({linkedAnimal.tagId})</span>
                                                                 </span>
                                                             </>

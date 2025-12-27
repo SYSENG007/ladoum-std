@@ -175,7 +175,7 @@ export interface Task {
     status: TaskStatus;
     priority: TaskPriority;
     type: TaskType;
-    assignedTo?: string; // User ID
+    assignedTo?: string | string[]; // Single user ID or multiple user IDs for group tasks
     animalId?: string;   // Link to associated animal
     description?: string; // Task description
 }

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTasks } from '../../hooks/useTasks';
 import { useAnimals } from '../../hooks/useAnimals';
@@ -6,11 +6,13 @@ import { useData } from '../../context/DataContext';
 import { useFarm } from '../../context/FarmContext';
 import { useTranslation } from '../../context/SettingsContext';
 import { TaskService } from '../../services/TaskService';
+import { FarmMemberService } from '../../services/FarmMemberService';
 import { AddTaskModal } from '../../components/tasks/AddTaskModal';
 import { EditTaskModal } from '../../components/tasks/EditTaskModal';
 import { Plus, CheckCircle, Clock, XCircle, Circle, User, Tag, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import type { TaskStatus } from '../../types';
+import type { FarmMember } from '../../types/farm';
 
 export const TasksMobile: React.FC = () => {
     const { tasks, error } = useTasks();
@@ -25,8 +27,27 @@ export const TasksMobile: React.FC = () => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
     const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
+    const [members, setMembers] = useState<FarmMember[]>([]);
     const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
     const menuButtonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+
+    // Load farm members
+    useEffect(() => {
+        const loadMembers = async () => {
+            if (!currentFarm?.id) {
+                setMembers([]);
+                return;
+            }
+            try {
+                const farmMembers = await FarmMemberService.getMembers(currentFarm.id);
+                setMembers(farmMembers);
+            } catch (error) {
+                console.error('[TasksMobile] Error loading members:', error);
+                setMembers([]);
+            }
+        };
+        loadMembers();
+    }, [currentFarm?.id]);
 
     const STATUS_OPTIONS: { id: TaskStatus; label: string; icon: React.ReactNode }[] = [
         { id: 'Todo', label: t('task.todo'), icon: <Circle className="w-5 h-5 text-slate-400" strokeWidth={1.5} /> },
@@ -158,7 +179,10 @@ export const TasksMobile: React.FC = () => {
             {/* Task List */}
             <div className="flex-1 overflow-y-auto space-y-2">
                 {filteredTasks.length > 0 ? filteredTasks.map(task => {
-                    const assignee = (currentFarm?.members || []).find(m => m.userId === task.assignedTo);
+                    const assignedIds = Array.isArray(task.assignedTo) ? task.assignedTo : task.assignedTo ? [task.assignedTo] : [];
+                    const assignees = assignedIds
+                        .map(id => members.find(m => m.userId === id))
+                        .filter(Boolean) as FarmMember[];
                     const linkedAnimal = task.animalId ? animals.find(a => a.id === task.animalId) : null;
 
                     return (
@@ -191,13 +215,29 @@ export const TasksMobile: React.FC = () => {
 
                                     {/* Assignee & Animal Info */}
                                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                        {assignee && (
-                                            <span className="flex items-center gap-1 text-xs text-slate-500">
+                                        {assignees.length > 0 && (
+                                            <span className="flex items-center gap-1.5 text-xs text-slate-500">
                                                 <User className="w-3 h-3" />
-                                                <span className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold">
-                                                    {(assignee.displayName || 'U').charAt(0).toUpperCase()}
-                                                </span>
-                                                <span>{assignee.displayName}</span>
+                                                <div className="flex items-center -space-x-1.5">
+                                                    {assignees.slice(0, 3).map((assignee, idx) => (
+                                                        <div
+                                                            key={assignee.userId}
+                                                            className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[9px] font-bold border-2 border-white shadow-sm"
+                                                            title={assignee.displayName}
+                                                            style={{ zIndex: 10 - idx }}
+                                                        >
+                                                            {(assignee.displayName || 'U').charAt(0).toUpperCase()}
+                                                        </div>
+                                                    ))}
+                                                    {assignees.length > 3 && (
+                                                        <div
+                                                            className="w-5 h-5 rounded-full bg-slate-400 flex items-center justify-center text-white text-[8px] font-bold border-2 border-white shadow-sm"
+                                                            title={`+${assignees.length - 3} ${assignees.length - 3 === 1 ? 'autre' : 'autres'}: ${assignees.slice(3).map(a => a.displayName).join(', ')}`}
+                                                        >
+                                                            +{assignees.length - 3}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </span>
                                         )}
                                         {linkedAnimal && (
