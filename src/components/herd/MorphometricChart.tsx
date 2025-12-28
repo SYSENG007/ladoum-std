@@ -40,12 +40,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const MorphometricChart: React.FC<MorphometricChartProps> = ({ measurements, herdAverages }) => {
-    // Calculate growth trend
+    // Calculate growth trend - use SORTED measurements for accurate trend
     const growthTrend = useMemo(() => {
         if (!measurements || measurements.length < 2) return null;
 
-        const first = measurements[0];
-        const last = measurements[measurements.length - 1];
+        // Sort by date to ensure first/last are chronologically correct
+        const sortedMeasurements = [...measurements].sort((a, b) =>
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
+        const first = sortedMeasurements[0];
+        const last = sortedMeasurements[sortedMeasurements.length - 1];
 
         const weightChange = last.weight - first.weight;
         const hgChange = last.height_hg - first.height_hg;
@@ -65,11 +70,14 @@ export const MorphometricChart: React.FC<MorphometricChartProps> = ({ measuremen
         );
     }
 
-    // Format data with French dates for display
-    const formattedData = measurements.map(m => ({
-        ...m,
-        displayDate: formatDate(m.date)
-    }));
+    // Format data with French dates for display - SORT CHRONOLOGICALLY FIRST
+    const formattedData = measurements
+        .slice() // Create copy to avoid mutating original
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Sort oldest to newest
+        .map(m => ({
+            ...m,
+            displayDate: formatDate(m.date)
+        }));
 
     return (
         <Card className="h-[450px]">

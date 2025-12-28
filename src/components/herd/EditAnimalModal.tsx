@@ -63,8 +63,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
             }
 
             await AnimalService.update(animal.id, updates);
-            onSuccess();
-            onClose();
+            onSuccess(); // Parent will handle closing and refreshing
         } catch (err) {
             console.error('Error updating animal:', err);
             setError('Erreur lors de la modification de l\'animal. Veuillez réessayer.');

@@ -10,6 +10,25 @@ import { EditAnimalModal } from './EditAnimalModal';
 import { AnimalService } from '../../services/AnimalService';
 import { useToast } from '../../context/ToastContext';
 
+// Calculate age from birth date
+const calculateAge = (birthDate: string): string => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+
+    const ageInMonths = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
+
+    if (ageInMonths < 12) {
+        return `${ageInMonths} mois`;
+    } else {
+        const years = Math.floor(ageInMonths / 12);
+        const months = ageInMonths % 12;
+        if (months === 0) {
+            return `${years} an${years > 1 ? 's' : ''}`;
+        }
+        return `${years} an${years > 1 ? 's' : ''} ${months}m`;
+    }
+};
+
 interface AnimalCardProps {
     animal: Animal;
     onUpdate?: () => void;
@@ -51,8 +70,12 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
         setIsEditModalOpen(true);
     };
 
-    const handleEditSuccess = () => {
-        onUpdate?.();
+    const handleEditSuccess = async () => {
+        // Wait for data to refresh before closing modal so card updates
+        if (onUpdate) {
+            await onUpdate();
+        }
+        setIsEditModalOpen(false);
     };
 
     return (
@@ -118,8 +141,15 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
                         </div>
 
                         <div className="absolute bottom-4 left-4 text-white">
-                            <p className="font-bold text-lg leading-tight">{animal.name}</p>
-                            <p className="text-xs opacity-80 font-mono">{animal.tagId}</p>
+                            <div className="flex items-baseline gap-2">
+                                <p className="font-bold text-lg leading-tight">{animal.name}</p>
+                                {animal.birthDate && (
+                                    <span className="text-xs opacity-90 font-medium bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                                        {calculateAge(animal.birthDate)}
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-xs opacity-80 font-mono mt-0.5">{animal.tagId}</p>
                         </div>
                     </div>
 

@@ -7,6 +7,20 @@ import { AddAnimalModal } from '../../components/herd/AddAnimalModal';
 import { Search, Plus } from 'lucide-react';
 import clsx from 'clsx';
 
+// Calculate age from birth date
+const calculateAge = (birthDate: string): string => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    const ageInMonths = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
+
+    if (ageInMonths < 12) {
+        return `${ageInMonths}m`;
+    }
+    const years = Math.floor(ageInMonths / 12);
+    const months = ageInMonths % 12;
+    return months === 0 ? `${years}a` : `${years}a ${months}m`;
+};
+
 export const HerdMobile: React.FC = () => {
     const navigate = useNavigate();
     const { animals, error } = useAnimals();
@@ -96,8 +110,13 @@ export const HerdMobile: React.FC = () => {
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                     <p className="font-semibold text-slate-900 truncate">{animal.name}</p>
+                                    {animal.birthDate && (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium shrink-0">
+                                            {calculateAge(animal.birthDate)}
+                                        </span>
+                                    )}
                                     <span className={clsx(
-                                        "text-[10px] px-1.5 py-0.5 rounded",
+                                        "text-[10px] px-1.5 py-0.5 rounded shrink-0",
                                         animal.gender === 'Male' ? "bg-blue-100 text-blue-700" : "bg-pink-100 text-pink-700"
                                     )}>
                                         {animal.gender === 'Male' ? '♂' : '♀'}

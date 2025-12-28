@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Share2, Download, Edit, LayoutDashboard, Activity, Utensils, GitFork, Ruler, Weight, History, ChevronDown, Check } from 'lucide-react';
+import { ArrowLeft, Share2, Download, Edit, LayoutDashboard, Activity, Utensils, GitFork, Ruler, Weight, History, ChevronDown, Check, Calendar as CalendarIcon, Cake } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -24,6 +24,45 @@ const statusOptions: { value: AnimalStatus; label: string; color: string }[] = [
     { value: 'Sold', label: 'Vendu', color: 'bg-blue-100 text-blue-700' },
     { value: 'Deceased', label: 'Décédé', color: 'bg-slate-100 text-slate-700' },
 ];
+
+// Calculate detailed age from birth date
+const calculateDetailedAge = (birthDate: string): { years: number; months: number; days: number; totalMonths: number; ageString: string } => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+
+    let years = today.getFullYear() - birth.getFullYear();
+    let months = today.getMonth() - birth.getMonth();
+    let days = today.getDate() - birth.getDate();
+
+    // Adjust for negative days
+    if (days < 0) {
+        months--;
+        const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        days += lastMonth.getDate();
+    }
+
+    // Adjust for negative months
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+
+    const totalMonths = years * 12 + months;
+
+    // Build age string
+    let ageString = '';
+    if (years > 0) {
+        ageString += `${years} an${years > 1 ? 's' : ''}`;
+    }
+    if (months > 0) {
+        ageString += (ageString ? ' ' : '') + `${months} mois`;
+    }
+    if (years === 0 && months === 0) {
+        ageString = `${days} jour${days > 1 ? 's' : ''}`;
+    }
+
+    return { years, months, days, totalMonths, ageString };
+};
 
 export const AnimalDetails: React.FC = () => {
     const { id } = useParams();
@@ -200,6 +239,35 @@ export const AnimalDetails: React.FC = () => {
                                 </span>
                             </div>
                         </div>
+
+                        {/* Birth Date & Age Details */}
+                        {animal.birthDate && (() => {
+                            const birthDate = new Date(animal.birthDate);
+                            const age = calculateDetailedAge(animal.birthDate);
+                            return (
+                                <div className="md:col-span-2">
+                                    <p className="text-sm text-slate-500 mb-1">Date de naissance & Âge</p>
+                                    <div className="flex items-start gap-3">
+                                        <CalendarIcon className="w-5 h-5 text-primary-600 mt-0.5" />
+                                        <div>
+                                            <p className="text-lg font-bold text-slate-900">
+                                                {birthDate.toLocaleDateString('fr-FR', {
+                                                    day: 'numeric',
+                                                    month: 'long',
+                                                    year: 'numeric'
+                                                })}
+                                            </p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <Cake className="w-4 h-4 text-emerald-600" />
+                                                <p className="text-sm font-semibold text-emerald-700">
+                                                    {age.ageString}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* Add Measurement Button */}
