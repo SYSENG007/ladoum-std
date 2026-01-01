@@ -134,7 +134,8 @@ export function computeMultiRootLayout(
     }));
 
     // Use standard layout algorithm
-    return computeLayout({ subjects }, config);
+    const rootSubjectId = selection.size > 0 ? Array.from(selection)[0] : subjects[0]?.id || '';
+    return computeLayout({ subjects, rootSubjectId }, config);
 }
 
 /**

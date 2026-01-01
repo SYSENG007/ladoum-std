@@ -6,7 +6,6 @@ import { Grid3X3, ArrowUpDown, Filter, Info, TrendingUp, AlertTriangle, HelpCirc
 import clsx from 'clsx';
 import { simulateBreeding } from '../../utils/breedingRules';
 import type { BreedingSimulationResult } from '../../types/breeding';
-import type { Animal } from '../../types';
 
 type SortCriteria = 'score' | 'confidence' | 'inbreeding' | 'hg' | 'lcs' | 'tp';
 

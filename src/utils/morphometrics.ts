@@ -10,8 +10,7 @@
  */
 
 import type { Animal, MorphometricPrediction, Measurement } from '../types';
-import type { PredictedTrait, MorphometricScore, TraitDataBasis } from '../types/breeding';
-import { getGrandparents } from './genetics';
+import type { PredictedTrait, MorphometricScore } from '../types/breeding';
 
 // Default herd averages for Ladoum sheep
 const DEFAULT_HERD_AVERAGES = {

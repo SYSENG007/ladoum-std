@@ -4,6 +4,8 @@ import { User } from 'lucide-react';
 
 interface PedigreeNodeProps {
     node: LayoutNode;
+    isSelected?: boolean;
+    isCommonAncestor?: boolean;
     onClick?: (node: LayoutNode) => void;
     onAddFather?: (node: LayoutNode) => void;
     onAddMother?: (node: LayoutNode) => void;
@@ -14,6 +16,8 @@ interface PedigreeNodeProps {
  */
 export const PedigreeNode: React.FC<PedigreeNodeProps> = ({
     node,
+    isSelected = false,
+    isCommonAncestor = false,
     onClick,
     onAddFather,
     onAddMother
@@ -23,8 +27,19 @@ export const PedigreeNode: React.FC<PedigreeNodeProps> = ({
     const cardWidth = 200;
     const cardHeight = 140;
 
+    // Base colors
     const bgColor = sex === 'M' ? '#EFF6FF' : '#FCE7F3';
-    const borderColor = sex === 'M' ? '#60A5FA' : '#F472B6';
+    let borderColor = sex === 'M' ? '#60A5FA' : '#F472B6';
+    let strokeWidth = 2;
+
+    // Override for selection
+    if (isSelected) {
+        borderColor = '#1E40AF'; // Dark blue for selected
+        strokeWidth = 4;
+    } else if (isCommonAncestor) {
+        borderColor = '#F59E0B'; // Amber for common ancestor
+        strokeWidth = 3;
+    }
 
     return (
         <g transform={`translate(${x}, ${y})`}>
@@ -40,7 +55,7 @@ export const PedigreeNode: React.FC<PedigreeNodeProps> = ({
                     rx="8"
                     fill={bgColor}
                     stroke={borderColor}
-                    strokeWidth="2"
+                    strokeWidth={strokeWidth}
                 />
 
                 {/* Photo area */}

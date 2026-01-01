@@ -1,5 +1,4 @@
 import type { PedigreeGraph } from './pedigreeGraph';
-import { getAncestors, getDescendants } from './pedigreeGraph';
 
 /**
  * Node visual state based on selection context
