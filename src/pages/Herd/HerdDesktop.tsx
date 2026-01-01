@@ -12,7 +12,7 @@ export const HerdDesktop: React.FC = () => {
     const { refreshData } = useData();
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState<string>('all');
+    const [filterStatus, setFilterStatus] = useState<string>('Active'); // Changed default to Active
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     const handleAddSuccess = async () => {
@@ -49,20 +49,26 @@ export const HerdDesktop: React.FC = () => {
                     <input
                         type="text"
                         placeholder={t('herd.searchPlaceholder')}
-                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     <Button variant="secondary" onClick={() => setFilterStatus('all')} className={filterStatus === 'all' ? 'bg-slate-200' : ''}>
                         {t('herd.all')}
                     </Button>
-                    <Button variant="secondary" onClick={() => setFilterStatus('Active')} className={filterStatus === 'Active' ? 'bg-emerald-100 text-emerald-700' : ''}>
+                    <Button variant="secondary" onClick={() => setFilterStatus('Active')} className={filterStatus === 'Active' ? 'bg-green-100 text-green-700' : ''}>
                         {t('herd.active')}
                     </Button>
                     <Button variant="secondary" onClick={() => setFilterStatus('Sold')} className={filterStatus === 'Sold' ? 'bg-blue-100 text-blue-700' : ''}>
                         {t('herd.sold')}
+                    </Button>
+                    <Button variant="secondary" onClick={() => setFilterStatus('Deceased')} className={filterStatus === 'Deceased' ? 'bg-red-100 text-red-700' : ''}>
+                        Décédés
+                    </Button>
+                    <Button variant="secondary" onClick={() => setFilterStatus('External')} className={filterStatus === 'External' ? 'bg-purple-100 text-purple-700' : ''}>
+                        Externes
                     </Button>
                 </div>
             </div>

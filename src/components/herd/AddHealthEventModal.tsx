@@ -106,14 +106,14 @@ export const AddHealthEventModal: React.FC<AddHealthEventModalProps> = ({
         >
             <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 flex items-center justify-between">
+                <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                             <Activity className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-white">Nouvel événement santé</h2>
-                            <p className="text-sm text-blue-100">{animal.name}</p>
+                            <h2 className="text-lg font-heading font-bold text-white">Nouvel événement santé</h2>
+                            <p className="text-sm font-sans text-primary-100">{animal.name}</p>
                         </div>
                     </div>
                     <button
@@ -138,8 +138,8 @@ export const AddHealthEventModal: React.FC<AddHealthEventModalProps> = ({
                                     type="button"
                                     onClick={() => setEventType(type.id)}
                                     className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${eventType === type.id
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                            : 'border-slate-200 hover:border-slate-300'
+                                        ? 'border-primary-500 bg-secondary-50 text-primary-700'
+                                        : 'border-slate-200 hover:border-slate-300'
                                         }`}
                                 >
                                     {type.icon}
@@ -158,7 +158,7 @@ export const AddHealthEventModal: React.FC<AddHealthEventModalProps> = ({
                             type="date"
                             value={eventDate}
                             onChange={(e) => setEventDate(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 rounded-xl border border-secondary-300 focus:ring-2 focus:ring-accent-500 focus:border-transparent font-sans"
                             required
                         />
                     </div>
@@ -173,7 +173,7 @@ export const AddHealthEventModal: React.FC<AddHealthEventModalProps> = ({
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Ex: Vaccin contre la fièvre aphteuse"
                             rows={2}
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            className="w-full px-4 py-3 rounded-xl border border-secondary-300 focus:ring-2 focus:ring-accent-500 focus:border-transparent resize-none font-sans"
                             required
                         />
                     </div>
@@ -188,7 +188,7 @@ export const AddHealthEventModal: React.FC<AddHealthEventModalProps> = ({
                             value={dose}
                             onChange={(e) => setDose(e.target.value)}
                             placeholder="Ex: 5ml"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 rounded-xl border border-secondary-300 focus:ring-2 focus:ring-accent-500 focus:border-transparent font-sans"
                         />
                     </div>
 
@@ -202,7 +202,7 @@ export const AddHealthEventModal: React.FC<AddHealthEventModalProps> = ({
                             value={performer}
                             onChange={(e) => setPerformer(e.target.value)}
                             placeholder="Ex: Dr. Diallo"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 rounded-xl border border-secondary-300 focus:ring-2 focus:ring-accent-500 focus:border-transparent font-sans"
                             required
                         />
                     </div>
@@ -216,7 +216,7 @@ export const AddHealthEventModal: React.FC<AddHealthEventModalProps> = ({
                             type="date"
                             value={nextDueDate}
                             onChange={(e) => setNextDueDate(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 rounded-xl border border-secondary-300 focus:ring-2 focus:ring-accent-500 focus:border-transparent font-sans"
                         />
                         <p className="text-xs text-slate-400 mt-1">
                             Si défini, un rappel sera affiché sur le tableau de bord

@@ -3,7 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import logo from '../assets/logo.jpg';
+import logo from '../assets/logo.png';
 
 export const Login: React.FC = () => {
     const navigate = useNavigate();
@@ -56,7 +56,7 @@ export const Login: React.FC = () => {
     const displayError = localError || error;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-amber-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-amber-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo & Title */}
                 <div className="text-center mb-8">
@@ -91,7 +91,7 @@ export const Login: React.FC = () => {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
                                     placeholder="votre@email.com"
                                 />
                             </div>
@@ -107,7 +107,7 @@ export const Login: React.FC = () => {
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-12 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full pl-10 pr-12 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
                                     placeholder="••••••••"
                                 />
                                 <button
@@ -123,7 +123,7 @@ export const Login: React.FC = () => {
                         <div className="flex items-center justify-end">
                             <Link
                                 to="/forgot-password"
-                                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                                className="text-sm text-slate-900 hover:text-slate-900 font-medium"
                             >
                                 Mot de passe oublié ?
                             </Link>
@@ -180,7 +180,7 @@ export const Login: React.FC = () => {
                         Vous avez un code d'invitation ?{' '}
                         <Link
                             to="/register"
-                            className="text-emerald-600 hover:text-emerald-700 font-medium"
+                            className="text-slate-900 hover:text-slate-900 font-medium"
                         >
                             Créer un compte
                         </Link>

@@ -8,37 +8,75 @@ export default {
   theme: {
     extend: {
       colors: {
+        // PRIMARY: Navy (#1F3C4F)
         primary: {
-          DEFAULT: '#059669', // emerald-600
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#10b981',
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
-          950: '#022c22',
+          DEFAULT: '#1F3C4F',
+          50: '#f0f4f6',
+          100: '#e0e8ec',
+          200: '#c1d1d9',
+          300: '#a2bac6',
+          400: '#83a3b3',
+          500: '#648ca0',
+          600: '#1F3C4F', // Main navy
+          700: '#19303f',
+          800: '#13242f',
+          900: '#0d1820',
+          950: '#070c10',
         },
 
-        // Semantic Status Colors
+        // SECONDARY: Tan (#D6C2A9)
+        secondary: {
+          DEFAULT: '#D6C2A9',
+          50: '#faf8f5',
+          100: '#f5f0ea',
+          200: '#ebe1d5',
+          300: '#D6C2A9', // Main tan
+          400: '#c9b094',
+          500: '#bc9e7f',
+          600: '#a8885d',
+          700: '#866c4a',
+          800: '#645137',
+          900: '#423625',
+        },
+
+        // ACCENT: Gold (#E5A832)
+        accent: {
+          DEFAULT: '#E5A832',
+          50: '#fef7e8',
+          100: '#fdefc8',
+          200: '#fbdf91',
+          300: '#f9cf5a',
+          400: '#E5A832', // Main gold
+          500: '#d99520',
+          600: '#b87a18',
+          700: '#935f13',
+          800: '#6e470e',
+          900: '#4a2f09',
+        },
+
+        // NEUTRAL: Off-White & Dark Grey
+        neutral: {
+          white: '#F9F9F9',
+          grey: '#5A5A5A',
+          'placeholder': '#A0A0A0',
+        },
+
+        // Semantic Status Colors (unchanged)
         success: {
-          DEFAULT: '#10b981', // emerald-500
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#10b981',
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
+          DEFAULT: '#22c55e',
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
         },
         danger: {
-          DEFAULT: '#ef4444', // red-500
+          DEFAULT: '#ef4444',
           50: '#fef2f2',
           100: '#fee2e2',
           200: '#fecaca',
@@ -51,20 +89,20 @@ export default {
           900: '#7f1d1d',
         },
         warning: {
-          DEFAULT: '#f59e0b', // amber-500
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
+          DEFAULT: '#eab308',
+          50: '#fefce8',
+          100: '#fef9c3',
+          200: '#fef08a',
+          300: '#fde047',
+          400: '#facc15',
+          500: '#eab308',
+          600: '#ca8a04',
+          700: '#a16207',
+          800: '#854d0e',
+          900: '#713f12',
         },
         info: {
-          DEFAULT: '#3b82f6', // blue-500
+          DEFAULT: '#3b82f6',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
@@ -77,44 +115,44 @@ export default {
           900: '#1e3a8a',
         },
 
-        // Reproduction-specific colors
+        // Reproduction-specific colors (unchanged)
         reproduction: {
           heat: {
-            DEFAULT: '#ec4899', // pink-500
-            light: '#fce7f3',   // pink-100
-            dark: '#be185d',    // pink-700
+            DEFAULT: '#ec4899',
+            light: '#fce7f3',
+            dark: '#be185d',
           },
           mating: {
-            DEFAULT: '#a855f7', // purple-500
-            light: '#f3e8ff',   // purple-100
-            dark: '#7e22ce',    // purple-700
+            DEFAULT: '#a855f7',
+            light: '#f3e8ff',
+            dark: '#7e22ce',
           },
           birth: {
-            DEFAULT: '#10b981', // emerald-500
-            light: '#d1fae5',   // emerald-100
-            dark: '#047857',    // emerald-700
+            DEFAULT: '#22c55e',
+            light: '#dcfce7',
+            dark: '#15803d',
           },
           gestation: {
-            DEFAULT: '#f97316', // orange-500
-            light: '#ffedd5',   // orange-100
-            dark: '#c2410c',    // orange-700
+            DEFAULT: '#f97316',
+            light: '#ffedd5',
+            dark: '#c2410c',
           },
           ultrasound: {
-            DEFAULT: '#3b82f6', // blue-500
-            light: '#dbeafe',   // blue-100
-            dark: '#1d4ed8',    // blue-700
+            DEFAULT: '#3b82f6',
+            light: '#dbeafe',
+            dark: '#1d4ed8',
           },
         },
 
-        // Animal status colors
+        // Animal status colors (unchanged)
         status: {
-          active: '#10b981',    // emerald-500
-          sold: '#3b82f6',      // blue-500
-          deceased: '#64748b',  // slate-500
-          pending: '#f59e0b',   // amber-500
+          active: '#22c55e',
+          sold: '#3b82f6',
+          deceased: '#64748b',
+          pending: '#eab308',
         },
 
-        // Certification levels
+        // Certification levels (unchanged)
         certification: {
           bronze: '#cd7f32',
           silver: '#c0c0c0',
@@ -147,7 +185,8 @@ export default {
         'overlay-focus': 'rgb(var(--color-overlay-focus) / <alpha-value>)',
       },
       fontFamily: {
-        sans: ['Poppins', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        heading: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       borderRadius: {
         '3xl': '1.5rem',

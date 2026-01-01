@@ -38,7 +38,7 @@ import clsx from 'clsx';
 type StaffRole = 'manager' | 'worker';
 
 const roleLabels: Record<StaffRole, { label: string; icon: React.ElementType; color: string }> = {
-    manager: { label: 'Manager', icon: Briefcase, color: 'text-blue-600 bg-blue-100' },
+    manager: { label: 'Manager', icon: Briefcase, color: 'text-primary-600 bg-secondary-100' },
     worker: { label: 'Employé', icon: Wrench, color: 'text-slate-600 bg-slate-100' },
 };
 
@@ -191,7 +191,7 @@ export const Profile: React.FC = () => {
             {/* User Info Card */}
             <Card className="p-6">
                 <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                         {userProfile?.displayName?.charAt(0).toUpperCase() || 'U'}
                     </div>
 
@@ -201,14 +201,14 @@ export const Profile: React.FC = () => {
                                 type="text"
                                 value={editName}
                                 onChange={(e) => setEditName(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                 placeholder="Votre nom"
                             />
                             <input
                                 type="tel"
                                 value={editPhone}
                                 onChange={(e) => setEditPhone(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                 placeholder="Téléphone"
                             />
                             <div className="flex gap-2">
@@ -268,9 +268,9 @@ export const Profile: React.FC = () => {
                 </div>
 
                 {activeFarm ? (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                    <div className="bg-slate-100 border border-primary-400 rounded-xl p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center">
+                            <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center">
                                 <Building2 className="w-6 h-6 text-white" />
                             </div>
                             <div className="flex-1">
@@ -279,7 +279,7 @@ export const Profile: React.FC = () => {
                                     <p className="text-sm text-slate-500">{activeFarm.location}</p>
                                 )}
                             </div>
-                            <span className="px-2 py-1 bg-emerald-500 text-white text-xs rounded-full font-medium">
+                            <span className="px-2 py-1 bg-primary-600 text-white text-xs rounded-full font-medium">
                                 Active
                             </span>
                         </div>
@@ -375,7 +375,7 @@ export const Profile: React.FC = () => {
                                                 <div className="flex gap-2 mt-2">
                                                     <button
                                                         onClick={() => setShareInvitation(invitation)}
-                                                        className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
+                                                        className="text-xs text-slate-900 hover:text-slate-900 font-medium flex items-center gap-1"
                                                     >
                                                         <Share2 className="w-3 h-3" />
                                                         Partager

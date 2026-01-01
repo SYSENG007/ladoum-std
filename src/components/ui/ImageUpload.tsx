@@ -188,10 +188,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                         type="button"
                         onClick={triggerCamera}
                         disabled={uploading}
-                        className="flex-1 flex flex-col items-center gap-2 p-4 border-2 border-dashed border-slate-300 rounded-xl hover:border-emerald-500 hover:bg-emerald-50/50 transition-colors disabled:opacity-50"
+                        className="flex-1 flex flex-col items-center gap-2 p-4 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-800 hover:bg-slate-100/50 transition-colors disabled:opacity-50"
                     >
-                        <div className="p-3 bg-emerald-100 rounded-full">
-                            <Camera className="w-6 h-6 text-emerald-600" />
+                        <div className="p-3 bg-slate-200 rounded-full">
+                            <Camera className="w-6 h-6 text-slate-900" />
                         </div>
                         <span className="text-sm font-medium text-slate-700">Caméra</span>
                     </button>
@@ -202,20 +202,20 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                     type="button"
                     onClick={triggerGallery}
                     disabled={uploading}
-                    className={`flex-1 flex flex-col items-center gap-2 p-4 border-2 border-dashed border-slate-300 rounded-xl hover:border-blue-500 hover:bg-blue-50/50 transition-colors disabled:opacity-50 ${!isMobile ? 'w-full' : ''}`}
+                    className={`flex-1 flex flex-col items-center gap-2 p-4 border-2 border-dashed border-slate-300 rounded-xl hover:border-primary-500 hover:bg-blue-50/50 transition-colors disabled:opacity-50 ${!isMobile ? 'w-full' : ''}`}
                 >
                     {uploading ? (
                         <>
-                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-                            <span className="text-sm text-blue-600 font-medium">Téléchargement...</span>
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500"></div>
+                            <span className="text-sm text-primary-600 font-medium">Téléchargement...</span>
                         </>
                     ) : (
                         <>
-                            <div className="p-3 bg-blue-100 rounded-full">
+                            <div className="p-3 bg-secondary-100 rounded-full">
                                 {isMobile ? (
-                                    <ImageIcon className="w-6 h-6 text-blue-600" />
+                                    <ImageIcon className="w-6 h-6 text-primary-600" />
                                 ) : (
-                                    <Upload className="w-6 h-6 text-blue-600" />
+                                    <Upload className="w-6 h-6 text-primary-600" />
                                 )}
                             </div>
                             <span className="text-sm font-medium text-slate-700">

@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, PawPrint, GitFork, CalendarCheck, Calendar, Package, LogOut, Menu, Store, Wallet, Stethoscope, Settings, Users, Sun, Moon } from 'lucide-react';
-import logo from '../../assets/logo.jpg';
+import logo from '../../assets/logo.png';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings, useTranslation } from '../../context/SettingsContext';
@@ -50,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
         <>
             {/* Desktop Sidebar */}
             <aside className={clsx(
-                "hidden md:flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 h-screen fixed left-0 top-0 z-50 transition-all duration-300",
+                "hidden md:flex flex-col bg-white dark:bg-primary-600 border-r border-slate-200 dark:border-slate-700 h-screen fixed left-0 top-0 z-50 transition-all duration-300",
                 isCollapsed ? "w-20" : "w-64"
             )}>
                 <div className={clsx("p-4 flex items-center gap-3", isCollapsed ? "justify-center" : "")}>

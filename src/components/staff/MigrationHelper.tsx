@@ -97,12 +97,12 @@ export const MigrationHelper: React.FC = () => {
 
     if (success) {
         return (
-            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+            <div className="mb-6 p-4 bg-slate-100 border border-primary-400 rounded-lg">
                 <div className="flex items-start gap-3">
-                    <RefreshCw className="w-5 h-5 text-emerald-600 mt-0.5" />
+                    <RefreshCw className="w-5 h-5 text-slate-900 mt-0.5" />
                     <div className="flex-1">
                         <h3 className="font-semibold text-emerald-900">Migration réussie !</h3>
-                        <p className="text-sm text-emerald-700 mt-1">
+                        <p className="text-sm text-slate-900 mt-1">
                             La page va se recharger automatiquement...
                         </p>
                     </div>

@@ -104,7 +104,7 @@ export const QuantityDialog: React.FC<QuantityDialogProps> = ({
                                 const val = parseFloat(e.target.value);
                                 setQuantity(isNaN(val) ? 0 : val);
                             }}
-                            className="flex-1 text-center text-2xl font-bold py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
+                            className="flex-1 text-center text-2xl font-bold py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent outline-none"
                         />
                         {unit && (
                             <span className="text-lg font-medium text-text-muted min-w-[3rem]">

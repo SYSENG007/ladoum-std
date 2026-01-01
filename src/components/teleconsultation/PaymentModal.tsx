@@ -128,11 +128,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                     >
                                         <div className={clsx(
                                             'p-3 rounded-xl',
-                                            method.color === 'orange' ? 'bg-orange-100' : 'bg-blue-100'
+                                            method.color === 'orange' ? 'bg-orange-100' : 'bg-secondary-100'
                                         )}>
                                             <method.icon className={clsx(
                                                 'w-6 h-6',
-                                                method.color === 'orange' ? 'text-orange-600' : 'text-blue-600'
+                                                method.color === 'orange' ? 'text-orange-600' : 'text-primary-600'
                                             )} />
                                         </div>
                                         <div className="flex-1 text-left">

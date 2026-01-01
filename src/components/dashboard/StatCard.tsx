@@ -13,7 +13,7 @@ interface StatCardProps {
 
 export const StatCard: React.FC<StatCardProps> = ({ label, value, trend, icon: Icon, color, onClick }) => {
     const colorClasses = {
-        blue: 'bg-blue-100 text-blue-600',
+        blue: 'bg-secondary-100 text-primary-600',
         green: 'bg-green-100 text-green-600',
         purple: 'bg-purple-100 text-purple-600',
         amber: 'bg-amber-100 text-amber-600',
@@ -30,7 +30,7 @@ export const StatCard: React.FC<StatCardProps> = ({ label, value, trend, icon: I
             )}
         >
             <div className="flex items-center justify-between mb-4">
-                <div className={clsx("p-3 rounded-xl", colorClasses[color])}>
+                <div className={clsx("p-3 rounded-2xl", colorClasses[color])}>
                     <Icon className="w-6 h-6" />
                 </div>
                 <span className={clsx("text-sm font-bold", trendColor)}>{trend}</span>

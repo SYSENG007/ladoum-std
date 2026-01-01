@@ -109,7 +109,7 @@ export const Staff: React.FC = () => {
     const getRoleIcon = (role: string) => {
         switch (role) {
             case 'owner': return <Crown className="w-4 h-4 text-amber-500" />;
-            case 'manager': return <Crown className="w-4 h-4 text-blue-500" />;
+            case 'manager': return <Crown className="w-4 h-4 text-primary-500" />;
             default: return <Wrench className="w-4 h-4 text-slate-400" />;
         }
     };
@@ -132,7 +132,7 @@ export const Staff: React.FC = () => {
         if (diffDays === 0) return { text: 'Expire aujourd\'hui', color: 'bg-red-100 text-red-700 border-red-200' };
         if (diffDays === 1) return { text: 'Expire demain', color: 'bg-orange-100 text-orange-700 border-orange-200' };
         if (diffDays <= 3) return { text: `Expire dans ${diffDays} jours`, color: 'bg-orange-100 text-orange-700 border-orange-200' };
-        return { text: `Expire dans ${diffDays} jours`, color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
+        return { text: `Expire dans ${diffDays} jours`, color: 'bg-slate-200 text-slate-900 border-primary-400' };
     };
 
     const myTodayAttendance = todayAttendance.find(a => a.memberId === user?.uid);
@@ -189,7 +189,7 @@ export const Staff: React.FC = () => {
                         {tab.count !== undefined && (
                             <span className={clsx(
                                 "text-xs px-1.5 py-0.5 rounded-full",
-                                activeTab === tab.id ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
+                                activeTab === tab.id ? "bg-slate-200 text-slate-900" : "bg-slate-200 text-slate-600"
                             )}>
                                 {tab.count}
                             </span>
@@ -212,7 +212,7 @@ export const Staff: React.FC = () => {
                             {members.map((member, idx) => (
                                 <Card key={member.userId || idx} className="p-4">
                                     <div className="flex items-start gap-4">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-slate-800 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold">
                                             {member.displayName?.charAt(0) || 'M'}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -289,7 +289,7 @@ export const Staff: React.FC = () => {
                                                                             console.error(err);
                                                                         }
                                                                     }}
-                                                                    className="text-xs text-blue-600 hover:underline font-medium"
+                                                                    className="text-xs text-primary-600 hover:underline font-medium"
                                                                     title="Prolonger de 7 jours"
                                                                 >
                                                                     Prolonger
@@ -301,7 +301,7 @@ export const Staff: React.FC = () => {
 
                                                     <button
                                                         onClick={() => setShareInvitation(invitation)}
-                                                        className="text-xs text-emerald-600 hover:underline font-medium"
+                                                        className="text-xs text-slate-900 hover:underline font-medium"
                                                     >
                                                         Renvoyer
                                                     </button>
@@ -377,7 +377,7 @@ export const Staff: React.FC = () => {
                                             <div className="flex items-center gap-3">
                                                 <div className={clsx(
                                                     "w-3 h-3 rounded-full",
-                                                    attendance.status === 'present' ? "bg-emerald-500" :
+                                                    attendance.status === 'present' ? "bg-primary-600" :
                                                         attendance.status === 'late' ? "bg-amber-500" : "bg-red-500"
                                                 )} />
                                                 <span className="font-medium">{attendance.memberName}</span>

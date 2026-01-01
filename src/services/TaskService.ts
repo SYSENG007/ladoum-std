@@ -6,6 +6,7 @@ import {
     updateDoc,
     deleteDoc,
     query,
+    where,
     orderBy
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -14,9 +15,16 @@ import type { Task, TaskStatus } from '../types';
 const COLLECTION_NAME = 'tasks';
 
 export const TaskService = {
-    // Get all tasks
-    async getAll(): Promise<Task[]> {
-        const q = query(collection(db, COLLECTION_NAME), orderBy('date'));
+    // Get all tasks for a specific farm
+    async getAll(farmId: string | undefined): Promise<Task[]> {
+        if (!farmId) {
+            return [];
+        }
+        const q = query(
+            collection(db, COLLECTION_NAME),
+            where('farmId', '==', farmId),
+            orderBy('date')
+        );
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({
             id: doc.id,

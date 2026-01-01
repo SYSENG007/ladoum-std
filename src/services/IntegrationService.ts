@@ -172,12 +172,11 @@ export const IntegrationService = {
         userId: string,
         farmId?: string
     ): Promise<number> {
-        const tasks = await TaskService.getAll();
+        const tasks = await TaskService.getAll(farmId);
         const today = new Date().toISOString().split('T')[0];
 
         const overdueTasks = tasks.filter(
-            task => (!task.farmId || !farmId || task.farmId === farmId) &&
-                task.status !== 'Done' &&
+            task => task.status !== 'Done' &&
                 task.date < today
         );
 
@@ -222,12 +221,11 @@ export const IntegrationService = {
             .filter(t => t.type === 'Expense')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        // Tâches du mois
-        const tasks = await TaskService.getAll();
+        // Tasks for the month
+        const tasks = await TaskService.getAll(farmId);
         const monthTasks = tasks.filter(
             t => t.date >= monthStart &&
-                t.date <= monthEnd &&
-                (!t.farmId || !farmId || t.farmId === farmId)
+                t.date <= monthEnd
         );
 
         return {

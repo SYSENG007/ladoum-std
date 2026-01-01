@@ -105,7 +105,7 @@ export const ConsultationCard: React.FC<ConsultationCardProps> = ({
                 )}>
                     <div className="flex gap-4">
                         {/* Type icon */}
-                        <div className={clsx('p-3 rounded-xl h-fit', getTypeColor())}>
+                        <div className={clsx('p-3 rounded-2xl h-fit', getTypeColor())}>
                             <MessageCircle className="w-6 h-6" />
                         </div>
 
@@ -179,7 +179,7 @@ export const ConsultationCard: React.FC<ConsultationCardProps> = ({
                                 onClick={(e) => handleActionClick(e, () => handleStatusChange('InProgress'))}
                                 className="w-full px-4 py-3 text-left hover:bg-blue-50 flex items-center gap-3 text-sm"
                             >
-                                <Play className="w-4 h-4 text-blue-600" />
+                                <Play className="w-4 h-4 text-primary-600" />
                                 <span className="text-slate-700">Démarrer la consultation</span>
                             </button>
                         )}

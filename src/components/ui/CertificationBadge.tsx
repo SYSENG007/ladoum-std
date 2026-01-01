@@ -21,7 +21,7 @@ export const CertificationBadge: React.FC<CertificationBadgeProps> = ({
             case 'Bronze':
                 return 'bg-gradient-to-br from-orange-100 to-orange-200 text-orange-800 border-orange-300';
             case 'Silver':
-                return 'bg-gradient-to-br from-slate-100 to-slate-300 text-slate-800 border-slate-400';
+                return 'bg-gradient-to-br from-slate-100 to-slate-300 text-slate-800 border-primary-400';
             case 'Gold':
                 return 'bg-gradient-to-br from-yellow-100 to-yellow-300 text-yellow-800 border-yellow-400';
             case 'Platinum':

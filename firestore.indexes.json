@@ -1,7 +1,7 @@
 {
     "indexes": [
         {
-            "collectionGroup": "transactions",
+            "collectionGroup": "animals",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -9,8 +9,8 @@
                     "order": "ASCENDING"
                 },
                 {
-                    "fieldPath": "date",
-                    "order": "DESCENDING"
+                    "fieldPath": "name",
+                    "order": "ASCENDING"
                 }
             ]
         },
@@ -29,7 +29,7 @@
             ]
         },
         {
-            "collectionGroup": "animals",
+            "collectionGroup": "transactions",
             "queryScope": "COLLECTION",
             "fields": [
                 {
@@ -37,8 +37,8 @@
                     "order": "ASCENDING"
                 },
                 {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
+                    "fieldPath": "date",
+                    "order": "DESCENDING"
                 }
             ]
         },
@@ -48,6 +48,10 @@
             "fields": [
                 {
                     "fieldPath": "farmId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
                     "order": "ASCENDING"
                 },
                 {
@@ -67,108 +71,6 @@
                 {
                     "fieldPath": "name",
                     "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "notifications",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "userId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "dismissed",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "createdAt",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "invitations",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "farmId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "invitations",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "email",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "invitations",
-            "queryScope": "COLLECTION_GROUP",
-            "fields": [
-                {
-                    "fieldPath": "token",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "invitations",
-            "queryScope": "COLLECTION_GROUP",
-            "fields": [
-                {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "expiresAt",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "invitations",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "farmId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "createdAt",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "invitations",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "status",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "createdAt",
-                    "order": "DESCENDING"
                 }
             ]
         }

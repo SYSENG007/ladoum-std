@@ -27,7 +27,7 @@ export const HerdMobile: React.FC = () => {
     const { refreshData } = useData();
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState<string>('all');
+    const [filterStatus, setFilterStatus] = useState<string>('Active'); // Changed default to Active
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     const handleAddSuccess = async () => {
@@ -49,11 +49,11 @@ export const HerdMobile: React.FC = () => {
             <div className="flex items-center justify-between mb-3 flex-shrink-0 px-1">
                 <div>
                     <h1 className="text-lg font-bold text-slate-900">{t('herd.title')}</h1>
-                    <p className="text-xs text-slate-500">{animals.length} {t('dashboard.totalAnimals').toLowerCase()}</p>
+                    <p className="text-xs text-slate-500">{animals.filter(a => a.status === 'Active').length} actifs</p>
                 </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="w-9 h-9 bg-emerald-500 rounded-lg flex items-center justify-center text-white shadow-sm"
+                    className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center text-white shadow-sm"
                 >
                     <Plus className="w-5 h-5" />
                 </button>
@@ -65,7 +65,7 @@ export const HerdMobile: React.FC = () => {
                 <input
                     type="text"
                     placeholder={t('common.search') + '...'}
-                    className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -74,9 +74,11 @@ export const HerdMobile: React.FC = () => {
             {/* Filters */}
             <div className="flex gap-2 mb-3 flex-shrink-0 overflow-x-auto pb-1">
                 {[
-                    { key: 'all', labelKey: 'herd.all' },
-                    { key: 'Active', labelKey: 'herd.active' },
-                    { key: 'Sold', labelKey: 'herd.sold' },
+                    { key: 'all', label: 'Tous' },
+                    { key: 'Active', label: 'Actifs' },
+                    { key: 'Sold', label: 'Vendus' },
+                    { key: 'Deceased', label: 'Décédés' },
+                    { key: 'External', label: 'Externes' },
                 ].map(f => (
                     <button
                         key={f.key}
@@ -84,11 +86,11 @@ export const HerdMobile: React.FC = () => {
                         className={clsx(
                             "px-3 py-1.5 text-xs rounded-full whitespace-nowrap",
                             filterStatus === f.key
-                                ? "bg-emerald-500 text-white"
+                                ? "bg-primary-600 text-white"
                                 : "bg-slate-100 text-slate-600"
                         )}
                     >
-                        {t(f.labelKey)}
+                        {f.label}
                     </button>
                 ))}
             </div>
@@ -103,7 +105,7 @@ export const HerdMobile: React.FC = () => {
                             className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm border border-slate-100"
                         >
                             <img
-                                src={animal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=200'}
+                                src={animal.photoUrl || '/logo.png'}
                                 alt={animal.name}
                                 className="w-14 h-14 rounded-lg object-cover"
                             />
@@ -117,7 +119,7 @@ export const HerdMobile: React.FC = () => {
                                     )}
                                     <span className={clsx(
                                         "text-[10px] px-1.5 py-0.5 rounded shrink-0",
-                                        animal.gender === 'Male' ? "bg-blue-100 text-blue-700" : "bg-pink-100 text-pink-700"
+                                        animal.gender === 'Male' ? "bg-secondary-100 text-primary-700" : "bg-pink-100 text-pink-700"
                                     )}>
                                         {animal.gender === 'Male' ? '♂' : '♀'}
                                     </span>
@@ -133,8 +135,8 @@ export const HerdMobile: React.FC = () => {
                             </div>
                             <div className={clsx(
                                 "w-2 h-2 rounded-full",
-                                animal.status === 'Active' ? "bg-emerald-500" :
-                                    animal.status === 'Sold' ? "bg-blue-500" : "bg-slate-300"
+                                animal.status === 'Active' ? "bg-primary-600" :
+                                    animal.status === 'Sold' ? "bg-primary-500" : "bg-slate-300"
                             )} />
                         </div>
                     ))

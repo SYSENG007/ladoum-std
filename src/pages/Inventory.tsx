@@ -107,7 +107,7 @@ export const Inventory: React.FC = () => {
 
     const getCategoryIcon = (category: string) => {
         switch (category) {
-            case 'Medicine': return <Syringe className="w-5 h-5 text-blue-500" />;
+            case 'Medicine': return <Syringe className="w-5 h-5 text-primary-500" />;
             case 'Feed': return <Wheat className="w-5 h-5 text-amber-500" />;
             default: return <Wrench className="w-5 h-5 text-slate-500" />;
         }
@@ -152,8 +152,8 @@ export const Inventory: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                            <Package className="w-5 h-5 text-blue-600" />
+                        <div className="p-2 bg-secondary-100 rounded-lg">
+                            <Package className="w-5 h-5 text-primary-600" />
                         </div>
                         <div>
                             <p className="text-sm text-slate-500">{t('inventory.totalItems')}</p>
@@ -214,7 +214,7 @@ export const Inventory: React.FC = () => {
                     <input
                         type="text"
                         placeholder={t('common.search') + "..."}
-                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -227,7 +227,7 @@ export const Inventory: React.FC = () => {
                             className={clsx(
                                 "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
                                 selectedCategory === cat.value
-                                    ? "bg-slate-900 text-white"
+                                    ? "bg-primary-700 text-white"
                                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                             )}
                         >
@@ -315,7 +315,7 @@ export const Inventory: React.FC = () => {
                                     </button>
                                     <button
                                         onClick={() => handleQuickAdjust(item, 'add')}
-                                        className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-600 transition-all"
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-400 hover:text-slate-900 transition-all"
                                         title={t('inventory.addStock')}
                                     >
                                         <Plus className="w-4 h-4" />

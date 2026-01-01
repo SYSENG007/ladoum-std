@@ -38,7 +38,7 @@ export const CalendarDesktop: React.FC = () => {
                 title: task.title,
                 date: task.date,
                 type: 'task',
-                color: 'bg-blue-500',
+                color: 'bg-primary-500',
                 description: task.description
             });
         });
@@ -218,7 +218,7 @@ export const CalendarDesktop: React.FC = () => {
             {/* View switcher and navigation */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* View switcher */}
-                <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                <div className="flex bg-slate-100 dark:bg-primary-600 rounded-lg p-1">
                     <button
                         onClick={() => setView('month')}
                         className={clsx(
@@ -273,7 +273,7 @@ export const CalendarDesktop: React.FC = () => {
                 </Card>
                 <Card className="p-4">
                     <p className="text-sm text-text-muted">Tâches</p>
-                    <p className="text-2xl font-bold text-blue-600">{tasks.length}</p>
+                    <p className="text-2xl font-bold text-primary-600">{tasks.length}</p>
                 </Card>
                 <Card className="p-4">
                     <p className="text-sm text-text-muted">Reproduction</p>

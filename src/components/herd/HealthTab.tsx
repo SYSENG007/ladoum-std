@@ -27,7 +27,7 @@ export const HealthTab: React.FC<HealthTabProps> = ({ records = [], animal, onUp
 
     const getColor = (type: HealthRecord['type']) => {
         switch (type) {
-            case 'Vaccination': return 'text-blue-600 bg-blue-50';
+            case 'Vaccination': return 'text-primary-600 bg-blue-50';
             case 'Treatment': return 'text-red-600 bg-red-50';
             case 'Vitamin': return 'text-green-600 bg-green-50';
             case 'Checkup': return 'text-purple-600 bg-purple-50';
@@ -65,7 +65,7 @@ export const HealthTab: React.FC<HealthTabProps> = ({ records = [], animal, onUp
                         const Icon = getIcon(record.type);
                         return (
                             <Card key={record.id} className="flex gap-4 p-4" noPadding>
-                                <div className={`p-3 rounded-xl h-fit ${getColor(record.type)}`}>
+                                <div className={`p-3 rounded-2xl h-fit ${getColor(record.type)}`}>
                                     <Icon className="w-6 h-6" />
                                 </div>
                                 <div className="flex-1">

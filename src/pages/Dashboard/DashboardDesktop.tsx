@@ -37,9 +37,10 @@ export const DashboardDesktop: React.FC = () => {
     }, [userProfile?.displayName, user?.email]);
 
     const stats = useMemo(() => {
-        const totalAnimals = animals.length;
-        const males = animals.filter(a => a.gender === 'Male').length;
-        const females = animals.filter(a => a.gender === 'Female').length;
+        const nonExternalAnimals = animals.filter(a => a.status !== 'External');
+        const totalAnimals = nonExternalAnimals.length;
+        const males = nonExternalAnimals.filter(a => a.gender === 'Male').length;
+        const females = nonExternalAnimals.filter(a => a.gender === 'Female').length;
 
         return { total: totalAnimals, males, females };
     }, [animals]);
@@ -82,7 +83,7 @@ export const DashboardDesktop: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6 flex-shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                    <div className="w-11 h-11 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
                         {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
                     </div>
                     <div>
@@ -97,7 +98,7 @@ export const DashboardDesktop: React.FC = () => {
                             <p className="text-sm font-semibold text-slate-900">{userProfile?.displayName || t('dashboard.user')}</p>
                             <p className="text-xs text-slate-500">{getRoleName(userProfile?.role)}</p>
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
                             {userInitials}
                         </div>
                     </button>
@@ -118,15 +119,15 @@ export const DashboardDesktop: React.FC = () => {
                         {/* Total Sujets Card */}
                         <Card className="p-5 cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between" onClick={() => navigate('/herd')}>
                             <div className="flex items-start justify-between">
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-100">
-                                    <Users className="w-5 h-5 text-blue-600" />
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary-100">
+                                    <Users className="w-5 h-5 text-primary-600" />
                                 </div>
                             </div>
                             <div className="mt-3">
                                 <h3 className="text-2xl font-bold text-slate-900">{stats.total}</h3>
                                 <p className="text-sm text-slate-500">{t('dashboard.totalAnimals')}</p>
                                 <div className="flex gap-3 mt-1 text-xs">
-                                    <span className="text-blue-600 font-medium">♂ {stats.males} {t('dashboard.males')}</span>
+                                    <span className="text-primary-600 font-medium">♂ {stats.males} {t('dashboard.males')}</span>
                                     <span className="text-pink-600 font-medium">♀ {stats.females} {t('dashboard.females')}</span>
                                 </div>
                             </div>
@@ -153,7 +154,7 @@ export const DashboardDesktop: React.FC = () => {
                                     ))}
                                 </div>
                             </div>
-                            <button onClick={() => navigate('/herd')} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1">
+                            <button onClick={() => navigate('/herd')} className="text-sm text-slate-900 hover:text-slate-900 font-medium flex items-center gap-1">
                                 {t('dashboard.viewAll')} <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
@@ -173,7 +174,7 @@ export const DashboardDesktop: React.FC = () => {
                                     {filteredAnimals.length > 0 ? filteredAnimals.map(animal => (
                                         <div key={animal.id} onClick={() => navigate(`/herd/${animal.id}`)} className="w-40 flex-shrink-0 bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 cursor-pointer hover:shadow-md">
                                             <div className="h-28 relative overflow-hidden">
-                                                <img src={animal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'} alt={animal.name} className="w-full h-full object-cover" />
+                                                <img src={animal.photoUrl || '/logo.png'} alt={animal.name} className="w-full h-full object-cover" />
                                                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                                                     <p className="text-white font-semibold text-sm">{animal.name}</p>
                                                     <p className="text-white/70 text-xs">{animal.tagId || `LAD-${animal.id?.slice(-3)}`}</p>

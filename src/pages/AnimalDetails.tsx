@@ -21,7 +21,7 @@ type AnimalStatus = 'Active' | 'Sold' | 'Deceased';
 
 const statusOptions: { value: AnimalStatus; label: string; color: string }[] = [
     { value: 'Active', label: 'Actif', color: 'bg-green-100 text-green-700' },
-    { value: 'Sold', label: 'Vendu', color: 'bg-blue-100 text-blue-700' },
+    { value: 'Sold', label: 'Vendu', color: 'bg-secondary-100 text-primary-700' },
     { value: 'Deceased', label: 'Décédé', color: 'bg-slate-100 text-slate-700' },
 ];
 
@@ -258,8 +258,8 @@ export const AnimalDetails: React.FC = () => {
                                                 })}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <Cake className="w-4 h-4 text-emerald-600" />
-                                                <p className="text-sm font-semibold text-emerald-700">
+                                                <Cake className="w-4 h-4 text-slate-900" />
+                                                <p className="text-sm font-semibold text-slate-900">
                                                     {age.ageString}
                                                 </p>
                                             </div>
@@ -365,7 +365,7 @@ export const AnimalDetails: React.FC = () => {
                                         .slice(0, 3)
                                         .map(record => (
                                             <div key={record.id} className="flex gap-3 items-start">
-                                                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
+                                                <div className="w-2 h-2 rounded-full bg-primary-500 mt-2" />
                                                 <div>
                                                     <p className="text-sm font-medium text-slate-900">{record.type}</p>
                                                     <p className="text-xs text-slate-500">{record.nextDueDate}</p>

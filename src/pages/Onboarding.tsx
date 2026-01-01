@@ -169,7 +169,7 @@ export const Onboarding: React.FC = () => {
                     height: 0,
                     length: 0,
                     chestGirth: 0,
-                    photoUrl: firstAnimal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400',
+                    photoUrl: firstAnimal.photoUrl || '/logo.png',
                     farmId: createdFarmId
                 });
             }
@@ -202,7 +202,7 @@ export const Onboarding: React.FC = () => {
     }, [firstAnimal]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-amber-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-amber-50 flex items-center justify-center p-4">
             <div className="w-full max-w-lg">
                 {/* Progress Bar */}
                 <div className="mb-8">
@@ -212,7 +212,7 @@ export const Onboarding: React.FC = () => {
                     </div>
                     <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-slate-800 to-slate-600 transition-all duration-500"
                             style={{ width: `${progressPercentage}%` }}
                         />
                     </div>
@@ -222,9 +222,9 @@ export const Onboarding: React.FC = () => {
                             <div
                                 key={step}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${step < currentStep
-                                    ? 'bg-emerald-500 text-white'
+                                    ? 'bg-primary-600 text-white'
                                     : step === currentStep
-                                        ? 'bg-emerald-100 text-emerald-700 ring-2 ring-emerald-500'
+                                        ? 'bg-slate-200 text-slate-900 ring-2 ring-slate-800'
                                         : 'bg-slate-100 text-slate-400'
                                     }`}
                             >
@@ -246,7 +246,7 @@ export const Onboarding: React.FC = () => {
                     {/* Step 1: Welcome */}
                     {currentStep === 1 && (
                         <div className="flex-1 flex flex-col items-center justify-center text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-full flex items-center justify-center mb-6">
+                            <div className="w-24 h-24 bg-gradient-to-br from-slate-200 to-slate-100 rounded-full flex items-center justify-center mb-6">
                                 <span className="text-5xl">🐑</span>
                             </div>
                             <h2 className="text-2xl font-bold text-slate-900 mb-3">
@@ -258,19 +258,19 @@ export const Onboarding: React.FC = () => {
                             </p>
                             <div className="mt-8 flex flex-col gap-3 text-left">
                                 <div className="flex items-center gap-3 text-slate-600">
-                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                    <CheckCircle className="w-5 h-5 text-slate-800" />
                                     <span>Suivi complet de votre cheptel</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-slate-600">
-                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                    <CheckCircle className="w-5 h-5 text-slate-800" />
                                     <span>Gestion de la reproduction</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-slate-600">
-                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                    <CheckCircle className="w-5 h-5 text-slate-800" />
                                     <span>Comptabilité et inventaire</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-slate-600">
-                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                    <CheckCircle className="w-5 h-5 text-slate-800" />
                                     <span>Gestion de votre équipe</span>
                                 </div>
                             </div>
@@ -281,8 +281,8 @@ export const Onboarding: React.FC = () => {
                     {currentStep === 2 && (
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                                    <User className="w-6 h-6 text-emerald-600" />
+                                <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center">
+                                    <User className="w-6 h-6 text-slate-900" />
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold text-slate-900">Vos informations</h2>
@@ -299,7 +299,7 @@ export const Onboarding: React.FC = () => {
                                         type="text"
                                         value={data.userInfo.displayName}
                                         onChange={(e) => updateUserInfo('displayName', e.target.value)}
-                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                         placeholder="Ex: Moustapha Diallo"
                                     />
                                 </div>
@@ -312,7 +312,7 @@ export const Onboarding: React.FC = () => {
                                         type="tel"
                                         value={data.userInfo.phone}
                                         onChange={(e) => updateUserInfo('phone', e.target.value)}
-                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                         placeholder="+221 77 123 45 67"
                                     />
                                     <p className="text-xs text-slate-400 mt-1">
@@ -345,7 +345,7 @@ export const Onboarding: React.FC = () => {
                                         type="text"
                                         value={data.farmInfo.name}
                                         onChange={(e) => updateFarmInfo('name', e.target.value)}
-                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                         placeholder="Ex: Bergerie Diallo"
                                     />
                                 </div>
@@ -360,7 +360,7 @@ export const Onboarding: React.FC = () => {
                                             type="text"
                                             value={data.farmInfo.location}
                                             onChange={(e) => updateFarmInfo('location', e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                             placeholder="Ex: Thiès, Sénégal"
                                         />
                                     </div>
@@ -373,7 +373,7 @@ export const Onboarding: React.FC = () => {
                                     <select
                                         value={data.farmInfo.defaultBreed}
                                         onChange={(e) => updateFarmInfo('defaultBreed', e.target.value)}
-                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                     >
                                         <option value="Ladoum">Ladoum</option>
                                         <option value="Bali-Bali">Bali-Bali</option>
@@ -390,8 +390,8 @@ export const Onboarding: React.FC = () => {
                     {currentStep === 4 && (
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                                    <PawPrint className="w-6 h-6 text-blue-600" />
+                                <div className="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center">
+                                    <PawPrint className="w-6 h-6 text-primary-600" />
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold text-slate-900">Taille du cheptel</h2>
@@ -410,7 +410,7 @@ export const Onboarding: React.FC = () => {
                                                 key={num}
                                                 onClick={() => updateFarmInfo('estimatedAnimals', num)}
                                                 className={`py-3 px-4 rounded-xl font-medium transition-all border-2 ${data.farmInfo.estimatedAnimals === num
-                                                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                                    ? 'border-slate-800 bg-slate-100 text-slate-900'
                                                     : 'border-slate-200 text-slate-600 hover:border-slate-300'
                                                     }`}
                                             >
@@ -434,7 +434,7 @@ export const Onboarding: React.FC = () => {
                                                 key={num}
                                                 onClick={() => updateFarmInfo('estimatedEmployees', num)}
                                                 className={`py-3 px-4 rounded-xl font-medium transition-all border-2 ${data.farmInfo.estimatedEmployees === num
-                                                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                                    ? 'border-slate-800 bg-slate-100 text-slate-900'
                                                     : 'border-slate-200 text-slate-600 hover:border-slate-300'
                                                     }`}
                                             >
@@ -453,8 +453,8 @@ export const Onboarding: React.FC = () => {
                     {/* Step 5: Summary before creating farm */}
                     {currentStep === 5 && (
                         <div className="flex-1 flex flex-col items-center justify-center text-center">
-                            <div className="w-20 h-20 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-full flex items-center justify-center mb-6">
-                                <Home className="w-10 h-10 text-emerald-600" />
+                            <div className="w-20 h-20 bg-gradient-to-br from-slate-200 to-slate-100 rounded-full flex items-center justify-center mb-6">
+                                <Home className="w-10 h-10 text-slate-900" />
                             </div>
                             <h2 className="text-2xl font-bold text-slate-900 mb-3">
                                 Création de votre bergerie
@@ -511,7 +511,7 @@ export const Onboarding: React.FC = () => {
                                                 <img
                                                     src={firstAnimal.photoUrl}
                                                     alt="Animal"
-                                                    className="w-24 h-24 rounded-full object-cover border-4 border-emerald-200"
+                                                    className="w-24 h-24 rounded-full object-cover border-4 border-primary-400"
                                                 />
                                             ) : (
                                                 <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center border-4 border-slate-200">
@@ -534,7 +534,7 @@ export const Onboarding: React.FC = () => {
                                                 type="text"
                                                 value={firstAnimal.name}
                                                 onChange={(e) => setFirstAnimal(prev => ({ ...prev, name: e.target.value }))}
-                                                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                                 placeholder="Ex: Koumba"
                                             />
                                         </div>
@@ -546,7 +546,7 @@ export const Onboarding: React.FC = () => {
                                                 type="text"
                                                 value={firstAnimal.tagId}
                                                 onChange={(e) => setFirstAnimal(prev => ({ ...prev, tagId: e.target.value }))}
-                                                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                                 placeholder="Ex: LAD-001"
                                             />
                                         </div>
@@ -561,7 +561,7 @@ export const Onboarding: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setFirstAnimal(prev => ({ ...prev, gender: 'Male' }))}
                                                 className={`py-3 px-4 rounded-xl font-medium transition-all border-2 flex items-center justify-center gap-2 ${firstAnimal.gender === 'Male'
-                                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                    ? 'border-primary-500 bg-secondary-50 text-primary-700'
                                                     : 'border-slate-200 text-slate-600 hover:border-slate-300'
                                                     }`}
                                             >
@@ -588,7 +588,7 @@ export const Onboarding: React.FC = () => {
                                             type="date"
                                             value={firstAnimal.birthDate}
                                             onChange={(e) => setFirstAnimal(prev => ({ ...prev, birthDate: e.target.value }))}
-                                            className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                         />
                                     </div>
 
@@ -641,7 +641,7 @@ export const Onboarding: React.FC = () => {
                             <Button
                                 onClick={handleNext}
                                 disabled={loading}
-                                className="bg-gradient-to-r from-emerald-500 to-emerald-600"
+                                className="bg-gradient-to-r from-primary-600 to-primary-700"
                             >
                                 {loading ? 'Création...' : 'Créer ma bergerie'}
                                 <ChevronRight className="w-5 h-5 ml-1" />
@@ -652,7 +652,7 @@ export const Onboarding: React.FC = () => {
                             <Button
                                 onClick={handleComplete}
                                 disabled={loading || (!skipAnimal && !canAddAnimal)}
-                                className="bg-gradient-to-r from-emerald-500 to-emerald-600"
+                                className="bg-gradient-to-r from-primary-600 to-primary-700"
                             >
                                 {loading ? 'Configuration...' : skipAnimal ? 'Terminer' : 'Ajouter et terminer'} 🚀
                             </Button>

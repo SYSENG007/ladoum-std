@@ -1,23 +1,30 @@
 /**
- * Morphometric Utilities for Ladoum Sheep Breeding
- * Predicts offspring measurements and calculates genetic potential
+ * Morphometric Utilities for Ladoum Sheep Breeding V1.1
+ * Predicts offspring measurements with confidence qualification
+ * 
+ * V1.1 Changes:
+ * - Returns PredictedTrait with confidence (0-1) instead of string labels
+ * - Returns MorphometricScore with qualified confidence
+ * - null instead of defaults when data insufficient
+ * - Explicit data basis for each prediction
  */
 
 import type { Animal, MorphometricPrediction, Measurement } from '../types';
+import type { PredictedTrait, MorphometricScore, TraitDataBasis } from '../types/breeding';
 import { getGrandparents } from './genetics';
 
-// Default herd averages for Ladoum sheep (can be recalculated from actual data)
+// Default herd averages for Ladoum sheep
 const DEFAULT_HERD_AVERAGES = {
     hg: 95,   // Hauteur au garrot (cm)
     lcs: 105, // Longueur corps (cm)
     tp: 100   // Tour de poitrine (cm)
 };
 
-// Weights for genetic prediction calculation
-const PREDICTION_WEIGHTS = {
-    parents: 0.40,       // 40% from parents
-    grandparents: 0.30,  // 30% from grandparents
-    descendants: 0.30    // 30% from existing descendants (if any)
+// Heritability estimates for morphometric traits (sheep)
+const HERITABILITY = {
+    hg: 0.40,   // Height: 40% heritable
+    lcs: 0.35,  // Length: 35% heritable
+    tp: 0.30    // Chest: 30% heritable
 };
 
 /**
@@ -28,7 +35,6 @@ export function getLatestMeasurements(animal: Animal): {
     lcs: number;
     tp: number;
 } | null {
-    // First check if animal has measurement history
     if (animal.measurements && animal.measurements.length > 0) {
         const latest = animal.measurements[animal.measurements.length - 1];
         return {
@@ -38,7 +44,6 @@ export function getLatestMeasurements(animal: Animal): {
         };
     }
 
-    // Fallback to direct properties
     if (animal.height && animal.length && animal.chestGirth) {
         return {
             hg: animal.height,
@@ -81,165 +86,222 @@ export function calculateHerdAverages(animals: Animal[]): {
 }
 
 /**
- * Calculate average measurements from a list of animals
+ * Calculate variance for prediction interval based on heritability
  */
-function calculateAverageMeasurements(animals: (Animal | undefined)[]): {
-    hg: number | null;
-    lcs: number | null;
-    tp: number | null;
-} {
-    const validAnimals = animals.filter((a): a is Animal => a !== undefined);
-    if (validAnimals.length === 0) return { hg: null, lcs: null, tp: null };
+function calculatePredictionVariance(
+    heritability: number,
+    parentMeasures: number[],
+    herdMean: number
+): number {
+    // Standard deviation increases with lower heritability and data scarcity
+    const baseVariance = herdMean * 0.10; // 10% of mean
+    const heritabilityFactor = 1 - heritability;
+    const dataFacto = Math.max(0.5, 1 / Math.sqrt(parentMeasures.length));
 
-    let totalHG = 0, totalLCS = 0, totalTP = 0;
-    let countHG = 0, countLCS = 0, countTP = 0;
+    return baseVariance * heritabilityFactor * dataFacto;
+}
 
-    for (const animal of validAnimals) {
-        const measurements = getLatestMeasurements(animal);
-        if (measurements) {
-            if (measurements.hg > 0) { totalHG += measurements.hg; countHG++; }
-            if (measurements.lcs > 0) { totalLCS += measurements.lcs; countLCS++; }
-            if (measurements.tp > 0) { totalTP += measurements.tp; countTP++; }
-        }
+/**
+ * Predict a single morphometric trait with confidence V1.1
+ * 
+ * @param traitName - Which trait (HG, LCS, TP)
+ * @param sire - Father animal
+ * @param dam - Mother animal
+ * @param allAnimals - Complete herd for population mean
+ * @param heritability - Trait heritability (0-1)
+ * @returns PredictedTrait with confidence and interval
+ */
+export function predictTrait(
+    traitName: 'HG' | 'LCS' | 'TP',
+    sire: Animal,
+    dam: Animal,
+    allAnimals: Animal[],
+    heritability: number
+): PredictedTrait {
+    const herdAverages = calculateHerdAverages(allAnimals);
+    const herdMean = herdAverages[traitName.toLowerCase() as 'hg' | 'lcs' | 'tp'];
+
+    const sireMeasure = getLatestMeasurements(sire);
+    const damMeasure = getLatestMeasurements(dam);
+
+    const traitKey = traitName.toLowerCase() as 'hg' | 'lcs' | 'tp';
+    const sireValue = sireMeasure?.[traitKey];
+    const damValue = damMeasure?.[traitKey];
+
+    // Case 1: No data at all
+    if (!sireValue && !damValue && !herdMean) {
+        return {
+            trait: traitName,
+            mean: null,
+            min: null,
+            max: null,
+            confidence: 0,
+            dataBasis: 'INSUFFICIENT_DATA'
+        };
     }
 
+    // Case 2: Both parents measured
+    if (sireValue && damValue) {
+        const mean = (sireValue + damValue) / 2;
+        const variance = calculatePredictionVariance(heritability, [sireValue, damValue], herdMean);
+
+        // Narrow interval, high confidence
+        return {
+            trait: traitName,
+            mean: Math.round(mean * 10) / 10,
+            min: Math.round((mean - variance) * 10) / 10,
+            max: Math.round((mean + variance) * 10) / 10,
+            confidence: 0.75 + (variance < 5 ? 0.15 : 0),  // 0.75-0.9
+            dataBasis: 'BOTH_PARENTS_MEASURED'
+        };
+    }
+
+    // Case 3: One parent measured
+    if (sireValue || damValue) {
+        const parentValue = (sireValue || damValue)!;
+
+        // Regression to mean: mix parent value with population mean
+        const mean = herdMean
+            ? parentValue * heritability + herdMean * (1 - heritability)
+            : parentValue;
+
+        const variance = calculatePredictionVariance(heritability, [parentValue], herdMean);
+
+        // Wider interval, medium confidence
+        return {
+            trait: traitName,
+            mean: Math.round(mean * 10) / 10,
+            min: Math.round((mean - variance * 1.5) * 10) / 10,
+            max: Math.round((mean + variance * 1.5) * 10) / 10,
+            confidence: 0.45 + (herdMean ? 0.15 : 0),  // 0.45-0.6
+            dataBasis: 'ONE_PARENT_MEASURED'
+        };
+    }
+
+    // Case 4: Population only (no parents measured)
     return {
-        hg: countHG > 0 ? totalHG / countHG : null,
-        lcs: countLCS > 0 ? totalLCS / countLCS : null,
-        tp: countTP > 0 ? totalTP / countTP : null
+        trait: traitName,
+        mean: Math.round(herdMean * 10) / 10,
+        min: Math.round((herdMean - 10) * 10) / 10,
+        max: Math.round((herdMean + 10) * 10) / 10,
+        confidence: 0.3,  // Low confidence
+        dataBasis: 'POPULATION_ONLY'
     };
 }
 
 /**
- * Predict offspring morphometrics based on parents, grandparents, and existing descendants
+ * Calculate complete morphometric score V1.1
+ * 
+ * @param sire - Father animal
+ * @param dam - Mother animal  
+ * @param allAnimals - Complete herd
+ * @returns MorphometricScore with qualified confidence
+ */
+export function calculateMorphometricScore(
+    sire: Animal,
+    dam: Animal,
+    allAnimals: Animal[]
+): MorphometricScore {
+    // Predict each trait with confidence
+    const hg = predictTrait('HG', sire, dam, allAnimals, HERITABILITY.hg);
+    const lcs = predictTrait('LCS', sire, dam, allAnimals, HERITABILITY.lcs);
+    const tp = predictTrait('TP', sire, dam, allAnimals, HERITABILITY.tp);
+
+    const traits = [hg, lcs, tp];
+
+    // Only compute score if at least one parent is measured
+    const validTraits = traits.filter(t => t.confidence >= 0.4);
+
+    if (validTraits.length === 0) {
+        return {
+            hg, lcs, tp,
+            overallScore: null,
+            confidence: 0
+        };
+    }
+
+    // Calculate overall score based on improvement over herd average
+    const herdAverages = calculateHerdAverages(allAnimals);
+
+    let weightedScore = 0;
+    let totalConfidence = 0;
+
+    for (const trait of validTraits) {
+        if (trait.mean !== null) {
+            const traitKey = trait.trait.toLowerCase() as 'hg' | 'lcs' | 'tp';
+            const herdMean = herdAverages[traitKey];
+            const improvement = (trait.mean - herdMean) / herdMean;
+
+            weightedScore += improvement * trait.confidence * 100;
+            totalConfidence += trait.confidence;
+        }
+    }
+
+    const avgConfidence = totalConfidence / traits.length;
+
+    // Normalize score to 0-100 range (50 = average, >50 = above average)
+    const normalizedScore = 50 + (weightedScore / totalConfidence);
+
+    return {
+        hg, lcs, tp,
+        overallScore: Math.round(Math.max(0, Math.min(100, normalizedScore))),
+        confidence: Math.round(avgConfidence * 100) / 100
+    };
+}
+
+/**
+ * Legacy function for backward compatibility
+ * Maps to new structure
  */
 export function predictOffspringMorphometrics(
     sire: Animal,
     dam: Animal,
     allAnimals: Animal[]
 ): MorphometricPrediction {
+    const score = calculateMorphometricScore(sire, dam, allAnimals);
     const herdAverages = calculateHerdAverages(allAnimals);
 
-    // Get parent measurements
-    const sireMeasurements = getLatestMeasurements(sire);
-    const damMeasurements = getLatestMeasurements(dam);
-
-    // Get grandparents
-    const sireGrandparents = getGrandparents(sire.id, allAnimals);
-    const damGrandparents = getGrandparents(dam.id, allAnimals);
-
-    // Get existing offspring of these parents (if any)
-    const existingOffspring = allAnimals.filter(
-        a => (a.sireId === sire.id && a.damId === dam.id) ||
-            (a.sireId === dam.id && a.damId === sire.id)
-    );
-
-    // Calculate weighted predictions
-    let predictedHG = herdAverages.hg;
-    let predictedLCS = herdAverages.lcs;
-    let predictedTP = herdAverages.tp;
-
-    // Track data availability for confidence
-    let dataPointsHG = 0;
-    let dataPointsLCS = 0;
-    let dataPointsTP = 0;
-
-    // Parents contribution (40%)
-    if (sireMeasurements && damMeasurements) {
-        const parentAvgHG = (sireMeasurements.hg + damMeasurements.hg) / 2;
-        const parentAvgLCS = (sireMeasurements.lcs + damMeasurements.lcs) / 2;
-        const parentAvgTP = (sireMeasurements.tp + damMeasurements.tp) / 2;
-
-        predictedHG = parentAvgHG;
-        predictedLCS = parentAvgLCS;
-        predictedTP = parentAvgTP;
-
-        dataPointsHG += 2;
-        dataPointsLCS += 2;
-        dataPointsTP += 2;
-    }
-
-    // Grandparents contribution (30%)
-    const grandparents = [
-        sireGrandparents.paternalGrandSire,
-        sireGrandparents.paternalGrandDam,
-        sireGrandparents.maternalGrandSire,
-        sireGrandparents.maternalGrandDam,
-        damGrandparents.paternalGrandSire,
-        damGrandparents.paternalGrandDam,
-        damGrandparents.maternalGrandSire,
-        damGrandparents.maternalGrandDam
-    ];
-
-    const grandparentAvg = calculateAverageMeasurements(grandparents);
-
-    if (grandparentAvg.hg !== null) {
-        predictedHG = predictedHG * PREDICTION_WEIGHTS.parents +
-            grandparentAvg.hg * PREDICTION_WEIGHTS.grandparents +
-            herdAverages.hg * PREDICTION_WEIGHTS.descendants;
-        dataPointsHG += grandparents.filter(g => g !== undefined).length;
-    }
-
-    if (grandparentAvg.lcs !== null) {
-        predictedLCS = predictedLCS * PREDICTION_WEIGHTS.parents +
-            grandparentAvg.lcs * PREDICTION_WEIGHTS.grandparents +
-            herdAverages.lcs * PREDICTION_WEIGHTS.descendants;
-        dataPointsLCS += grandparents.filter(g => g !== undefined).length;
-    }
-
-    if (grandparentAvg.tp !== null) {
-        predictedTP = predictedTP * PREDICTION_WEIGHTS.parents +
-            grandparentAvg.tp * PREDICTION_WEIGHTS.grandparents +
-            herdAverages.tp * PREDICTION_WEIGHTS.descendants;
-        dataPointsTP += grandparents.filter(g => g !== undefined).length;
-    }
-
-    // Existing offspring contribution (replaces descendant part if available)
-    if (existingOffspring.length > 0) {
-        const offspringAvg = calculateAverageMeasurements(existingOffspring);
-
-        if (offspringAvg.hg !== null) {
-            predictedHG = predictedHG * (1 - PREDICTION_WEIGHTS.descendants) +
-                offspringAvg.hg * PREDICTION_WEIGHTS.descendants;
-            dataPointsHG += existingOffspring.length;
-        }
-        if (offspringAvg.lcs !== null) {
-            predictedLCS = predictedLCS * (1 - PREDICTION_WEIGHTS.descendants) +
-                offspringAvg.lcs * PREDICTION_WEIGHTS.descendants;
-            dataPointsLCS += existingOffspring.length;
-        }
-        if (offspringAvg.tp !== null) {
-            predictedTP = predictedTP * (1 - PREDICTION_WEIGHTS.descendants) +
-                offspringAvg.tp * PREDICTION_WEIGHTS.descendants;
-            dataPointsTP += existingOffspring.length;
-        }
-    }
-
-    // Determine confidence levels based on data availability
-    const getConfidence = (dataPoints: number): 'Low' | 'Medium' | 'High' => {
-        if (dataPoints >= 4) return 'High';
-        if (dataPoints >= 2) return 'Medium';
+    const getConfidenceLabel = (conf: number): 'Low' | 'Medium' | 'High' => {
+        if (conf >= 0.7) return 'High';
+        if (conf >= 0.5) return 'Medium';
         return 'Low';
     };
 
     return {
-        predictedHG: Math.round(predictedHG * 10) / 10,
-        predictedLCS: Math.round(predictedLCS * 10) / 10,
-        predictedTP: Math.round(predictedTP * 10) / 10,
-        confidenceHG: getConfidence(dataPointsHG),
-        confidenceLCS: getConfidence(dataPointsLCS),
-        confidenceTP: getConfidence(dataPointsTP),
+        predictedHG: score.hg.mean || herdAverages.hg,
+        predictedLCS: score.lcs.mean || herdAverages.lcs,
+        predictedTP: score.tp.mean || herdAverages.tp,
+        confidenceHG: getConfidenceLabel(score.hg.confidence),
+        confidenceLCS: getConfidenceLabel(score.lcs.confidence),
+        confidenceTP: getConfidenceLabel(score.tp.confidence),
         comparedToHerdAverage: {
-            hg: Math.round(((predictedHG - herdAverages.hg) / herdAverages.hg) * 100),
-            lcs: Math.round(((predictedLCS - herdAverages.lcs) / herdAverages.lcs) * 100),
-            tp: Math.round(((predictedTP - herdAverages.tp) / herdAverages.tp) * 100)
+            hg: score.hg.mean
+                ? Math.round(((score.hg.mean - herdAverages.hg) / herdAverages.hg) * 100)
+                : 0,
+            lcs: score.lcs.mean
+                ? Math.round(((score.lcs.mean - herdAverages.lcs) / herdAverages.lcs) * 100)
+                : 0,
+            tp: score.tp.mean
+                ? Math.round(((score.tp.mean - herdAverages.tp) / herdAverages.tp) * 100)
+                : 0
         }
     };
 }
 
 /**
+ * Legacy function for backward compatibility
+ */
+export function scoreMorphometricCompatibility(
+    sire: Animal,
+    dam: Animal,
+    allAnimals: Animal[]
+): number {
+    const score = calculateMorphometricScore(sire, dam, allAnimals);
+    return score.overallScore || 50;  // Default to average if not computable
+}
+
+/**
  * Calculate genetic potential score for an animal (0-100)
- * Based on how its measurements compare to herd averages
  */
 export function calculateGeneticPotential(
     animal: Animal,
@@ -248,40 +310,14 @@ export function calculateGeneticPotential(
     const herdAverages = calculateHerdAverages(allAnimals);
     const measurements = getLatestMeasurements(animal);
 
-    if (!measurements) return 50; // Default average score
+    if (!measurements) return 50;
 
-    // Calculate deviation from herd average (positive = better)
     const hgScore = (measurements.hg / herdAverages.hg) * 100;
     const lcsScore = (measurements.lcs / herdAverages.lcs) * 100;
     const tpScore = (measurements.tp / herdAverages.tp) * 100;
 
-    // Average score, capped at 0-100
     const rawScore = (hgScore + lcsScore + tpScore) / 3;
     return Math.min(100, Math.max(0, rawScore));
-}
-
-/**
- * Calculate morphometric compatibility score between two animals (0-100)
- * Higher score = better breeding pair for morphometric improvement
- */
-export function scoreMorphometricCompatibility(
-    sire: Animal,
-    dam: Animal,
-    allAnimals: Animal[]
-): number {
-    const prediction = predictOffspringMorphometrics(sire, dam, allAnimals);
-    const herdAverages = calculateHerdAverages(allAnimals);
-
-    // Score based on predicted improvement over herd average
-    const hgImprovement = prediction.predictedHG / herdAverages.hg;
-    const lcsImprovement = prediction.predictedLCS / herdAverages.lcs;
-    const tpImprovement = prediction.predictedTP / herdAverages.tp;
-
-    // Weighted improvement score
-    const avgImprovement = (hgImprovement + lcsImprovement + tpImprovement) / 3;
-
-    // Convert to 0-100 scale (100 = average, >100 = above average)
-    return Math.round(Math.min(100, avgImprovement * 100));
 }
 
 /**
@@ -302,7 +338,6 @@ export function getMorphometricTrend(measurements: Measurement[]): {
         };
     }
 
-    // Sort by date
     const sorted = [...measurements].sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
@@ -310,7 +345,6 @@ export function getMorphometricTrend(measurements: Measurement[]): {
     const first = sorted[0];
     const last = sorted[sorted.length - 1];
 
-    // Calculate time difference in months
     const months = (new Date(last.date).getTime() - new Date(first.date).getTime()) /
         (1000 * 60 * 60 * 24 * 30);
 

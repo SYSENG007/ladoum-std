@@ -28,7 +28,7 @@ export const CalendarMobile: React.FC = () => {
                 title: task.title,
                 date: task.date,
                 type: 'task',
-                color: 'bg-blue-500'
+                color: 'bg-primary-500'
             });
         });
 
@@ -163,7 +163,7 @@ export const CalendarMobile: React.FC = () => {
             <div className="grid grid-cols-3 gap-2">
                 <Card className="p-3 text-center">
                     <p className="text-xs text-text-muted">Tâches</p>
-                    <p className="text-lg font-bold text-blue-600">{tasks.length}</p>
+                    <p className="text-lg font-bold text-primary-600">{tasks.length}</p>
                 </Card>
                 <Card className="p-3 text-center">
                     <p className="text-xs text-text-muted">Repro</p>

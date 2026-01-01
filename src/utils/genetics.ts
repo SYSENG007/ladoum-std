@@ -1,12 +1,66 @@
 /**
- * Genetics Utilities for Ladoum Sheep Breeding
+ * Genetics Utilities for Ladoum Sheep Breeding V1.1
  * Calculates inbreeding coefficients using Wright's Path Method
+ * 
+ * V1.1 Changes:
+ * - Returns InbreedingResult with confidence qualification
+ * - null instead of 0 when pedigree insufficient
+ * - Explicit status for data completeness
  */
 
 import type { Animal } from '../types';
+import type { InbreedingResult } from '../types/breeding';
 
 // Maximum depth for pedigree traversal
 const MAX_PEDIGREE_DEPTH = 5;
+
+/**
+ * Assess the depth of pedigree available for an animal
+ * Returns the number of complete generations traced back
+ * 
+ * @param animalId - ID of the animal to assess
+ * @param allAnimals - Complete herd data
+ * @param maxDepth - Maximum depth to check (default: 5)
+ * @returns Number of complete generations available
+ */
+export function assessPedigreeDepth(
+    animalId: string,
+    allAnimals: Animal[],
+    maxDepth: number = MAX_PEDIGREE_DEPTH
+): number {
+    let currentDepth = 0;
+    let currentGeneration = [animalId];
+
+    while (currentDepth < maxDepth && currentGeneration.length > 0) {
+        const nextGeneration: string[] = [];
+
+        // Check if ALL animals in current generation have parents
+        let allHaveParents = true;
+
+        for (const id of currentGeneration) {
+            const { sire, dam } = getParents(id, allAnimals);
+
+            if (sire && dam) {
+                // Both parents available
+                nextGeneration.push(sire.id, dam.id);
+            } else {
+                // Missing parent(s) - incomplete generation
+                allHaveParents = false;
+                break;
+            }
+        }
+
+        // If any animal lacks parents, this generation is incomplete
+        if (!allHaveParents || nextGeneration.length === 0) {
+            break;
+        }
+
+        currentGeneration = nextGeneration;
+        currentDepth++;
+    }
+
+    return currentDepth;
+}
 
 /**
  * Get both parents of an animal
@@ -109,16 +163,120 @@ export function findCommonAncestors(
 }
 
 /**
- * Calculate inbreeding coefficient (Wright's coefficient)
+ * Calculate inbreeding coefficient (Wright's coefficient) V1.1
  * Uses Path Method: Sum of (0.5)^(n+1) for all valid paths through common ancestors
+ * 
+ * V1.1 Changes:
+ * - Returns InbreedingResult instead of number
+ * - Returns null if pedigree insufficient (never fake with 0)
+ * - Explicit status for data completeness
+ * 
+ * Special cases handled first:
+ * - Parent × Child: COI = 0.25 (25%)
+ * - Grandparent × Grandchild: COI = 0.125 (12.5%)
  */
 export function calculateInbreedingCoefficient(
     sireId: string,
     damId: string,
-    allAnimals: Animal[]
-): number {
+    allAnimals: Animal[],
+    requiredGenerations: number = MAX_PEDIGREE_DEPTH
+): InbreedingResult {
+    // Step 1: Assess pedigree completeness
+    const sireDepth = assessPedigreeDepth(sireId, allAnimals, requiredGenerations);
+    const damDepth = assessPedigreeDepth(damId, allAnimals, requiredGenerations);
+    const minDepth = Math.min(sireDepth, damDepth);
+
+    // If pedigree insufficient → STOP, return null
+    if (minDepth < requiredGenerations) {
+        return {
+            coefficient: null,
+            status: minDepth === 0
+                ? 'INSUFFICIENT_PEDIGREE_DATA'
+                : 'INCOMPLETE_GENERATIONS',
+            requiredGenerations,
+            availableGenerations: minDepth,
+            riskLevel: 'Unknown'
+        };
+    }
+    // ========================================
+    // SPECIAL CASE 1: Parent × Child
+    // ========================================
+    // Step 2: Check if sire is parent of dam
+    const damParents = getParents(damId, allAnimals);
+    if (damParents.sire?.id === sireId || damParents.dam?.id === sireId) {
+        return {
+            coefficient: 0.25,
+            status: 'COMPUTABLE',
+            requiredGenerations,
+            availableGenerations: minDepth,
+            riskLevel: 'High'
+        };
+    }
+
+    // Check if dam is parent of sire
+    const sireParents = getParents(sireId, allAnimals);
+    if (sireParents.sire?.id === damId || sireParents.dam?.id === damId) {
+        return {
+            coefficient: 0.25,
+            status: 'COMPUTABLE',
+            requiredGenerations,
+            availableGenerations: minDepth,
+            riskLevel: 'High'
+        };
+    }
+
+    // ========================================
+    // SPECIAL CASE 2: Grandparent × Grandchild
+    // ========================================
+    const sireGrandparents = getGrandparents(sireId, allAnimals);
+    const damGrandparents = getGrandparents(damId, allAnimals);
+
+    // Step 3: Check if sire is grandparent of dam
+    if (
+        sireGrandparents.paternalGrandSire?.id === damId ||
+        sireGrandparents.paternalGrandDam?.id === damId ||
+        sireGrandparents.maternalGrandSire?.id === damId ||
+        sireGrandparents.maternalGrandDam?.id === damId
+    ) {
+        return {
+            coefficient: 0.125,
+            status: 'COMPUTABLE',
+            requiredGenerations,
+            availableGenerations: minDepth,
+            riskLevel: 'Medium'
+        };
+    }
+
+    // Check if dam is grandparent of sire
+    if (
+        damGrandparents.paternalGrandSire?.id === sireId ||
+        damGrandparents.paternalGrandDam?.id === sireId ||
+        damGrandparents.maternalGrandSire?.id === sireId ||
+        damGrandparents.maternalGrandDam?.id === sireId
+    ) {
+        return {
+            coefficient: 0.125,
+            status: 'COMPUTABLE',
+            requiredGenerations,
+            availableGenerations: minDepth,
+            riskLevel: 'Medium'
+        };
+    }
+
+    // ========================================
+    // STANDARD CASE: Common Ancestors
+    // ========================================
+    // Step 4: Standard case - common ancestors
     const commonAncestors = findCommonAncestors(sireId, damId, allAnimals);
-    if (commonAncestors.length === 0) return 0;
+    if (commonAncestors.length === 0) {
+        return {
+            coefficient: 0,
+            status: 'COMPUTABLE',
+            requiredGenerations,
+            availableGenerations: minDepth,
+            riskLevel: 'Low'
+        };
+    }
 
     let totalCOI = 0;
 
@@ -176,7 +334,15 @@ export function calculateInbreedingCoefficient(
     // Intersection will be [F, GF]. Length 2. INVALID.
     // So this logic AUTOMATICALLY adheres to Wright's constraint of distinct paths.
 
-    return Math.min(totalCOI, 1);
+    const finalCOI = Math.min(totalCOI, 1);
+
+    return {
+        coefficient: finalCOI,
+        status: 'COMPUTABLE',
+        requiredGenerations,
+        availableGenerations: minDepth,
+        riskLevel: getInbreedingRisk(finalCOI)
+    };
 }
 
 /**

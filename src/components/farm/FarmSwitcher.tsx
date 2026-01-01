@@ -16,8 +16,8 @@ export const FarmSwitcher: React.FC<FarmSwitcherProps> = ({ collapsed = false })
             "flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50",
             collapsed && "justify-center"
         )}>
-            <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-emerald-600" />
+            <div className="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-slate-900" />
             </div>
             {!collapsed && (
                 <span className="text-sm font-medium text-slate-700 truncate">

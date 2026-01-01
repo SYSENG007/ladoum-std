@@ -149,7 +149,7 @@ export const TourGuide: React.FC<TourGuideProps> = ({
             {/* Highlight border */}
             {targetRect && step?.highlight !== false && (
                 <div
-                    className="absolute border-2 border-emerald-400 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] animate-pulse"
+                    className="absolute border-2 border-slate-600 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] animate-pulse"
                     style={{
                         top: targetRect.top - 8,
                         left: targetRect.left - 8,
@@ -173,8 +173,8 @@ export const TourGuide: React.FC<TourGuideProps> = ({
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-slate-100">
                     <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-emerald-500" />
-                        <span className="text-sm font-medium text-emerald-600">
+                        <Sparkles className="w-5 h-5 text-slate-800" />
+                        <span className="text-sm font-medium text-slate-900">
                             Tour guidé • {currentStep + 1}/{steps.length}
                         </span>
                     </div>
@@ -204,7 +204,7 @@ export const TourGuide: React.FC<TourGuideProps> = ({
                                 key={idx}
                                 className={clsx(
                                     "h-1 rounded-full flex-1 transition-colors",
-                                    idx <= currentStep ? "bg-emerald-500" : "bg-slate-200"
+                                    idx <= currentStep ? "bg-primary-600" : "bg-slate-200"
                                 )}
                             />
                         ))}

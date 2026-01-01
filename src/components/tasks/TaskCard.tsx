@@ -67,7 +67,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         switch (priority) {
             case 'High': return { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' };
             case 'Medium': return { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200' };
-            case 'Low': return { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' };
+            case 'Low': return { bg: 'bg-blue-50', text: 'text-primary-600', border: 'border-blue-200' };
             default: return { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' };
         }
     };
@@ -242,7 +242,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                             {visibleAssignees.map((assignee, idx) => (
                                 <div
                                     key={assignee.userId}
-                                    className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-sm border-2 border-white"
+                                    className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xs font-bold shadow-sm border-2 border-white"
                                     title={assignee.displayName}
                                     style={{ zIndex: visibleAssignees.length - idx }}
                                 >
@@ -251,7 +251,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                             ))}
                             {remaining > 0 && (
                                 <div
-                                    className="w-7 h-7 rounded-full bg-slate-400 flex items-center justify-center text-white text-[10px] font-bold shadow-sm border-2 border-white"
+                                    className="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm border-2 border-white"
                                     title={`+${remaining} ${remaining === 1 ? 'autre' : 'autres'}: ${assignees.slice(maxVisible).map(a => a.displayName).join(', ')}`}
                                 >
                                     +{remaining}

@@ -17,7 +17,7 @@ interface KPICardProps {
 export const KPICard: React.FC<KPICardProps> = ({ label, value, icon: Icon, trend, color = 'primary' }) => {
     const colorStyles = {
         primary: 'bg-primary-50 text-primary-600',
-        blue: 'bg-blue-50 text-blue-600',
+        blue: 'bg-blue-50 text-primary-600',
         amber: 'bg-amber-50 text-amber-600',
         red: 'bg-red-50 text-red-600',
     };

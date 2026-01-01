@@ -12,31 +12,20 @@ import {
     TrendingUp,
     Ruler,
     Activity,
-    ExternalLink
+    ExternalLink,
+    Info,
+    HelpCircle
 } from 'lucide-react';
-import {
-    calculateInbreedingCoefficient,
-    getInbreedingRisk,
-    findCommonAncestors
-} from '../../utils/genetics';
-import {
-    predictOffspringMorphometrics,
-    scoreMorphometricCompatibility
-} from '../../utils/morphometrics';
-import type { BreedingCompatibility, Animal } from '../../types';
+import { simulateBreeding } from '../../utils/breedingRules';
+import type { BreedingSimulationResult } from '../../types/breeding';
 import { getLatestMeasurements } from '../../utils/morphometrics';
-
-interface SimulationResult extends BreedingCompatibility {
-    sire: Animal;
-    dam: Animal;
-    dueDate: string;
-}
+import clsx from 'clsx';
 
 export const BreedingCalculator: React.FC = () => {
     const { animals, loading } = useAnimals();
     const [sireId, setSireId] = useState('');
     const [damId, setDamId] = useState('');
-    const [result, setResult] = useState<SimulationResult | null>(null);
+    const [result, setResult] = useState<BreedingSimulationResult | null>(null);
 
     // Filter active males and females
     const sires = useMemo(() =>
@@ -49,6 +38,14 @@ export const BreedingCalculator: React.FC = () => {
         [animals]
     );
 
+    // Calculate pedigree completeness
+    const pedigreeCompleteness = useMemo(() => {
+        const animalsWithPedigree = animals.filter(a => a.sireId || a.damId);
+        return animals.length > 0
+            ? (animalsWithPedigree.length / animals.length) * 100
+            : 0;
+    }, [animals]);
+
     const calculate = () => {
         if (!sireId || !damId) return;
 
@@ -57,67 +54,43 @@ export const BreedingCalculator: React.FC = () => {
 
         if (!sire || !dam) return;
 
-        // Calculate inbreeding coefficient
-        const inbreedingCoefficient = calculateInbreedingCoefficient(sireId, damId, animals);
-        const inbreedingRisk = getInbreedingRisk(inbreedingCoefficient);
-
-        // Find common ancestors
-        const commonAncestors = findCommonAncestors(sireId, damId, animals);
-
-        // Calculate morphometric predictions
-        const morphometricPrediction = predictOffspringMorphometrics(sire, dam, animals);
-        const morphometricScore = scoreMorphometricCompatibility(sire, dam, animals);
-
-        // Calculate overall score (0-100)
-        // Penalize for inbreeding, reward for morphometric potential
-        const inbreedingPenalty = inbreedingCoefficient * 50;
-        const overallScore = Math.round(
-            (morphometricScore * 0.6) +
-            ((100 - inbreedingPenalty) * 0.4)
-        );
-
-        // Determine recommendation
-        let recommendation: 'Excellent' | 'Good' | 'Caution' | 'NotRecommended';
-        if (overallScore >= 85 && inbreedingRisk === 'Low') {
-            recommendation = 'Excellent';
-        } else if (overallScore >= 70 && inbreedingRisk !== 'High') {
-            recommendation = 'Good';
-        } else if (overallScore >= 50 || inbreedingRisk === 'Medium') {
-            recommendation = 'Caution';
-        } else {
-            recommendation = 'NotRecommended';
-        }
-
-        // Due date: Today + 145 days (sheep gestation - user confirmed)
-        const today = new Date();
-        const due = new Date(today.setDate(today.getDate() + 145));
-        const dueDate = due.toLocaleDateString('fr-FR');
-
-        setResult({
-            sire,
-            dam,
-            overallScore,
-            inbreedingCoefficient,
-            inbreedingRisk,
-            morphometricScore,
-            morphometricPrediction,
-            commonAncestors,
-            recommendation,
-            dueDate
-        });
+        // V1.1: Use expert system
+        const simulationResult = simulateBreeding(sire, dam, animals);
+        setResult(simulationResult);
     };
 
     const getRecommendationBadge = () => {
         if (!result) return null;
 
         const variants = {
-            'Excellent': { variant: 'success' as const, label: 'Excellent choix' },
-            'Good': { variant: 'info' as const, label: 'Bon choix' },
-            'Caution': { variant: 'warning' as const, label: 'Prudence' },
-            'NotRecommended': { variant: 'error' as const, label: 'Déconseillé' }
+            'Excellent': { variant: 'success' as const, label: 'Excellent choix', icon: CheckCircle },
+            'Good': { variant: 'info' as const, label: 'Bon choix', icon: TrendingUp },
+            'Caution': { variant: 'warning' as const, label: 'Prudence', icon: AlertTriangle },
+            'NotRecommended': { variant: 'error' as const, label: 'Déconseillé', icon: AlertTriangle },
+            'InsufficientData': { variant: 'warning' as const, label: 'Données insuffisantes', icon: HelpCircle }
         };
 
-        const { variant, label } = variants[result.recommendation];
+        const config = variants[result.globalScore.recommendation];
+        const Icon = config.icon;
+
+        return (
+            <Badge variant={config.variant} className="flex items-center gap-1">
+                <Icon className="w-3 h-3" />
+                {config.label}
+            </Badge>
+        );
+    };
+
+    const getStatusBadge = () => {
+        if (!result) return null;
+
+        const variants = {
+            'RELIABLE': { variant: 'success' as const, label: 'Fiable' },
+            'LOW_CONFIDENCE': { variant: 'warning' as const, label: 'Indicatif' },
+            'NOT_COMPUTABLE': { variant: 'error' as const, label: 'Non calculable' }
+        };
+
+        const { variant, label } = variants[result.globalScore.status];
         return <Badge variant={variant}>{label}</Badge>;
     };
 
@@ -136,15 +109,36 @@ export const BreedingCalculator: React.FC = () => {
     return (
         <Card>
             <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-primary-50 rounded-lg text-primary-600">
+                <div className="p-3 bg-primary-50 rounded-2xl text-primary-600">
                     <Calculator className="w-6 h-6" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-slate-900">Simulateur d'Accouplement</h3>
-                    <p className="text-sm text-slate-500">Analyse génétique et morphométrique réelle.</p>
+                    <h3 className="font-bold text-slate-900">Simulateur d'Accouplement V1.1</h3>
+                    <p className="text-sm text-slate-500">Analyse génétique et morphométrique avec système expert.</p>
                 </div>
             </div>
 
+            {/* Pedigree Warning */}
+            {pedigreeCompleteness < 30 && animals.length > 0 && (
+                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl mb-6">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                        <h4 className="font-semibold text-amber-900 mb-1">
+                            Pedigrees incomplets ({pedigreeCompleteness.toFixed(0)}%)
+                        </h4>
+                        <p className="text-sm text-amber-800 mb-2">
+                            Seulement {animals.filter(a => a.sireId || a.damId).length} sur {animals.length} animaux ont des informations de pedigree (père/mère).
+                            Le calcul de consanguinité sera imprécis.
+                        </p>
+                        <p className="text-sm text-amber-700">
+                            💡 <strong>Solution:</strong> Renseignez les parents de chaque animal dans leur fiche
+                            pour obtenir des scores de compatibilité précis.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Père (Sire)</label>
@@ -201,7 +195,7 @@ export const BreedingCalculator: React.FC = () => {
 
                 if (missingMeasurements.length > 0) {
                     return (
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
                             <div className="flex items-start gap-3">
                                 <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                                 <div className="flex-1">
@@ -238,144 +232,246 @@ export const BreedingCalculator: React.FC = () => {
                 return null;
             })()}
 
-
+            {/* Results */}
             {result && (
                 <div className="space-y-4">
-                    {/* Overall Score */}
-                    <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-200">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-primary-700">Score Global</span>
-                            {getRecommendationBadge()}
+                    {/* NOT_COMPUTABLE Case */}
+                    {result.globalScore.status === 'NOT_COMPUTABLE' ? (
+                        <div className="text-center p-8 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                            <HelpCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                            <h4 className="font-bold text-slate-700 mb-2">Score non calculable</h4>
+                            <p className="text-sm text-slate-600 mb-4 max-w-md mx-auto">
+                                {result.globalScore.explanation}
+                            </p>
+                            {getStatusBadge()}
                         </div>
-                        <div className="flex items-end gap-2">
-                            <span className="text-4xl font-bold text-primary-900">{result.overallScore}</span>
-                            <span className="text-lg text-primary-600 mb-1">/100</span>
-                        </div>
-                        <div className="mt-2 h-2 bg-primary-200 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-primary-600 rounded-full transition-all duration-500"
-                                style={{ width: `${result.overallScore}%` }}
-                            />
-                        </div>
-                    </div>
+                    ) : (
+                        <>
+                            {/* Global Score */}
+                            <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl p-6 border border-primary-200">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium text-primary-700">Score Global</span>
+                                        {getStatusBadge()}
+                                    </div>
+                                    {getRecommendationBadge()}
+                                </div>
+                                <div className="flex items-end gap-2 mb-2">
+                                    <span className="text-5xl font-bold text-primary-900">
+                                        {result.globalScore.value || '?'}
+                                    </span>
+                                    <span className="text-xl text-primary-600 mb-2">/100</span>
+                                </div>
 
-                    {/* Details Grid */}
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Inbreeding */}
-                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Activity className="w-4 h-4 text-slate-500" />
-                                <span className="text-xs font-medium text-slate-600">Consanguinité</span>
+                                {/* Confidence Bar */}
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-primary-700">Confiance</span>
+                                        <span className="font-medium text-primary-900">
+                                            {Math.round(result.globalScore.confidence * 100)}%
+                                        </span>
+                                    </div>
+                                    <div className="h-2 bg-primary-200 rounded-full overflow-hidden">
+                                        <div
+                                            className={clsx(
+                                                "h-full rounded-full transition-all duration-500",
+                                                result.globalScore.status === 'RELIABLE' ? 'bg-green-500' :
+                                                    result.globalScore.status === 'LOW_CONFIDENCE' ? 'bg-amber-500' :
+                                                        'bg-red-500'
+                                            )}
+                                            style={{ width: `${result.globalScore.confidence * 100}%` }}
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-lg font-bold text-slate-900">
-                                    {(result.inbreedingCoefficient * 100).toFixed(1)}%
-                                </span>
-                                <Badge variant={
-                                    result.inbreedingRisk === 'Low' ? 'success' :
-                                        result.inbreedingRisk === 'Medium' ? 'warning' : 'error'
-                                }>
-                                    {result.inbreedingRisk === 'Low' ? 'Faible' :
-                                        result.inbreedingRisk === 'Medium' ? 'Moyen' : 'Élevé'}
-                                </Badge>
-                            </div>
-                        </div>
 
-                        {/* Due Date */}
-                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Calendar className="w-4 h-4 text-slate-500" />
-                                <span className="text-xs font-medium text-slate-600">Mise bas prévue</span>
-                            </div>
-                            <span className="text-lg font-bold text-slate-900">{result.dueDate}</span>
-                        </div>
-                    </div>
+                            {/* Details Grid */}
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Inbreeding */}
+                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Activity className="w-4 h-4 text-slate-500" />
+                                        <span className="text-xs font-medium text-slate-600">Consanguinité</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        {result.inbreeding.coefficient !== null ? (
+                                            <>
+                                                <span className="text-lg font-bold text-slate-900">
+                                                    {(result.inbreeding.coefficient * 100).toFixed(1)}%
+                                                </span>
+                                                <Badge variant={
+                                                    result.inbreeding.riskLevel === 'Low' ? 'success' :
+                                                        result.inbreeding.riskLevel === 'Medium' ? 'warning' : 'error'
+                                                }>
+                                                    {result.inbreeding.riskLevel === 'Low' ? 'Faible' :
+                                                        result.inbreeding.riskLevel === 'Medium' ? 'Moyen' : 'Élevé'}
+                                                </Badge>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="text-lg text-slate-400">Non calculable</span>
+                                                <Badge variant="warning">
+                                                    {result.inbreeding.availableGenerations}/{result.inbreeding.requiredGenerations} gén.
+                                                </Badge>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
 
-                    {/* Morphometric Predictions */}
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Ruler className="w-4 h-4 text-slate-500" />
-                            <span className="text-sm font-medium text-slate-700">Prédictions Morphométriques</span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="text-center">
-                                <p className="text-xs text-slate-500 mb-1">Hauteur (HG)</p>
-                                <p className="text-xl font-bold text-slate-900">
-                                    {result.morphometricPrediction.predictedHG} cm
-                                </p>
-                                <div className="flex items-center justify-center gap-1 mt-1">
-                                    <TrendingUp className={`w-3 h-3 ${result.morphometricPrediction.comparedToHerdAverage.hg >= 0
-                                        ? 'text-green-500' : 'text-red-500'
-                                        }`} />
-                                    <span className={`text-xs ${result.morphometricPrediction.comparedToHerdAverage.hg >= 0
-                                        ? 'text-green-600' : 'text-red-600'
-                                        }`}>
-                                        {result.morphometricPrediction.comparedToHerdAverage.hg >= 0 ? '+' : ''}
-                                        {result.morphometricPrediction.comparedToHerdAverage.hg}%
+                                {/* Due Date */}
+                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Calendar className="w-4 h-4 text-slate-500" />
+                                        <span className="text-xs font-medium text-slate-600">Mise bas prévue</span>
+                                    </div>
+                                    <span className="text-lg font-bold text-slate-900">
+                                        {result.expectedDueDate.toLocaleDateString('fr-FR')}
                                     </span>
                                 </div>
                             </div>
-                            <div className="text-center">
-                                <p className="text-xs text-slate-500 mb-1">Longueur (LCS)</p>
-                                <p className="text-xl font-bold text-slate-900">
-                                    {result.morphometricPrediction.predictedLCS} cm
-                                </p>
-                                <div className="flex items-center justify-center gap-1 mt-1">
-                                    <TrendingUp className={`w-3 h-3 ${result.morphometricPrediction.comparedToHerdAverage.lcs >= 0
-                                        ? 'text-green-500' : 'text-red-500'
-                                        }`} />
-                                    <span className={`text-xs ${result.morphometricPrediction.comparedToHerdAverage.lcs >= 0
-                                        ? 'text-green-600' : 'text-red-600'
-                                        }`}>
-                                        {result.morphometricPrediction.comparedToHerdAverage.lcs >= 0 ? '+' : ''}
-                                        {result.morphometricPrediction.comparedToHerdAverage.lcs}%
-                                    </span>
+
+                            {/* Morphometric Predictions */}
+                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Ruler className="w-4 h-4 text-slate-500" />
+                                    <span className="text-sm font-medium text-slate-700">Prédictions Morphométriques</span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4">
+                                    {/* HG */}
+                                    <div className="text-center">
+                                        <p className="text-xs text-slate-500 mb-1">Hauteur (HG)</p>
+                                        <p className="text-xl font-bold text-slate-900">
+                                            {result.morphometrics.hg.mean?.toFixed(0) || '?'} cm
+                                        </p>
+                                        {result.morphometrics.hg.mean !== null && (
+                                            <>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    [{result.morphometrics.hg.min?.toFixed(0)} - {result.morphometrics.hg.max?.toFixed(0)}]
+                                                </p>
+                                                <div className="flex items-center justify-center gap-1 mt-2">
+                                                    <div className="h-1 w-12 bg-slate-200 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-primary-600"
+                                                            style={{ width: `${result.morphometrics.hg.confidence * 100}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-xs text-slate-500">
+                                                        {Math.round(result.morphometrics.hg.confidence * 100)}%
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* LCS */}
+                                    <div className="text-center">
+                                        <p className="text-xs text-slate-500 mb-1">Longueur (LCS)</p>
+                                        <p className="text-xl font-bold text-slate-900">
+                                            {result.morphometrics.lcs.mean?.toFixed(0) || '?'} cm
+                                        </p>
+                                        {result.morphometrics.lcs.mean !== null && (
+                                            <>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    [{result.morphometrics.lcs.min?.toFixed(0)} - {result.morphometrics.lcs.max?.toFixed(0)}]
+                                                </p>
+                                                <div className="flex items-center justify-center gap-1 mt-2">
+                                                    <div className="h-1 w-12 bg-slate-200 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-primary-600"
+                                                            style={{ width: `${result.morphometrics.lcs.confidence * 100}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-xs text-slate-500">
+                                                        {Math.round(result.morphometrics.lcs.confidence * 100)}%
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* TP */}
+                                    <div className="text-center">
+                                        <p className="text-xs text-slate-500 mb-1">Poitrine (TP)</p>
+                                        <p className="text-xl font-bold text-slate-900">
+                                            {result.morphometrics.tp.mean?.toFixed(0) || '?'} cm
+                                        </p>
+                                        {result.morphometrics.tp.mean !== null && (
+                                            <>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    [{result.morphometrics.tp.min?.toFixed(0)} - {result.morphometrics.tp.max?.toFixed(0)}]
+                                                </p>
+                                                <div className="flex items-center justify-center gap-1 mt-2">
+                                                    <div className="h-1 w-12 bg-slate-200 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-primary-600"
+                                                            style={{ width: `${result.morphometrics.tp.confidence * 100}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-xs text-slate-500">
+                                                        {Math.round(result.morphometrics.tp.confidence * 100)}%
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="text-center">
-                                <p className="text-xs text-slate-500 mb-1">Poitrine (TP)</p>
-                                <p className="text-xl font-bold text-slate-900">
-                                    {result.morphometricPrediction.predictedTP} cm
-                                </p>
-                                <div className="flex items-center justify-center gap-1 mt-1">
-                                    <TrendingUp className={`w-3 h-3 ${result.morphometricPrediction.comparedToHerdAverage.tp >= 0
-                                        ? 'text-green-500' : 'text-red-500'
-                                        }`} />
-                                    <span className={`text-xs ${result.morphometricPrediction.comparedToHerdAverage.tp >= 0
-                                        ? 'text-green-600' : 'text-red-600'
-                                        }`}>
-                                        {result.morphometricPrediction.comparedToHerdAverage.tp >= 0 ? '+' : ''}
-                                        {result.morphometricPrediction.comparedToHerdAverage.tp}%
-                                    </span>
+
+                            {/* Expert Rules Applied */}
+                            {result.expertRules.length > 0 && (
+                                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Info className="w-4 h-4 text-blue-600" />
+                                        <span className="text-sm font-medium text-blue-900">Analyse Expert</span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {result.expertRules.map((rule) => (
+                                            <div
+                                                key={rule.ruleId}
+                                                className={clsx(
+                                                    "text-xs p-2 rounded-lg flex items-start gap-2",
+                                                    rule.impact === 'BLOCKING' && "bg-red-100 text-red-700",
+                                                    rule.impact === 'WARNING' && "bg-amber-100 text-amber-700",
+                                                    rule.impact === 'INFO' && "bg-blue-100 text-blue-700"
+                                                )}
+                                            >
+                                                <Info className="w-3 h-3 shrink-0 mt-0.5" />
+                                                <span>{rule.explanation}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
+                            )}
 
-                    {/* Warnings */}
-                    {result.inbreedingRisk === 'High' && (
-                        <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
-                            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                            <div>
-                                <p className="font-medium">Risque de consanguinité élevé</p>
-                                <p className="mt-1">Ce croisement présente un risque élevé.
-                                    {result.commonAncestors.length > 0 &&
-                                        ` ${result.commonAncestors.length} ancêtre(s) commun(s) détecté(s).`
-                                    }
-                                </p>
-                            </div>
-                        </div>
-                    )}
+                            {/* Warnings */}
+                            {result.warnings.length > 0 && (
+                                <div className="space-y-2">
+                                    {result.warnings.map((warning, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-start gap-2 text-sm bg-amber-50 p-3 rounded-lg border border-amber-200"
+                                        >
+                                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                            <span className="text-amber-800">{warning}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
-                    {result.recommendation === 'Excellent' && (
-                        <div className="flex items-start gap-2 text-xs text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
-                            <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                            <div>
-                                <p className="font-medium">Excellent choix génétique</p>
-                                <p className="mt-1">Faible consanguinité et bon potentiel morphométrique.
-                                    Progéniture attendue au-dessus de la moyenne du troupeau.</p>
-                            </div>
-                        </div>
+                            {/* Success Message */}
+                            {result.globalScore.recommendation === 'Excellent' && (
+                                <div className="flex items-start gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
+                                    <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="font-medium">Excellent choix génétique</p>
+                                        <p className="mt-1 text-xs">
+                                            Faible consanguinité et bon potentiel morphométrique.
+                                            Progéniture attendue au-dessus de la moyenne du troupeau.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             )}

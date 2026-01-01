@@ -169,12 +169,12 @@ export const Marketplace: React.FC = () => {
                 </Card>
                 <Card>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                            <PawPrint className="w-5 h-5 text-blue-600" />
+                        <div className="p-2 bg-secondary-100 rounded-lg">
+                            <PawPrint className="w-5 h-5 text-primary-600" />
                         </div>
                         <div>
                             <p className="text-sm text-slate-500">{t('marketplace.animalListings')}</p>
-                            <p className="text-2xl font-bold text-blue-600">
+                            <p className="text-2xl font-bold text-primary-600">
                                 {listings.filter(l => l.category === 'Animal').length}
                             </p>
                         </div>

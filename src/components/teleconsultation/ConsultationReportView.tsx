@@ -29,7 +29,7 @@ export const ConsultationReportView: React.FC<ConsultationReportViewProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="p-3 bg-primary-50 rounded-xl">
+                    <div className="p-3 bg-primary-50 rounded-2xl">
                         <FileText className="w-6 h-6 text-primary-600" />
                     </div>
                     <div>
@@ -73,14 +73,14 @@ export const ConsultationReportView: React.FC<ConsultationReportViewProps> = ({
             {report.prescriptions.length > 0 && (
                 <Card>
                     <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                        <Pill className="w-5 h-5 text-blue-600" />
+                        <Pill className="w-5 h-5 text-primary-600" />
                         Prescriptions
                     </h4>
                     <div className="space-y-3">
                         {report.prescriptions.map((prescription, idx) => (
                             <div
                                 key={idx}
-                                className="p-3 bg-blue-50 rounded-lg border border-blue-100"
+                                className="p-3 bg-secondary-50 rounded-lg border border-blue-100"
                             >
                                 <div className="flex items-start justify-between mb-1">
                                     <span className="font-medium text-blue-900">
@@ -90,11 +90,11 @@ export const ConsultationReportView: React.FC<ConsultationReportViewProps> = ({
                                         {prescription.duration}
                                     </Badge>
                                 </div>
-                                <p className="text-sm text-blue-700">
+                                <p className="text-sm text-primary-700">
                                     {prescription.dosage} • {prescription.frequency}
                                 </p>
                                 {prescription.notes && (
-                                    <p className="text-xs text-blue-600 mt-1 italic">
+                                    <p className="text-xs text-primary-600 mt-1 italic">
                                         {prescription.notes}
                                     </p>
                                 )}

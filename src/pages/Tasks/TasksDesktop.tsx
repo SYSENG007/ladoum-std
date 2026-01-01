@@ -101,7 +101,7 @@ export const TasksDesktop: React.FC = () => {
         switch (priority) {
             case 'High': return 'text-red-600 bg-red-50 border-red-100';
             case 'Medium': return 'text-amber-600 bg-amber-50 border-amber-100';
-            case 'Low': return 'text-blue-600 bg-blue-50 border-blue-100';
+            case 'Low': return 'text-primary-600 bg-secondary-50 border-blue-100';
             default: return 'text-slate-600 bg-slate-50 border-slate-100';
         }
     };
@@ -261,7 +261,7 @@ export const TasksDesktop: React.FC = () => {
                                                                         {assignees.slice(0, 3).map((assignee, idx) => (
                                                                             <div
                                                                                 key={assignee.userId}
-                                                                                className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[9px] font-bold border-2 border-white shadow-sm"
+                                                                                className="w-5 h-5 rounded-full bg-gradient-to-br from-slate-600 to-slate-900 flex items-center justify-center text-white text-[9px] font-bold border-2 border-white shadow-sm"
                                                                                 title={assignee.displayName}
                                                                                 style={{ zIndex: 10 - idx }}
                                                                             >
@@ -270,7 +270,7 @@ export const TasksDesktop: React.FC = () => {
                                                                         ))}
                                                                         {assignees.length > 3 && (
                                                                             <div
-                                                                                className="w-5 h-5 rounded-full bg-slate-400 flex items-center justify-center text-white text-[8px] font-bold border-2 border-white shadow-sm"
+                                                                                className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center text-white text-[8px] font-bold border-2 border-white shadow-sm"
                                                                                 title={`+${assignees.length - 3} ${assignees.length - 3 === 1 ? 'autre' : 'autres'}: ${assignees.slice(3).map(a => a.displayName).join(', ')}`}
                                                                             >
                                                                                 +{assignees.length - 3}

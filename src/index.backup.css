@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+  /* CSS Variables for Theme-Aware Colors */
+  :root {
+    /* Backgrounds */
+    --color-bg-primary: 255 255 255;
+    /* white */
+    --color-bg-secondary: 248 250 252;
+    /* slate-50 */
+    --color-bg-elevated: 255 255 255;
+    /* white - for cards */
+    --color-bg-muted: 241 245 249;
+    /* slate-100 */
+
+    /* Text */
+    --color-text-primary: 15 23 42;
+    /* slate-900 */
+    --color-text-secondary: 71 85 105;
+    /* slate-600 */
+    --color-text-muted: 100 116 139;
+    /* slate-500 */
+    --color-text-disabled: 148 163 184;
+    /* slate-400 */
+
+    /* Borders */
+    --color-border-default: 226 232 240;
+    /* slate-200 */
+    --color-border-subtle: 241 245 249;
+    /* slate-100 */
+    --color-border-bold: 203 213 225;
+    /* slate-300 */
+
+    /* Surfaces */
+    --color-surface-card: 255 255 255;
+    /* white */
+    --color-surface-modal: 255 255 255;
+    /* white */
+    --color-surface-input: 255 255 255;
+    /* white */
+    --color-surface-hover: 248 250 252;
+    /* slate-50 */
+
+    /* Overlays */
+    --color-overlay-hover: 241 245 249;
+    /* slate-100 */
+    --color-overlay-focus: 226 232 240;
+    /* slate-200 */
+  }
+
+  .dark {
+    /* Backgrounds */
+    --color-bg-primary: 15 23 42;
+    /* slate-900 */
+    --color-bg-secondary: 30 41 59;
+    /* slate-800 */
+    --color-bg-elevated: 30 41 59;
+    /* slate-800 - for cards */
+    --color-bg-muted: 51 65 85;
+    /* slate-700 */
+
+    /* Text */
+    --color-text-primary: 241 245 249;
+    /* slate-100 */
+    --color-text-secondary: 203 213 225;
+    /* slate-300 */
+    --color-text-muted: 148 163 184;
+    /* slate-400 */
+    --color-text-disabled: 100 116 139;
+    /* slate-500 */
+
+    /* Borders */
+    --color-border-default: 51 65 85;
+    /* slate-700 */
+    --color-border-subtle: 30 41 59;
+    /* slate-800 */
+    --color-border-bold: 71 85 105;
+    /* slate-600 */
+
+    /* Surfaces */
+    --color-surface-card: 30 41 59;
+    /* slate-800 */
+    --color-surface-modal: 30 41 59;
+    /* slate-800 */
+    --color-surface-input: 30 41 59;
+    /* slate-800 */
+    --color-surface-hover: 51 65 85;
+    /* slate-700 */
+
+    /* Overlays */
+    --color-overlay-hover: 51 65 85;
+    /* slate-700 */
+    --color-overlay-focus: 71 85 105;
+    /* slate-600 */
+  }
+
+  body {
+    @apply font-sans;
+    background-color: rgb(var(--color-bg-secondary));
+    color: rgb(var(--color-text-primary));
+  }
+}
+
+/* Toast animation */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Custom scrollbar for modals and scrollable containers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+/* Apply to all modal scroll areas */
+.modal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+.modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 8px;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 10px;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+/* Global scrollbar styling for overflow-y-auto elements inside modals */
+[class*="overflow-y-auto"]::-webkit-scrollbar,
+[class*="overflow-auto"]::-webkit-scrollbar {
+  width: 6px;
+}
+
+[class*="overflow-y-auto"]::-webkit-scrollbar-track,
+[class*="overflow-auto"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[class*="overflow-y-auto"]::-webkit-scrollbar-thumb,
+[class*="overflow-auto"]::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+}
+
+[class*="overflow-y-auto"]::-webkit-scrollbar-thumb:hover,
+[class*="overflow-auto"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}

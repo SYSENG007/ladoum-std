@@ -96,7 +96,7 @@ export const HeatCyclePredictor: React.FC<HeatCyclePredictorProps> = ({ animal, 
     return (
         <Card>
             <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-pink-50 rounded-lg text-pink-600">
+                <div className="p-3 bg-pink-50 rounded-2xl text-pink-600">
                     <Calendar className="w-6 h-6" />
                 </div>
                 <div>
@@ -116,8 +116,8 @@ export const HeatCyclePredictor: React.FC<HeatCyclePredictorProps> = ({ animal, 
             </div>
 
             {status === 'Pregnant' ? (
-                <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                    <p className="text-sm text-blue-700">
+                <div className="p-4 bg-secondary-50 rounded-xl border border-blue-100">
+                    <p className="text-sm text-primary-700">
                         Cette brebis est gestante. Les prédictions de chaleurs reprendront après la mise bas.
                     </p>
                 </div>

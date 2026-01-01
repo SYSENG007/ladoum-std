@@ -1,29 +1,68 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FamilyTree } from '../components/pedigree/FamilyTree';
 import { useAnimals } from '../hooks/useAnimals';
+import type { Animal } from '../types';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Search, Download, ZoomIn, ZoomOut, Maximize2, Printer } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { useToast } from '../context/ToastContext';
+import { useParams, useNavigate } from 'react-router-dom';
 
 export const Pedigree: React.FC = () => {
-    const { animals } = useAnimals();
+    const { animalId } = useParams();
+    const navigate = useNavigate();
+    const { animals, loading } = useAnimals();
+    const toast = useToast();
     const [selectedAnimalId, setSelectedAnimalId] = useState<string>('');
-    const [theme, setTheme] = useState<'cyan' | 'green' | 'orange' | 'white'>('green');
     const [searchTerm, setSearchTerm] = useState('');
     const [zoom, setZoom] = useState(100);
     const [exporting, setExporting] = useState(false);
     const treeContainerRef = useRef<HTMLDivElement>(null);
 
-    // Select first animal by default when loaded
+    // Select animal from URL or first animal by default
     useEffect(() => {
-        if (animals.length > 0 && !selectedAnimalId) {
-            setSelectedAnimalId(animals[0].id);
+        if (animals.length > 0) {
+            if (animalId) {
+                // If URL has animalId, select it
+                const animal = animals.find(a => a.id === animalId);
+                if (animal) {
+                    setSelectedAnimalId(animalId);
+                }
+            } else if (!selectedAnimalId) {
+                // No URL param and no selection - select first animal
+                const firstId = animals[0].id;
+                setSelectedAnimalId(firstId);
+                navigate(`/pedigree/${firstId}`, { replace: true });
+            }
         }
-    }, [animals, selectedAnimalId]);
+    }, [animals, animalId]); // Removed selectedAnimalId from deps
 
     const selectedAnimal = animals.find(a => a.id === selectedAnimalId) || animals[0];
+
+    // Update URL when animal is manually selected (not from URL)
+    const handleAnimalSelect = (id: string) => {
+        setSelectedAnimalId(id);
+        navigate(`/pedigree/${id}`, { replace: true });
+    };
+
+    // Count real ancestors
+    const countAncestors = (animal: Animal | undefined, visited: Set<string> = new Set()): number => {
+        if (!animal || visited.has(animal.id)) return 0;
+        visited.add(animal.id);
+
+        let count = 0;
+        const father = animal.sireId ? animals.find(a => a.id === animal.sireId) : null;
+        const mother = animal.damId ? animals.find(a => a.id === animal.damId) : null;
+
+        if (father) count += 1 + countAncestors(father, visited);
+        if (mother) count += 1 + countAncestors(mother, visited);
+
+        return count;
+    };
+
+    const ancestorCount = selectedAnimal ? countAncestors(selectedAnimal) : 0;
 
     const filteredAnimals = animals.filter(animal =>
         animal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,11 +90,21 @@ export const Pedigree: React.FC = () => {
             const imgWidth = 297; // A4 landscape width in mm
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
+            // Add metadata
+            pdf.setProperties({
+                title: `Pédigrée de ${selectedAnimal?.name || 'Animal'}`,
+                author: 'Ladoum STD',
+                subject: 'Généalogie',
+                creator: 'Ladoum STD App',
+                keywords: 'pedigree, genealogie, ladoum'
+            });
+
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
             pdf.save(`pedigree-${selectedAnimal?.name || 'animal'}.pdf`);
+            toast.success('PDF exporté avec succès');
         } catch (error) {
             console.error('Error exporting PDF:', error);
-            alert('Erreur lors de l\'export PDF');
+            toast.error('Erreur lors de l\'export PDF');
         } finally {
             setExporting(false);
         }
@@ -81,10 +130,11 @@ export const Pedigree: React.FC = () => {
                     link.click();
                     URL.revokeObjectURL(url);
                 }
+                toast.success('Image exportée avec succès');
             });
         } catch (error) {
             console.error('Error exporting image:', error);
-            alert('Erreur lors de l\'export image');
+            toast.error('Erreur lors de l\'export image');
         } finally {
             setExporting(false);
         }
@@ -140,9 +190,9 @@ export const Pedigree: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 {/* Sidebar / Controls */}
-                <div className="space-y-6">
+                <div className="lg:col-span-1 space-y-6">
                     <Card>
                         <h3 className="font-bold text-slate-900 mb-4">Sélectionner un sujet</h3>
                         <div className="relative mb-4">
@@ -155,14 +205,14 @@ export const Pedigree: React.FC = () => {
                                 className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                             />
                         </div>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        <div className="space-y-2 max-h-[calc(100vh-500px)] overflow-y-auto">
                             {filteredAnimals.length === 0 ? (
                                 <p className="text-sm text-slate-400 text-center py-4">Aucun résultat</p>
                             ) : (
                                 filteredAnimals.map(animal => (
                                     <button
                                         key={animal.id}
-                                        onClick={() => setSelectedAnimalId(animal.id)}
+                                        onClick={() => handleAnimalSelect(animal.id)}
                                         className={`w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors ${selectedAnimalId === animal.id ? 'bg-primary-50 text-primary-700 ring-2 ring-primary-200' : 'hover:bg-slate-50'}`}
                                     >
                                         <img src={animal.photoUrl} alt={animal.name} className="w-8 h-8 rounded-full object-cover" />
@@ -176,28 +226,18 @@ export const Pedigree: React.FC = () => {
                         </div>
                     </Card>
 
-                    <Card>
-                        <h3 className="font-bold text-slate-900 mb-4">Personnalisation</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <p className="text-xs text-slate-500 font-medium uppercase mb-2">Thème</p>
-                                <div className="flex gap-2">
-                                    {[
-                                        { id: 'cyan', label: 'Cyan', color: 'bg-cyan-100' },
-                                        { id: 'green', label: 'Vert', color: 'bg-emerald-100' },
-                                        { id: 'orange', label: 'Orange', color: 'bg-orange-100' },
-                                        { id: 'white', label: 'Blanc', color: 'bg-white border-slate-200' }
-                                    ].map((t) => (
-                                        <button
-                                            key={t.id}
-                                            onClick={() => setTheme(t.id as any)}
-                                            className={`w-10 h-10 rounded-lg border-2 transition-all ${theme === t.id ? 'border-slate-900 scale-110' : 'border-transparent hover:scale-105'} ${t.color}`}
-                                            title={t.label}
-                                        />
-                                    ))}
-                                </div>
+                    {loading && (
+                        <Card>
+                            <div className="text-center py-4">
+                                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                                <p className="mt-2 text-sm text-slate-500">Chargement...</p>
                             </div>
+                        </Card>
+                    )}
 
+                    <Card>
+                        <h3 className="font-bold text-slate-900 mb-4">Contrôles</h3>
+                        <div className="space-y-4">
                             <div>
                                 <p className="text-xs text-slate-500 font-medium uppercase mb-2">Zoom</p>
                                 <div className="flex items-center gap-2">
@@ -241,7 +281,7 @@ export const Pedigree: React.FC = () => {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-slate-500">Ancêtres:</span>
-                                    <span className="font-medium">30 max</span>
+                                    <span className="font-medium">{ancestorCount}/{ancestorCount > 0 ? '30 max' : '0'}</span>
                                 </div>
                                 {selectedAnimal.certification && (
                                     <div className="pt-2 border-t border-slate-100">
@@ -256,24 +296,25 @@ export const Pedigree: React.FC = () => {
                 </div>
 
                 {/* Tree Visualization */}
-                <div className="lg:col-span-3">
-                    <Card className="h-full min-h-[700px] bg-slate-50/50" noPadding>
-                        <div
-                            ref={treeContainerRef}
-                            className="w-full h-full overflow-auto"
-                            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
-                        >
-                            {selectedAnimal ? (
-                                <FamilyTree rootAnimal={selectedAnimal} theme={theme} />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-slate-400">
-                                    <div className="text-center">
-                                        <p className="text-lg font-medium mb-2">Aucun animal sélectionné</p>
-                                        <p className="text-sm">Sélectionnez un animal dans la liste</p>
-                                    </div>
+                <div className="lg:col-span-4 h-[calc(100vh-200px)] min-h-[600px]">
+                    <Card style={{ height: '100%', position: 'relative' }} className="bg-slate-50/50" noPadding>
+                        {selectedAnimal ? (
+                            <FamilyTree rootAnimal={selectedAnimal} />
+                        ) : (
+                            <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: '#f1f5f9'
+                            }}>
+                                <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+                                    <p style={{ fontSize: '1.125rem', fontWeight: 500, marginBottom: '0.5rem' }}>Aucun animal sélectionné</p>
+                                    <p style={{ fontSize: '0.875rem' }}>Sélectionnez un animal dans la liste</p>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </Card>
                 </div>
             </div>

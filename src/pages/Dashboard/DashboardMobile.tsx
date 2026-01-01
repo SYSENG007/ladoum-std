@@ -44,8 +44,9 @@ export const DashboardMobile: React.FC = () => {
     }, [userProfile?.displayName, user?.email]);
 
     const stats = useMemo(() => {
-        const totalAnimals = animals.length;
-        const recentBirths = animals.filter(a => {
+        const nonExternalAnimals = animals.filter(a => a.status !== 'External');
+        const totalAnimals = nonExternalAnimals.length;
+        const recentBirths = nonExternalAnimals.filter(a => {
             const birthDate = new Date(a.birthDate);
             const now = new Date();
             const diffDays = (now.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24);
@@ -105,7 +106,7 @@ export const DashboardMobile: React.FC = () => {
                     <NotificationCenter />
                     <button
                         onClick={() => navigate('/profile')}
-                        className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-xs"
+                        className="w-11 h-11 bg-gradient-to-br from-primary-600 to-primary-700 rounded-full flex items-center justify-center text-white font-bold shadow-md"
                     >
                         {userInitials}
                     </button>
@@ -115,7 +116,7 @@ export const DashboardMobile: React.FC = () => {
             {/* Farm Card - Clean horizontal design */}
             <Card className="p-4 mb-3 flex-shrink-0">
                 <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0 shadow-sm">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
                         {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
                     </div>
                     <div className="flex-1">
@@ -130,10 +131,10 @@ export const DashboardMobile: React.FC = () => {
                 {/* Total Sujets */}
                 <Card className="p-3" onClick={() => navigate('/herd')}>
                     <div className="flex items-start justify-between">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <Users className="w-4 h-4 text-blue-600" />
+                        <div className="w-8 h-8 bg-secondary-100 rounded-lg flex items-center justify-center">
+                            <Users className="w-4 h-4 text-primary-600" />
                         </div>
-                        <span className="text-sm font-semibold text-emerald-500">+12%</span>
+                        <span className="text-sm font-semibold text-slate-800">+12%</span>
                     </div>
                     <h3 className="text-3xl font-bold text-text-primary mt-2">{stats.total}</h3>
                     <p className="text-sm text-text-muted">{t('dashboard.totalAnimals')}</p>
@@ -145,7 +146,7 @@ export const DashboardMobile: React.FC = () => {
                         <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                             <Baby className="w-4 h-4 text-purple-600" />
                         </div>
-                        <span className="text-xs font-semibold text-emerald-500">+12%</span>
+                        <span className="text-xs font-semibold text-slate-800">+12%</span>
                     </div>
                     <h3 className="text-3xl font-bold text-text-primary mt-2">{stats.births}</h3>
                     <p className="text-sm text-text-muted">{t('dashboard.births90d')}</p>
@@ -204,7 +205,7 @@ export const DashboardMobile: React.FC = () => {
                         className="w-full p-4 border-b border-slate-100 text-left hover:bg-blue-50 transition-colors"
                     >
                         <div className="flex items-center gap-2 mb-1">
-                            <Stethoscope className="w-5 h-5 text-blue-500" />
+                            <Stethoscope className="w-5 h-5 text-primary-500" />
                             <p className="text-sm font-bold text-text-primary uppercase tracking-wide">{t('dashboard.health')}</p>
                         </div>
                         <p className="text-sm text-text-muted pl-7">
@@ -220,7 +221,7 @@ export const DashboardMobile: React.FC = () => {
                         className="w-full p-4 text-left hover:bg-blue-50 transition-colors"
                     >
                         <div className="flex items-center gap-2 mb-1">
-                            <Package className="w-5 h-5 text-blue-500" />
+                            <Package className="w-5 h-5 text-primary-500" />
                             <p className="text-sm font-bold text-text-primary uppercase tracking-wide">{t('dashboard.stockAlerts')}</p>
                         </div>
                         <p className="text-sm text-text-muted pl-7">
@@ -236,7 +237,7 @@ export const DashboardMobile: React.FC = () => {
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 <div className="flex items-center justify-between mb-2 flex-shrink-0">
                     <h2 className="text-base font-bold text-text-primary">{t('dashboard.featuredAnimals')}</h2>
-                    <button onClick={() => navigate('/herd')} className="text-sm text-emerald-600 font-medium flex items-center gap-1">
+                    <button onClick={() => navigate('/herd')} className="text-sm text-slate-900 font-medium flex items-center gap-1">
                         {t('dashboard.viewAll')} <ChevronRight className="w-3 h-3" />
                     </button>
                 </div>
@@ -249,7 +250,7 @@ export const DashboardMobile: React.FC = () => {
                             onClick={() => setCarouselFilter(filter)}
                             className={clsx(
                                 "px-3 py-1.5 text-sm rounded-full font-medium",
-                                carouselFilter === filter ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"
+                                carouselFilter === filter ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"
                             )}
                         >
                             {getFilterLabel(filter)}
@@ -267,7 +268,7 @@ export const DashboardMobile: React.FC = () => {
                                 className="w-36 flex-shrink-0 bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100"
                             >
                                 <div className="h-24 relative overflow-hidden">
-                                    <img src={animal.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'} alt={animal.name} className="w-full h-full object-cover" />
+                                    <img src={animal.photoUrl || '/logo.png'} alt={animal.name} className="w-full h-full object-cover" />
                                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                                         <p className="text-white font-semibold text-sm">{animal.name}</p>
                                         <p className="text-white/80 text-xs">{animal.tagId || `LAD-${animal.id?.slice(-3)}`}</p>

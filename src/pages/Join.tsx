@@ -195,7 +195,7 @@ export const Join: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mx-auto mb-4" />
+                    <Loader2 className="w-12 h-12 text-slate-900 animate-spin mx-auto mb-4" />
                     <p className="text-slate-600">Chargement de l'invitation...</p>
                 </div>
             </div>
@@ -233,7 +233,7 @@ export const Join: React.FC = () => {
                         Vous êtes connecté en tant que <strong className="text-slate-700">{user?.email}</strong>.
                     </p>
                     <p className="text-slate-500 mb-6">
-                        Cette invitation est destinée à <strong className="text-emerald-600">{invitation?.email}</strong>.
+                        Cette invitation est destinée à <strong className="text-slate-900">{invitation?.email}</strong>.
                     </p>
                     <div className="space-y-3">
                         <Button onClick={handleLogout} className="w-full">
@@ -254,8 +254,8 @@ export const Join: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-8 h-8 text-blue-600" />
+                    <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle className="w-8 h-8 text-primary-600" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 mb-2">Déjà membre !</h1>
                     <p className="text-slate-500 mb-6">
@@ -282,7 +282,7 @@ export const Join: React.FC = () => {
                         Vous êtes propriétaire de <strong className="text-slate-700">{existingFarmName}</strong>.
                     </p>
                     <p className="text-slate-500 mb-6">
-                        Pour rejoindre <strong className="text-emerald-600">{invitation?.farmName}</strong>,
+                        Pour rejoindre <strong className="text-slate-900">{invitation?.farmName}</strong>,
                         vous devez d'abord transférer ou supprimer votre bergerie actuelle.
                     </p>
                     <div className="space-y-3">
@@ -303,8 +303,8 @@ export const Join: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-                    <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-8 h-8 text-emerald-600" />
+                    <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle className="w-8 h-8 text-slate-900" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 mb-2">Bienvenue !</h1>
                     <p className="text-slate-500 mb-4">
@@ -321,8 +321,8 @@ export const Join: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-                    <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Users className="w-8 h-8 text-emerald-600" />
+                    <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Users className="w-8 h-8 text-slate-900" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 mb-2">Invitation reçue !</h1>
                     <p className="text-slate-500 mb-6">
@@ -348,8 +348,8 @@ export const Join: React.FC = () => {
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
                 <div className="text-center mb-6">
-                    <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Users className="w-8 h-8 text-emerald-600" />
+                    <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Users className="w-8 h-8 text-slate-900" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 mb-2">Rejoindre {invitation?.farmName}</h1>
                     <p className="text-slate-500">
@@ -367,7 +367,7 @@ export const Join: React.FC = () => {
                     {invitation?.role === 'manager' && (
                         <div className="flex justify-between items-center">
                             <span className="text-sm text-slate-500">Accès finances</span>
-                            <span className={`font-semibold ${invitation?.permissions.canAccessFinances ? 'text-emerald-600' : 'text-slate-400'}`}>
+                            <span className={`font-semibold ${invitation?.permissions.canAccessFinances ? 'text-slate-900' : 'text-slate-400'}`}>
                                 {invitation?.permissions.canAccessFinances ? 'Oui' : 'Non'}
                             </span>
                         </div>

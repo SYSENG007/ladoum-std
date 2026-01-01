@@ -219,7 +219,7 @@ export const HeatCalendar: React.FC = () => {
             case 'mating': return { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' };
             case 'birth': return { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' };
             case 'abortion': return { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' };
-            case 'ultrasound': return { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' };
+            case 'ultrasound': return { bg: 'bg-secondary-100', text: 'text-primary-700', dot: 'bg-primary-500' };
             case 'birth_prediction': return { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' };
             default: return { bg: 'bg-slate-100', text: 'text-slate-700', dot: 'bg-slate-500' };
         }
@@ -249,7 +249,7 @@ export const HeatCalendar: React.FC = () => {
                 {/* Upcoming Heats Alert */}
                 <Card>
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
+                        <div className="p-3 bg-amber-50 rounded-2xl text-amber-600">
                             <AlertCircle className="w-5 h-5" />
                         </div>
                         <div>
@@ -302,7 +302,7 @@ export const HeatCalendar: React.FC = () => {
                 {/* Upcoming Births Alert */}
                 <Card>
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                        <div className="p-3 bg-orange-50 rounded-2xl text-orange-600">
                             <Baby className="w-5 h-5" />
                         </div>
                         <div>
@@ -402,7 +402,7 @@ export const HeatCalendar: React.FC = () => {
             <Card>
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-pink-50 rounded-lg text-pink-600">
+                        <div className="p-3 bg-pink-50 rounded-2xl text-pink-600">
                             <Calendar className="w-6 h-6" />
                         </div>
                         <h3 className="font-bold text-slate-900 capitalize">{monthName}</h3>
@@ -525,7 +525,7 @@ export const HeatCalendar: React.FC = () => {
                             <span className="text-slate-600">Saillie confirmée</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-blue-500 flex-shrink-0"></div>
+                            <div className="w-4 h-4 rounded bg-primary-500 flex-shrink-0"></div>
                             <span className="text-slate-600">Échographie</span>
                         </div>
                         <div className="flex items-center gap-2">

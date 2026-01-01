@@ -40,7 +40,7 @@ export const Teleconsultation: React.FC = () => {
             const [consultationsData, vetsData, animalsData] = await Promise.all([
                 ConsultationService.getAll(),
                 VeterinarianService.getAll(),
-                AnimalService.getAll()
+                AnimalService.getAll(currentFarm?.id)
             ]);
 
             // Filter consultations by current farm OR current user
@@ -144,8 +144,8 @@ export const Teleconsultation: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                            <Calendar className="w-5 h-5 text-blue-600" />
+                        <div className="p-2 bg-secondary-100 rounded-lg">
+                            <Calendar className="w-5 h-5 text-primary-600" />
                         </div>
                         <div>
                             <p className="text-sm text-slate-500 font-medium">{t('teleconsultation.scheduled')}</p>

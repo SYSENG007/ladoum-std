@@ -55,9 +55,9 @@ export const NotificationCenter: React.FC = () => {
                 return 'bg-amber-100 text-amber-600';
             case 'heat_prediction':
             case 'vaccination_due':
-                return 'bg-blue-100 text-blue-600';
+                return 'bg-secondary-100 text-primary-600';
             case 'consultation_scheduled':
-                return 'bg-emerald-100 text-emerald-600';
+                return 'bg-slate-200 text-slate-900';
             default:
                 return 'bg-slate-100 text-slate-600';
         }
@@ -126,7 +126,7 @@ export const NotificationCenter: React.FC = () => {
                             {unreadCount > 0 && (
                                 <button
                                     onClick={markAllAsRead}
-                                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
+                                    className="text-sm text-slate-900 hover:text-slate-900 font-medium flex items-center gap-1"
                                 >
                                     <CheckCheck className="w-4 h-4" />
                                     Tout lire
@@ -138,7 +138,7 @@ export const NotificationCenter: React.FC = () => {
                         <div className="max-h-[60vh] overflow-y-auto">
                             {loading ? (
                                 <div className="p-8 text-center text-slate-400">
-                                    <div className="w-8 h-8 border-2 border-slate-200 border-t-emerald-500 rounded-full animate-spin mx-auto" />
+                                    <div className="w-8 h-8 border-2 border-slate-200 border-t-slate-800 rounded-full animate-spin mx-auto" />
                                 </div>
                             ) : notifications.length === 0 ? (
                                 <div className="p-8 text-center text-slate-400">
@@ -152,7 +152,7 @@ export const NotificationCenter: React.FC = () => {
                                             key={notification.id}
                                             className={clsx(
                                                 "p-4 hover:bg-slate-50 transition-colors cursor-pointer",
-                                                !notification.read && "bg-emerald-50/50"
+                                                !notification.read && "bg-slate-100/50"
                                             )}
                                         >
                                             <div className="flex gap-3">
@@ -195,7 +195,7 @@ export const NotificationCenter: React.FC = () => {
                                             {notification.actionLabel && (
                                                 <button
                                                     onClick={() => handleNotificationClick(notification)}
-                                                    className="mt-2 ml-13 text-xs font-medium text-emerald-600 hover:text-emerald-700"
+                                                    className="mt-2 ml-13 text-xs font-medium text-slate-900 hover:text-slate-900"
                                                 >
                                                     {notification.actionLabel} →
                                                 </button>

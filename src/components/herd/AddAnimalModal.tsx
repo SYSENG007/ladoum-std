@@ -212,7 +212,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                         required
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                         placeholder="Ex: Bella"
                                     />
                                 </div>
@@ -229,7 +229,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                         required
                                         value={formData.tagId}
                                         onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                         placeholder="Ex: LAD-001"
                                     />
                                 </div>
@@ -245,7 +245,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                     required
                                     value={formData.gender}
                                     onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                 >
                                     <option value="">Sélectionner...</option>
                                     <option value="Male">Mâle</option>
@@ -264,7 +264,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                         required
                                         value={formData.birthDate}
                                         onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     />
                                 </div>
                             </div>
@@ -278,7 +278,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                 required
                                 value={formData.breed}
                                 onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                             >
                                 <option value="Ladoum">Ladoum</option>
                                 <option value="Bali-Bali">Bali-Bali</option>
@@ -303,7 +303,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                     step="0.1"
                                     value={formData.weight}
                                     onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     placeholder="0.0"
                                 />
                             </div>
@@ -317,7 +317,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                     step="0.1"
                                     value={formData.height}
                                     onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     placeholder="Hauteur au garrot"
                                 />
                             </div>
@@ -331,7 +331,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                     step="0.1"
                                     value={formData.length}
                                     onChange={(e) => setFormData({ ...formData, length: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     placeholder="Longueur corps"
                                 />
                             </div>
@@ -345,7 +345,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                     step="0.1"
                                     value={formData.chestGirth}
                                     onChange={(e) => setFormData({ ...formData, chestGirth: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     placeholder="Tour de poitrine"
                                 />
                             </div>
@@ -361,6 +361,66 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                         farmId={currentFarm?.id}
                     />
 
+                    {/* Pedigree Section */}
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-text-primary">Généalogie (optionnel)</h3>
+                        <p className="text-sm text-text-muted">
+                            Sélectionnez les parents pour construire le pedigree
+                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Père (Sire) */}
+                            <div>
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
+                                    Père (Mâle)
+                                </label>
+                                <select
+                                    value={formData.sireId}
+                                    onChange={(e) => setFormData({ ...formData, sireId: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+                                >
+                                    <option value="">Aucun / Inconnu</option>
+                                    {animals
+                                        .filter(a => a.gender === 'Male' && a.status === 'Active')
+                                        .map(animal => (
+                                            <option key={animal.id} value={animal.id}>
+                                                {animal.name} ({animal.tagId})
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
+
+                            {/* Mère (Dam) */}
+                            <div>
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
+                                    Mère (Femelle)
+                                </label>
+                                <select
+                                    value={formData.damId}
+                                    onChange={(e) => setFormData({ ...formData, damId: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+                                >
+                                    <option value="">Aucune / Inconnue</option>
+                                    {animals
+                                        .filter(a => a.gender === 'Female' && a.status === 'Active')
+                                        .map(animal => (
+                                            <option key={animal.id} value={animal.id}>
+                                                {animal.name} ({animal.tagId})
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {(formData.sireId || formData.damId) && (
+                            <div className="flex items-start gap-2 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-800">
+                                <span className="text-primary-600 dark:text-primary-400 text-sm">
+                                    ℹ️ Le pedigree sera visible dans la page "Pedigrees"
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Purchase Information */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
@@ -369,7 +429,7 @@ export const AddAnimalModal: React.FC<AddAnimalModalProps> = ({ isOpen, onClose,
                                 id="wasPurchased"
                                 checked={formData.wasPurchased}
                                 onChange={(e) => setFormData({ ...formData, wasPurchased: e.target.checked })}
-                                className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                className="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-800"
                             />
                             <label htmlFor="wasPurchased" className="font-medium text-slate-700">
                                 Cet animal a été acheté (non né dans la bergerie)

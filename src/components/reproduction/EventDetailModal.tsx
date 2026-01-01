@@ -54,7 +54,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({ isOpen, onCl
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-primary-600 rounded-2xl shadow-2xl max-w-md w-full">
                 {/* Header */}
                 <div className={`bg-gradient-to-r from-${color}-500 to-${color}-600 p-6 flex items-center justify-between rounded-t-2xl`}>
                     <div className="flex items-center gap-3">

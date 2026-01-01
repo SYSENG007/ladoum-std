@@ -3,6 +3,7 @@ import { X, User, Hash, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { ImageUpload } from '../ui/ImageUpload';
 import { AnimalService } from '../../services/AnimalService';
+import { useAnimals } from '../../hooks/useAnimals';
 import type { Animal, Gender } from '../../types';
 
 interface EditAnimalModalProps {
@@ -13,6 +14,8 @@ interface EditAnimalModalProps {
 }
 
 export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClose, onSuccess, animal }) => {
+    const { animals } = useAnimals();
+
     // Get latest measurements if available
     const latestMeasurement = animal.measurements && animal.measurements.length > 0
         ? animal.measurements[animal.measurements.length - 1]
@@ -28,7 +31,9 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
         height_hg: latestMeasurement?.height_hg?.toString() || '',
         length_lcs: latestMeasurement?.length_lcs?.toString() || '',
         chest_tp: latestMeasurement?.chest_tp?.toString() || '',
-        photoUrl: animal.photoUrl || ''
+        photoUrl: animal.photoUrl || '',
+        sireId: animal.sireId || '',
+        damId: animal.damId || ''
     });
 
     const [loading, setLoading] = useState(false);
@@ -47,8 +52,16 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                 gender: formData.gender,
                 birthDate: formData.birthDate,
                 status: formData.status,
-                photoUrl: formData.photoUrl || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400'
+                photoUrl: formData.photoUrl || '/logo.png',
             };
+
+            // Only set sireId/damId if they have values, otherwise don't include them
+            if (formData.sireId) {
+                updates.sireId = formData.sireId;
+            }
+            if (formData.damId) {
+                updates.damId = formData.damId;
+            }
 
             // Add new measurement if any values changed
             if (formData.weight || formData.height_hg || formData.length_lcs || formData.chest_tp) {
@@ -115,7 +128,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                         required
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     />
                                 </div>
                             </div>
@@ -131,7 +144,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                         required
                                         value={formData.tagId}
                                         onChange={(e) => setFormData({ ...formData, tagId: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     />
                                 </div>
                             </div>
@@ -146,7 +159,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                     required
                                     value={formData.gender}
                                     onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                 >
                                     <option value="Male">Mâle</option>
                                     <option value="Female">Femelle</option>
@@ -164,7 +177,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                         required
                                         value={formData.birthDate}
                                         onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     />
                                 </div>
                             </div>
@@ -178,7 +191,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                 required
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Sold' | 'Deceased' })}
-                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                             >
                                 <option value="Active">Actif</option>
                                 <option value="Sold">Vendu</option>
@@ -201,7 +214,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                     step="0.1"
                                     value={formData.weight}
                                     onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                 />
                             </div>
 
@@ -214,7 +227,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                     step="0.1"
                                     value={formData.height_hg}
                                     onChange={(e) => setFormData({ ...formData, height_hg: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                 />
                             </div>
 
@@ -227,7 +240,7 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                     step="0.1"
                                     value={formData.length_lcs}
                                     onChange={(e) => setFormData({ ...formData, length_lcs: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                 />
                             </div>
 
@@ -240,8 +253,57 @@ export const EditAnimalModal: React.FC<EditAnimalModalProps> = ({ isOpen, onClos
                                     step="0.1"
                                     value={formData.chest_tp}
                                     onChange={(e) => setFormData({ ...formData, chest_tp: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                 />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Pedigree Section */}
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-text-primary">Généalogie</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Père */}
+                            <div>
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
+                                    Père (Mâle)
+                                </label>
+                                <select
+                                    value={formData.sireId}
+                                    onChange={(e) => setFormData({ ...formData, sireId: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+                                >
+                                    <option value="">Aucun / Inconnu</option>
+                                    {animals
+                                        .filter(a => a.gender === 'Male' && a.status === 'Active' && a.id !== animal.id)
+                                        .map(a => (
+                                            <option key={a.id} value={a.id}>
+                                                {a.name} ({a.tagId})
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
+
+                            {/* Mère */}
+                            <div>
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
+                                    Mère (Femelle)
+                                </label>
+                                <select
+                                    value={formData.damId}
+                                    onChange={(e) => setFormData({ ...formData, damId: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+                                >
+                                    <option value="">Aucune / Inconnue</option>
+                                    {animals
+                                        .filter(a => a.gender === 'Female' && a.status === 'Active' && a.id !== animal.id)
+                                        .map(a => (
+                                            <option key={a.id} value={a.id}>
+                                                {a.name} ({a.tagId})
+                                            </option>
+                                        ))}
+                                </select>
                             </div>
                         </div>
                     </div>

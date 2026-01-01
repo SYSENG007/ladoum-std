@@ -164,7 +164,7 @@ export const RemindersCard: React.FC<RemindersCardProps> = ({ animals }) => {
                                 onClick={() => reminder.animalId ? handleHealthReminderClick(reminder.animalId) : navigate('/tasks')}
                                 className="w-full flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-600 hover:border-primary-200 dark:hover:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all text-left"
                             >
-                                <Calendar className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                                <Calendar className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between gap-2">
                                         <p className="font-bold text-slate-900 dark:text-white text-sm truncate">{reminder.type}</p>

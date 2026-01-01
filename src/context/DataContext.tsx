@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useFarm } from './FarmContext';
 import type { Animal, Task, Transaction } from '../types';
@@ -37,44 +37,51 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setLoading(true);
         try {
-            // Chemin des collections basé sur la ferme
-            // Structure: farms/{farmId}/animals, farms/{farmId}/tasks, etc.
             const farmId = currentFarm.id;
 
-            // Pour la compatibilité avec les données existantes, on garde l'ancienne structure
-            // TODO: Migrer vers farms/{farmId}/collection
+            // Collections references
             const animalsRef = collection(db, 'animals');
             const tasksRef = collection(db, 'tasks');
             const transactionsRef = collection(db, 'transactions');
 
-            // Fetch Animals
-            const animalsQuery = query(animalsRef, orderBy('name', 'asc'));
+            // ✅ Server-side filtering with where() - only fetch farm's data
+            const animalsQuery = query(
+                animalsRef,
+                where('farmId', '==', farmId),
+                orderBy('name', 'asc')
+            );
             const animalsSnap = await getDocs(animalsQuery);
             const animalsData = animalsSnap.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             } as Animal));
 
-            // Fetch Tasks
-            const tasksQuery = query(tasksRef, orderBy('date', 'asc'));
+            const tasksQuery = query(
+                tasksRef,
+                where('farmId', '==', farmId),
+                orderBy('date', 'asc')
+            );
             const tasksSnap = await getDocs(tasksQuery);
             const tasksData = tasksSnap.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             } as Task));
 
-            // Fetch Transactions
-            const transactionsQuery = query(transactionsRef, orderBy('date', 'desc'));
+            const transactionsQuery = query(
+                transactionsRef,
+                where('farmId', '==', farmId),
+                orderBy('date', 'desc')
+            );
             const transactionsSnap = await getDocs(transactionsQuery);
             const transactionsData = transactionsSnap.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             } as Transaction));
 
-            // Filtrer strictement par farmId - chaque ferme ne voit que ses propres données
-            setAnimals(animalsData.filter(a => a.farmId === farmId));
-            setTasks(tasksData.filter(t => t.farmId === farmId));
-            setTransactions(transactionsData.filter(tr => tr.farmId === farmId));
+            // ✅ No client-side filtering needed - data is already filtered by Firestore
+            setAnimals(animalsData);
+            setTasks(tasksData);
+            setTransactions(transactionsData);
 
             setError(null);
             setInitialized(true);

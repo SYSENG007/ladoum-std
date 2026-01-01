@@ -41,7 +41,7 @@ export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
     }, [animals]);
 
     return (
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-4 text-white relative overflow-hidden h-full">
+        <div className="bg-gradient-to-br from-primary-700 to-primary-600 rounded-xl p-4 text-white relative overflow-hidden h-full">
             {/* Background Pattern */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
 
@@ -49,7 +49,7 @@ export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
                 <div className="flex items-start justify-between mb-3">
                     <div>
                         <h3 className="text-xl font-bold mb-0.5">{t('expert.level')} {certificationStats.currentLevel}</h3>
-                        <p className="text-slate-400 text-xs">{t('expert.certifiedFarm')}</p>
+                        <p className="text-primary-100 text-xs">{t('expert.certifiedFarm')}</p>
                     </div>
                     <CertificationBadge level={certificationStats.currentLevel} size="md" className="shadow-lg shadow-yellow-900/20" />
                 </div>
@@ -57,12 +57,12 @@ export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
                 <div className="space-y-2">
                     <div>
                         <div className="flex justify-between text-xs mb-1">
-                            <span className="text-slate-300">
+                            <span className="text-primary-100">
                                 {certificationStats.currentLevel === 'Elite' ? t('expert.maxLevel') : t('expert.eliteProgress')}
                             </span>
                             <span className="font-bold text-yellow-400">{certificationStats.progress}%</span>
                         </div>
-                        <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-primary-800 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 transition-all duration-500"
                                 style={{ width: `${certificationStats.progress}%` }}
@@ -70,7 +70,7 @@ export const ExpertCard: React.FC<ExpertCardProps> = ({ animals }) => {
                         </div>
                     </div>
 
-                    <div className="flex gap-4 text-xs text-slate-400">
+                    <div className="flex gap-4 text-xs text-primary-200">
                         <div className="flex items-center gap-1.5">
                             <div className={clsx(
                                 "w-1.5 h-1.5 rounded-full",

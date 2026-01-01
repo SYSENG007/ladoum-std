@@ -63,9 +63,9 @@ export const InvitationStats: React.FC<InvitationStatsProps> = ({ invitations })
 
     const getColorClasses = (color: string) => {
         const colors: Record<string, { bg: string; icon: string; text: string }> = {
-            emerald: { bg: 'bg-emerald-100', icon: 'text-emerald-600', text: 'text-emerald-700' },
+            emerald: { bg: 'bg-slate-200', icon: 'text-slate-900', text: 'text-slate-900' },
             amber: { bg: 'bg-amber-100', icon: 'text-amber-600', text: 'text-amber-700' },
-            blue: { bg: 'bg-blue-100', icon: 'text-blue-600', text: 'text-blue-700' },
+            blue: { bg: 'bg-secondary-100', icon: 'text-primary-600', text: 'text-primary-700' },
             red: { bg: 'bg-red-100', icon: 'text-red-600', text: 'text-red-700' },
             slate: { bg: 'bg-slate-100', icon: 'text-slate-600', text: 'text-slate-700' },
         };

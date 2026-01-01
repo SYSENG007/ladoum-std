@@ -61,7 +61,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({ tasks }) => {
         switch (priority) {
             case 'High': return 'bg-red-100 text-red-700 border-red-200';
             case 'Medium': return 'bg-amber-100 text-amber-700 border-amber-200';
-            case 'Low': return 'bg-blue-100 text-blue-700 border-blue-200';
+            case 'Low': return 'bg-secondary-100 text-primary-700 border-blue-200';
             default: return 'bg-slate-100 text-slate-700';
         }
     };
@@ -73,7 +73,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({ tasks }) => {
 
         return (
             <div className="space-y-4">
-                <div className="text-center py-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl">
+                <div className="text-center py-4 bg-gradient-to-r from-slate-100 to-blue-50 rounded-xl">
                     <div className="text-2xl font-bold text-slate-900">
                         {currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </div>
@@ -150,7 +150,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({ tasks }) => {
                                     <div key={task.id} className={clsx(
                                         "text-xs px-2 py-1 rounded truncate",
                                         task.priority === 'High' ? "bg-red-100 text-red-700" :
-                                            task.priority === 'Medium' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                                            task.priority === 'Medium' ? "bg-amber-100 text-amber-700" : "bg-secondary-100 text-primary-700"
                                     )}>
                                         {task.title}
                                     </div>
@@ -194,7 +194,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({ tasks }) => {
                                 {dayTasks.map(task => (
                                     <div key={task.id} className={clsx(
                                         "text-[10px] px-1 py-0.5 rounded truncate",
-                                        task.priority === 'High' ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                                        task.priority === 'High' ? "bg-red-100 text-red-700" : "bg-secondary-100 text-primary-700"
                                     )}>
                                         {task.title}
                                     </div>

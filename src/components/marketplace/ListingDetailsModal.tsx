@@ -302,8 +302,8 @@ export const ListingDetailsModal: React.FC<ListingDetailsModalProps> = ({
                                             <p className="text-xs text-slate-500 mb-2">Lignée</p>
                                             <div className="grid grid-cols-2 gap-3">
                                                 {listing.animalData.sireName && (
-                                                    <div className="p-2 bg-blue-50 rounded-lg">
-                                                        <p className="text-xs text-blue-600">Père</p>
+                                                    <div className="p-2 bg-secondary-50 rounded-lg">
+                                                        <p className="text-xs text-primary-600">Père</p>
                                                         <p className="font-medium text-blue-900">{listing.animalData.sireName}</p>
                                                     </div>
                                                 )}

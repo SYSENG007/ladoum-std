@@ -22,14 +22,14 @@ export const NutritionTab: React.FC<NutritionTabProps> = ({ plan }) => {
 
     return (
         <div className="space-y-6">
-            <Card className="bg-emerald-50 border-emerald-100">
+            <Card className="bg-slate-100 border-slate-200">
                 <div className="flex items-start gap-4">
-                    <div className="p-3 bg-emerald-100 rounded-xl text-emerald-700">
+                    <div className="p-3 bg-tan-50 rounded-2xl text-navy-600">
                         <Utensils className="w-6 h-6" />
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-emerald-900 mb-1">{plan.name}</h3>
-                        <p className="text-emerald-700 text-sm">{plan.notes}</p>
+                        <p className="text-slate-900 text-sm">{plan.notes}</p>
                     </div>
                 </div>
             </Card>
@@ -38,7 +38,7 @@ export const NutritionTab: React.FC<NutritionTabProps> = ({ plan }) => {
             <div className="grid gap-4 md:grid-cols-2">
                 {plan.items.map((item, index) => (
                     <Card key={index} className="flex items-center gap-4 p-4" noPadding>
-                        <div className="p-3 bg-slate-100 rounded-xl text-slate-600">
+                        <div className="p-3 bg-tan-50 rounded-2xl text-navy-600">
                             <Package className="w-6 h-6" />
                         </div>
                         <div className="flex-1">

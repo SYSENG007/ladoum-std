@@ -22,6 +22,19 @@ service cloud.firestore {
       );
     }
     
+    // Helper function to check if user is member of the farm that owns a resource
+    function isFarmMember(farmId) {
+      return isAuthenticated() && (
+        // Check if user's farmId matches
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId == farmId
+      ) || (
+        // OR check if user is in farm's memberIds
+        exists(/databases/$(database)/documents/farms/$(farmId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/farms/$(farmId)).data.memberIds
+      );
+    }
+    
     // User profiles
     match /users/{userId} {
       allow read: if isAuthenticated();
@@ -120,32 +133,71 @@ service cloud.firestore {
       allow read: if resource.data.status == 'pending';
     }
     
-    // Animals - accessible by farm members
+    // Animals - accessible only by farm members
     match /animals/{animalId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated();
+      // Read: must be member of the farm that owns this animal
+      allow read: if isAuthenticated() && isFarmMember(resource.data.farmId);
+      
+      // Create: must be authenticated and farmId must match user's farm
+      allow create: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId;
+      
+      // Update: must be member of the farm and farmId cannot be changed
+      allow update: if isAuthenticated() && 
+        isFarmMember(resource.data.farmId) &&
+        request.resource.data.farmId == resource.data.farmId;
+      
+      // Delete: must be member of the farm
+      allow delete: if isAuthenticated() && isFarmMember(resource.data.farmId);
     }
     
-    // Tasks - accessible by farm members
+    
+    // Tasks - accessible only by farm members
     match /tasks/{taskId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated();
+      allow read: if isAuthenticated() && isFarmMember(resource.data.farmId);
+      
+      allow create: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId;
+      
+      allow update: if isAuthenticated() && 
+        isFarmMember(resource.data.farmId) &&
+        request.resource.data.farmId == resource.data.farmId;
+      
+      allow delete: if isAuthenticated() && isFarmMember(resource.data.farmId);
     }
     
-    // Inventory - accessible by farm members
+    
+    // Inventory - accessible only by farm members
     match /inventory/{itemId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated();
+      allow read: if isAuthenticated() && isFarmMember(resource.data.farmId);
+      
+      allow create: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId;
+      
+      allow update: if isAuthenticated() && 
+        isFarmMember(resource.data.farmId) &&
+        request.resource.data.farmId == resource.data.farmId;
+      
+      allow delete: if isAuthenticated() && isFarmMember(resource.data.farmId);
     }
     
-    // Transactions - accessible by farm members
+    
+    // Transactions - accessible only by farm members
     match /transactions/{transactionId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated();
+      allow read: if isAuthenticated() && isFarmMember(resource.data.farmId);
+      
+      allow create: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId;
+      
+      allow update: if isAuthenticated() && 
+        isFarmMember(resource.data.farmId) &&
+        request.resource.data.farmId == resource.data.farmId;
+      
+      allow delete: if isAuthenticated() && isFarmMember(resource.data.farmId);
     }
     
     // Notifications - user specific

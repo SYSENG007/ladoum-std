@@ -60,7 +60,7 @@ export const Accounting: React.FC = () => {
     const getCategoryColor = (category: TransactionCategory): string => {
         const colors: Record<TransactionCategory, string> = {
             Feed: 'bg-amber-100 text-amber-700',
-            Health: 'bg-blue-100 text-blue-700',
+            Health: 'bg-secondary-100 text-primary-700',
             Reproduction: 'bg-pink-100 text-pink-700',
             Personnel: 'bg-purple-100 text-purple-700',
             Infrastructure: 'bg-slate-100 text-slate-700',
@@ -194,18 +194,18 @@ export const Accounting: React.FC = () => {
                     <div className="flex items-center gap-3">
                         <div className={clsx(
                             "p-2 rounded-lg",
-                            totals.balance >= 0 ? "bg-emerald-100" : "bg-orange-100"
+                            totals.balance >= 0 ? "bg-slate-200" : "bg-orange-100"
                         )}>
                             <Wallet className={clsx(
                                 "w-5 h-5",
-                                totals.balance >= 0 ? "text-emerald-600" : "text-orange-600"
+                                totals.balance >= 0 ? "text-slate-900" : "text-orange-600"
                             )} />
                         </div>
                         <div>
                             <p className="text-sm text-slate-500 font-medium">{t('accounting.balance')}</p>
                             <p className={clsx(
                                 "text-2xl font-bold",
-                                totals.balance >= 0 ? "text-emerald-700" : "text-orange-700"
+                                totals.balance >= 0 ? "text-slate-900" : "text-orange-700"
                             )}>{formatCurrency(totals.balance)}</p>
                         </div>
                     </div>
@@ -385,7 +385,7 @@ export const Accounting: React.FC = () => {
                             <span className="text-red-600 font-medium">-{formatCurrency(totals.expenses)}</span>
                             <span className={clsx(
                                 "font-bold",
-                                totals.balance >= 0 ? "text-emerald-600" : "text-orange-600"
+                                totals.balance >= 0 ? "text-slate-900" : "text-orange-600"
                             )}>
                                 = {formatCurrency(totals.balance)}
                             </span>

@@ -101,10 +101,10 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, o
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-blue-600 p-6 flex items-center justify-between rounded-t-3xl">
+                <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-700 p-6 flex items-center justify-between rounded-t-3xl">
                     <div>
-                        <h2 className="text-2xl font-bold text-white">Modifier la tâche</h2>
-                        <p className="text-sm text-blue-100">Mettez à jour les informations de la tâche</p>
+                        <h2 className="text-2xl font-heading font-bold text-white">Modifier la tâche</h2>
+                        <p className="text-sm font-sans text-primary-100">Mettez à jour les informations de la tâche</p>
                     </div>
                     <button
                         onClick={onClose}
@@ -253,7 +253,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, o
                                         return (
                                             <div
                                                 key={userId}
-                                                className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-sm"
+                                                className="inline-flex items-center gap-1.5 bg-secondary-100 text-primary-700 px-3 py-1.5 rounded-lg text-sm"
                                             >
                                                 <UserIcon className="w-3.5 h-3.5" />
                                                 <span>{member.displayName}</span>
@@ -311,7 +311,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, o
                         </Button>
                         <Button
                             type="submit"
-                            className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                            className="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 font-heading"
                             disabled={loading}
                         >
                             {loading ? 'Enregistrement...' : 'Enregistrer'}

@@ -15,9 +15,16 @@ import type { Animal } from '../types';
 const COLLECTION_NAME = 'animals';
 
 export const AnimalService = {
-    // Get all animals
-    async getAll(): Promise<Animal[]> {
-        const q = query(collection(db, COLLECTION_NAME), orderBy('name'));
+    // Get all animals for a specific farm
+    async getAll(farmId: string | undefined): Promise<Animal[]> {
+        if (!farmId) {
+            return [];
+        }
+        const q = query(
+            collection(db, COLLECTION_NAME),
+            where('farmId', '==', farmId),
+            orderBy('name')
+        );
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({
             id: doc.id,
@@ -25,10 +32,14 @@ export const AnimalService = {
         } as Animal));
     },
 
-    // Get active animals (status != Deceased/Sold)
-    async getActive(): Promise<Animal[]> {
+    // Get active animals (status != Deceased/Sold) for a specific farm
+    async getActive(farmId: string | undefined): Promise<Animal[]> {
+        if (!farmId) {
+            return [];
+        }
         const q = query(
             collection(db, COLLECTION_NAME),
+            where('farmId', '==', farmId),
             where('status', '==', 'Active'),
             orderBy('name')
         );

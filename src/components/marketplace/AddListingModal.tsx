@@ -164,15 +164,23 @@ export const AddListingModal: React.FC<AddListingModalProps> = ({
                 currency,
                 photos,
                 region,
-                city: city.trim() || undefined,
                 sellerName: sellerName.trim(),
-                sellerPhone: sellerPhone.trim() || undefined,
-                sellerWhatsapp: sellerWhatsapp.trim() || undefined,
                 farmId: currentFarm?.id || '',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 createdBy: 'current-user', // TODO: Get from auth context
             };
+
+            // Only add optional fields if they have values
+            if (city.trim()) {
+                listingData.city = city.trim();
+            }
+            if (sellerPhone.trim()) {
+                listingData.sellerPhone = sellerPhone.trim();
+            }
+            if (sellerWhatsapp.trim()) {
+                listingData.sellerWhatsapp = sellerWhatsapp.trim();
+            }
 
             // Add animal-specific data
             if (category === 'Animal' && selectedAnimalId) {

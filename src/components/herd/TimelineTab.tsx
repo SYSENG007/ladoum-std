@@ -92,7 +92,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ animal }) => {
             case 'Task':
                 return {
                     icon: ClipboardList,
-                    color: event.data.status === 'Done' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600',
+                    color: event.data.status === 'Done' ? 'bg-secondary-100 text-primary-600' : 'bg-slate-100 text-slate-600',
                     border: event.data.status === 'Done' ? 'border-blue-200' : 'border-slate-200'
                 };
         }
@@ -120,12 +120,12 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ animal }) => {
                         <p className="text-2xl font-bold text-pink-900">{totalOffspring} <span className="text-sm font-normal">Descendants</span></p>
                     </div>
                 </Card>
-                <Card noPadding className="p-4 flex items-center gap-4 bg-emerald-50 border-emerald-100">
-                    <div className="p-3 bg-white rounded-full shadow-sm text-emerald-500">
+                <Card noPadding className="p-4 flex items-center gap-4 bg-slate-100 border-slate-200">
+                    <div className="p-3 bg-white rounded-full shadow-sm text-slate-800">
                         <DollarSign className="w-6 h-6" />
                     </div>
                     <div>
-                        <p className="text-sm text-emerald-600 font-medium">Investissement</p>
+                        <p className="text-sm text-slate-900 font-medium">Investissement</p>
                         <p className="text-2xl font-bold text-emerald-900">{totalInvestment.toLocaleString()} <span className="text-sm font-normal">FCFA</span></p>
                     </div>
                 </Card>
@@ -166,7 +166,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ animal }) => {
                                             )}
                                             {event.kind === 'Task' && (
                                                 <span className={`text-xs px-2 py-1 rounded-full ${event.data.priority === 'High' ? 'bg-red-100 text-red-700' :
-                                                    event.data.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                                                    event.data.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-secondary-100 text-primary-700'
                                                     }`}>
                                                     {event.data.priority === 'High' ? 'Haute' : event.data.priority === 'Medium' ? 'Moyenne' : 'Basse'}
                                                 </span>

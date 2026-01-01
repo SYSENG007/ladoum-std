@@ -148,7 +148,7 @@ export interface Animal {
     gender: 'Male' | 'Female';
     birthDate: string;
     breed: string;
-    status: 'Active' | 'Sold' | 'Deceased';
+    status: 'Active' | 'Sold' | 'Deceased' | 'External';
     weight: number; // kg
     height: number; // cm
     length: number; // cm

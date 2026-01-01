@@ -176,7 +176,7 @@ ${getInviteLink()}
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 rounded-t-3xl">
+                <div className="bg-gradient-to-r from-slate-900 to-teal-600 p-6 rounded-t-3xl">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -186,7 +186,7 @@ ${getInviteLink()}
                                 <h2 className="text-xl font-bold text-white">
                                     {invitation ? 'Partager l\'invitation' : 'Inviter un membre'}
                                 </h2>
-                                <p className="text-sm text-emerald-100">
+                                <p className="text-sm text-slate-200">
                                     {invitation ? 'Envoyez le lien au nouveau membre' : 'Ajoutez un collaborateur à votre bergerie'}
                                 </p>
                             </div>
@@ -205,8 +205,8 @@ ${getInviteLink()}
                     <div className="p-6 space-y-5">
                         {/* Success Message */}
                         <div className="text-center">
-                            <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <Link className="w-7 h-7 text-emerald-600" />
+                            <div className="w-14 h-14 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Link className="w-7 h-7 text-slate-900" />
                             </div>
                             <h3 className="text-lg font-bold text-text-primary">Invitation créée !</h3>
                             <p className="text-sm text-text-muted mt-1">
@@ -227,7 +227,7 @@ ${getInviteLink()}
                                 <button
                                     onClick={handleCopyLink}
                                     className={`p-2 rounded-lg transition-colors ${copied
-                                        ? 'bg-emerald-100 text-emerald-600'
+                                        ? 'bg-slate-200 text-slate-900'
                                         : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                                         }`}
                                 >
@@ -235,7 +235,7 @@ ${getInviteLink()}
                                 </button>
                             </div>
                             {copied && (
-                                <p className="text-xs text-emerald-600 mt-2 text-center">✓ Lien copié !</p>
+                                <p className="text-xs text-slate-900 mt-2 text-center">✓ Lien copié !</p>
                             )}
                         </div>
 
@@ -260,10 +260,10 @@ ${getInviteLink()}
                                     onClick={handleShareSMS}
                                     className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all bg-blue-50/50"
                                 >
-                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <MessageSquare className="w-5 h-5 text-blue-600" />
+                                    <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
+                                        <MessageSquare className="w-5 h-5 text-primary-600" />
                                     </div>
-                                    <span className="text-xs font-medium text-blue-700">{isMobile ? 'SMS' : 'Copier SMS'}</span>
+                                    <span className="text-xs font-medium text-primary-700">{isMobile ? 'SMS' : 'Copier SMS'}</span>
                                 </button>
 
                                 {/* Copy */}
@@ -343,7 +343,7 @@ ${getInviteLink()}
                                     required
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     placeholder="membre@email.com"
                                 />
                             </div>
@@ -361,7 +361,7 @@ ${getInviteLink()}
                                     required
                                     value={formData.displayName}
                                     onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                     placeholder="Prénom Nom"
                                 />
                             </div>
@@ -377,12 +377,12 @@ ${getInviteLink()}
                                     type="button"
                                     onClick={() => setFormData({ ...formData, role: 'manager', canAccessFinances: false })}
                                     className={`p-4 rounded-xl border-2 transition-all text-left ${formData.role === 'manager'
-                                        ? 'border-emerald-500 bg-emerald-50'
+                                        ? 'border-slate-800 bg-slate-100'
                                         : 'border-slate-200 hover:border-slate-300'
                                         }`}
                                 >
-                                    <Crown className={`w-6 h-6 mb-2 ${formData.role === 'manager' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                                    <p className={`font-semibold ${formData.role === 'manager' ? 'text-emerald-700' : 'text-slate-700'}`}>
+                                    <Crown className={`w-6 h-6 mb-2 ${formData.role === 'manager' ? 'text-slate-900' : 'text-slate-400'}`} />
+                                    <p className={`font-semibold ${formData.role === 'manager' ? 'text-slate-900' : 'text-slate-700'}`}>
                                         Manager
                                     </p>
                                     <p className="text-xs text-text-muted mt-1">Gère le staff et les tâches</p>
@@ -392,12 +392,12 @@ ${getInviteLink()}
                                     type="button"
                                     onClick={() => setFormData({ ...formData, role: 'worker', canAccessFinances: false })}
                                     className={`p-4 rounded-xl border-2 transition-all text-left ${formData.role === 'worker'
-                                        ? 'border-emerald-500 bg-emerald-50'
+                                        ? 'border-slate-800 bg-slate-100'
                                         : 'border-slate-200 hover:border-slate-300'
                                         }`}
                                 >
-                                    <Wrench className={`w-6 h-6 mb-2 ${formData.role === 'worker' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                                    <p className={`font-semibold ${formData.role === 'worker' ? 'text-emerald-700' : 'text-slate-700'}`}>
+                                    <Wrench className={`w-6 h-6 mb-2 ${formData.role === 'worker' ? 'text-slate-900' : 'text-slate-400'}`} />
+                                    <p className={`font-semibold ${formData.role === 'worker' ? 'text-slate-900' : 'text-slate-700'}`}>
                                         Employé
                                     </p>
                                     <p className="text-xs text-text-muted mt-1">Exécute les tâches</p>

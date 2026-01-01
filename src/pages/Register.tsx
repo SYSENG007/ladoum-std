@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { StaffService } from '../services/StaffService';
 import { Button } from '../components/ui/Button';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, User, CheckCircle, Users, Building2 } from 'lucide-react';
-import logo from '../assets/logo.jpg';
+import logo from '../assets/logo.png';
 import type { StaffInvitation } from '../types/staff';
 
 type RegistrationMode = 'choice' | 'owner' | 'staff';
@@ -154,9 +154,9 @@ export const Register: React.FC = () => {
 
     if (loadingInvitation) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-amber-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-amber-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <div className="w-12 h-12 border-4 border-slate-800 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                     <p className="text-slate-600">Chargement de l'invitation...</p>
                 </div>
             </div>
@@ -164,7 +164,7 @@ export const Register: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-amber-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-amber-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo & Title */}
                 <div className="text-center mb-8">
@@ -206,11 +206,11 @@ export const Register: React.FC = () => {
                         <div className="space-y-4">
                             <button
                                 onClick={() => setMode('owner')}
-                                className="w-full p-5 rounded-xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-all text-left group"
+                                className="w-full p-5 rounded-xl border-2 border-slate-200 hover:border-slate-800 hover:bg-slate-100 transition-all text-left group"
                             >
                                 <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
-                                        <Building2 className="w-6 h-6 text-emerald-600" />
+                                    <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center group-hover:bg-slate-400 transition-colors">
+                                        <Building2 className="w-6 h-6 text-slate-900" />
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-slate-900">Je crée ma bergerie</h3>
@@ -223,11 +223,11 @@ export const Register: React.FC = () => {
 
                             <button
                                 onClick={() => setMode('staff')}
-                                className="w-full p-5 rounded-xl border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-left group"
+                                className="w-full p-5 rounded-xl border-2 border-slate-200 hover:border-primary-500 hover:bg-blue-50 transition-all text-left group"
                             >
                                 <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                                        <Users className="w-6 h-6 text-blue-600" />
+                                    <div className="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                                        <Users className="w-6 h-6 text-primary-600" />
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-slate-900">J'ai reçu une invitation</h3>
@@ -248,8 +248,8 @@ export const Register: React.FC = () => {
                     {mode === 'staff' && !invitation && (
                         <div className="space-y-4">
                             <div className="text-center mb-4">
-                                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <Mail className="w-7 h-7 text-blue-600" />
+                                <div className="w-14 h-14 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <Mail className="w-7 h-7 text-primary-600" />
                                 </div>
                                 <h3 className="text-lg font-semibold text-slate-700">Vérifier mon invitation</h3>
                                 <p className="text-sm text-slate-500 mt-1">
@@ -329,12 +329,12 @@ export const Register: React.FC = () => {
                     {/* Staff Mode: Has invitation */}
                     {mode === 'staff' && invitation && (
                         <>
-                            <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <div className="mb-4 p-3 bg-slate-100 border border-primary-400 rounded-lg">
                                 <div className="flex items-center gap-2 text-emerald-800">
                                     <CheckCircle className="w-5 h-5" />
                                     <span className="font-medium">Invitation valide</span>
                                 </div>
-                                <p className="text-sm text-emerald-700 mt-1">
+                                <p className="text-sm text-slate-900 mt-1">
                                     Rejoindre <strong>{invitation.farmName}</strong> en tant que <strong>{invitation.role === 'manager' ? 'Manager' : 'Employé'}</strong>
                                 </p>
                             </div>
@@ -348,7 +348,7 @@ export const Register: React.FC = () => {
                                             type="text"
                                             value={displayName}
                                             onChange={(e) => setDisplayName(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                             placeholder="Votre nom"
                                         />
                                     </div>
@@ -375,7 +375,7 @@ export const Register: React.FC = () => {
                                             type={showPassword ? 'text' : 'password'}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full pl-10 pr-12 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full pl-10 pr-12 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                             placeholder="Min. 6 caractères"
                                         />
                                         <button
@@ -396,7 +396,7 @@ export const Register: React.FC = () => {
                                             type={showPassword ? 'text' : 'password'}
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                             placeholder="Confirmez"
                                         />
                                     </div>
@@ -440,7 +440,7 @@ export const Register: React.FC = () => {
                                             type="text"
                                             value={displayName}
                                             onChange={(e) => setDisplayName(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                             placeholder="Votre nom"
                                         />
                                     </div>
@@ -454,7 +454,7 @@ export const Register: React.FC = () => {
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                             placeholder="votre@email.com"
                                         />
                                     </div>
@@ -468,7 +468,7 @@ export const Register: React.FC = () => {
                                             type={showPassword ? 'text' : 'password'}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full pl-10 pr-12 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full pl-10 pr-12 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                             placeholder="Min. 6 caractères"
                                         />
                                         <button
@@ -489,7 +489,7 @@ export const Register: React.FC = () => {
                                             type={showPassword ? 'text' : 'password'}
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800"
                                             placeholder="Confirmez"
                                         />
                                     </div>
@@ -532,7 +532,7 @@ export const Register: React.FC = () => {
                     {mode !== 'choice' && (
                         <p className="text-center text-sm text-slate-500 mt-6">
                             Vous avez déjà un compte ?{' '}
-                            <Link to="/login" className="text-emerald-600 hover:text-emerald-700 font-medium">
+                            <Link to="/login" className="text-slate-900 hover:text-slate-900 font-medium">
                                 Se connecter
                             </Link>
                         </p>

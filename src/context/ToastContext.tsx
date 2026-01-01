@@ -29,17 +29,17 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
     };
 
     const styles = {
-        success: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200',
+        success: 'bg-slate-100 dark:bg-emerald-900/30 border-primary-400 dark:border-slate-900 text-emerald-800 dark:text-slate-400',
         error: 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700 text-red-800 dark:text-red-200',
         warning: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200',
         info: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200'
     };
 
     const iconColors = {
-        success: 'text-emerald-500',
+        success: 'text-slate-800',
         error: 'text-red-500',
         warning: 'text-amber-500',
-        info: 'text-blue-500'
+        info: 'text-primary-500'
     };
 
     return (

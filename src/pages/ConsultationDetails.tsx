@@ -16,6 +16,7 @@ import { ConsultationService } from '../services/ConsultationService';
 import { VeterinarianService } from '../services/VeterinarianService';
 import { AnimalService } from '../services/AnimalService';
 import { TaskService } from '../services/TaskService';
+import { useFarm } from '../context/FarmContext';
 import type {
     Consultation,
     ConsultationMessage,
@@ -29,6 +30,7 @@ import clsx from 'clsx';
 
 export const ConsultationDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const { currentFarm } = useFarm();
     const [consultation, setConsultation] = useState<Consultation | null>(null);
     const [veterinarian, setVeterinarian] = useState<Veterinarian | null>(null);
     const [animals, setAnimals] = useState<Animal[]>([]);
@@ -65,7 +67,7 @@ export const ConsultationDetails: React.FC = () => {
                         : null,
                     ConsultationService.getMessages(id),
                     ConsultationService.getReport(id),
-                    AnimalService.getAll()
+                    AnimalService.getAll(currentFarm?.id)
                 ]);
 
                 setVeterinarian(vetData);
@@ -380,8 +382,8 @@ export const ConsultationDetails: React.FC = () => {
                     {activeTab === 'chat' && (
                         <div>
                             {consultation.status === 'Scheduled' && (
-                                <Card className="mb-4 bg-blue-50 border-blue-200">
-                                    <div className="flex items-center gap-3 text-blue-700">
+                                <Card className="mb-4 bg-secondary-50 border-blue-200">
+                                    <div className="flex items-center gap-3 text-primary-700">
                                         <Calendar className="w-5 h-5" />
                                         <p className="text-sm">
                                             Le chat sera disponible une fois la consultation démarrée.

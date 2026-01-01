@@ -86,6 +86,7 @@ function App() {
                     <Route path="/herd" element={<Herd />} />
                     <Route path="/herd/:id" element={<AnimalDetails />} />
                     <Route path="/pedigree" element={<Pedigree />} />
+                    <Route path="/pedigree/:animalId" element={<Pedigree />} />
                     <Route path="/reproduction" element={<Reproduction />} />
                     <Route path="/tasks" element={<Tasks />} />
                     <Route path="/calendar" element={<Calendar />} />

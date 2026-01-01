@@ -159,7 +159,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
         switch (priority) {
             case 'High': return 'bg-red-100 text-red-700 border-red-200';
             case 'Medium': return 'bg-amber-100 text-amber-700 border-amber-200';
-            case 'Low': return 'bg-blue-100 text-blue-700 border-blue-200';
+            case 'Low': return 'bg-secondary-100 text-primary-700 border-blue-200';
         }
     };
 
@@ -181,14 +181,14 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
         >
             <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header - Fixed */}
-                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 flex items-center justify-between rounded-t-3xl flex-shrink-0">
+                <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-6 flex items-center justify-between rounded-t-3xl flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-white/20 rounded-xl">
                             <Sparkles className="w-6 h-6 text-white" />
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-white">Nouvelle Tâche</h2>
-                            <p className="text-sm text-emerald-100">Créez une nouvelle tâche pour la bergerie</p>
+                            <p className="text-sm text-slate-200">Créez une nouvelle tâche pour la bergerie</p>
                         </div>
                     </div>
                     <button
@@ -210,9 +210,9 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
 
                     {/* Quick Templates */}
                     {showQuickTemplates && (
-                        <div className="bg-gradient-to-br from-emerald-50 to-blue-50 p-4 rounded-2xl border border-emerald-100">
+                        <div className="bg-gradient-to-br from-slate-100 to-blue-50 p-4 rounded-2xl border border-slate-200">
                             <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-emerald-600" />
+                                <Sparkles className="w-4 h-4 text-slate-900" />
                                 Modèles rapides
                             </h3>
                             <div className="grid grid-cols-2 gap-2">
@@ -221,11 +221,11 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                         key={idx}
                                         type="button"
                                         onClick={() => handleTemplateSelect(template)}
-                                        className="p-3 bg-white rounded-xl border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all text-left group"
+                                        className="p-3 bg-white rounded-xl border border-slate-200 hover:border-slate-500 hover:shadow-md transition-all text-left group"
                                     >
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="text-lg">{getTypeIcon(template.type)}</span>
-                                            <span className="text-sm font-bold text-text-primary group-hover:text-emerald-600 transition-colors">
+                                            <span className="text-sm font-bold text-text-primary group-hover:text-slate-900 transition-colors">
                                                 {template.title}
                                             </span>
                                         </div>
@@ -252,7 +252,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                 required
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
                                 placeholder="Ex: Vaccination Clavelée"
                             />
                         </div>
@@ -265,7 +265,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 rows={3}
-                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all resize-none"
                                 placeholder="Ajoutez des détails sur cette tâche..."
                             />
                         </div>
@@ -282,7 +282,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                     value={formData.date}
                                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                                     min={new Date().toISOString().split('T')[0]}
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
                                 />
                             </div>
                         </div>
@@ -296,7 +296,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                     required
                                     value={formData.type}
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value as TaskType })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
                                 >
                                     <option value="General">📋 Général</option>
                                     <option value="Health">💊 Santé</option>
@@ -313,7 +313,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                     required
                                     value={formData.priority}
                                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as TaskPriority })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
                                 >
                                     <option value="Low">🔵 Basse</option>
                                     <option value="Medium">🟡 Moyenne</option>
@@ -330,7 +330,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                 <select
                                     value={formData.status}
                                     onChange={(e) => setFormData({ ...formData, status: e.target.value as TaskStatus })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
                                 >
                                     <option value="Todo">À faire</option>
                                     <option value="In Progress">En cours</option>
@@ -353,7 +353,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                             const selected = Array.from(e.target.selectedOptions, opt => opt.value);
                                             setFormData({ ...formData, assignedTo: selected });
                                         }}
-                                        className="w-full pl-10 pr-4 py-2 rounded-xl bg-surface-input border border-border-default text-text-primary focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                        className="w-full pl-10 pr-4 py-2 rounded-xl bg-surface-input border border-border-default text-text-primary focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
                                         size={Math.min(members.length + 1, 5)}
                                     >
                                         {members.map(member => (
@@ -406,7 +406,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                 <select
                                     value={formData.relatedAnimalId}
                                     onChange={(e) => setFormData({ ...formData, relatedAnimalId: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
                                 >
                                     <option value="">Aucun animal spécifique</option>
                                     {animals.map(animal => (
@@ -432,7 +432,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                         </Button>
                         <Button
                             type="submit"
-                            className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
+                            className="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-slate-900 hover:to-slate-900"
                             disabled={loading}
                         >
                             {loading ? (

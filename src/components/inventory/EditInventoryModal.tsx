@@ -85,7 +85,7 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                             />
                         </div>
 
@@ -97,7 +97,7 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                                 required
                                 value={formData.category}
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value as InventoryCategory })}
-                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                             >
                                 <option value="Feed">Alimentation</option>
                                 <option value="Medicine">Santé</option>
@@ -116,7 +116,7 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                                     required
                                     value={formData.quantity}
                                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                 />
                             </div>
 
@@ -129,7 +129,7 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                                     required
                                     value={formData.unit}
                                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                                 />
                             </div>
                         </div>
@@ -144,7 +144,7 @@ export const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ isOpen, 
                                 required
                                 value={formData.minThreshold}
                                 onChange={(e) => setFormData({ ...formData, minThreshold: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent"
                             />
                             <p className="text-xs text-text-muted mt-1">
                                 Une alerte sera affichée si la quantité descend en dessous de ce seuil

@@ -148,7 +148,7 @@ export const TasksMobile: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="w-9 h-9 bg-emerald-500 rounded-lg flex items-center justify-center text-white shadow-sm"
+                    className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center text-white shadow-sm"
                 >
                     <Plus className="w-5 h-5" />
                 </button>
@@ -168,7 +168,7 @@ export const TasksMobile: React.FC = () => {
                         onClick={() => setFilterStatus(f.key)}
                         className={clsx(
                             "px-3 py-1.5 text-xs rounded-full whitespace-nowrap",
-                            filterStatus === f.key ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-600"
+                            filterStatus === f.key ? "bg-primary-600 text-white" : "bg-slate-100 text-slate-600"
                         )}
                     >
                         {f.label}
@@ -222,7 +222,7 @@ export const TasksMobile: React.FC = () => {
                                                     {assignees.slice(0, 3).map((assignee, idx) => (
                                                         <div
                                                             key={assignee.userId}
-                                                            className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[9px] font-bold border-2 border-white shadow-sm"
+                                                            className="w-5 h-5 rounded-full bg-gradient-to-br from-slate-600 to-slate-900 flex items-center justify-center text-white text-[9px] font-bold border-2 border-white shadow-sm"
                                                             title={assignee.displayName}
                                                             style={{ zIndex: 10 - idx }}
                                                         >
@@ -231,7 +231,7 @@ export const TasksMobile: React.FC = () => {
                                                     ))}
                                                     {assignees.length > 3 && (
                                                         <div
-                                                            className="w-5 h-5 rounded-full bg-slate-400 flex items-center justify-center text-white text-[8px] font-bold border-2 border-white shadow-sm"
+                                                            className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center text-white text-[8px] font-bold border-2 border-white shadow-sm"
                                                             title={`+${assignees.length - 3} ${assignees.length - 3 === 1 ? 'autre' : 'autres'}: ${assignees.slice(3).map(a => a.displayName).join(', ')}`}
                                                         >
                                                             +{assignees.length - 3}
@@ -253,7 +253,7 @@ export const TasksMobile: React.FC = () => {
                                 <span className={clsx(
                                     "text-[10px] px-1.5 py-0.5 rounded font-medium self-start mt-0.5",
                                     task.priority === 'High' ? "bg-red-100 text-red-700" :
-                                        task.priority === 'Medium' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                                        task.priority === 'Medium' ? "bg-amber-100 text-amber-700" : "bg-secondary-100 text-primary-700"
                                 )}>
                                     {getPriorityLabel(task.priority)}
                                 </span>

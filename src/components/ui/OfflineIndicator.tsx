@@ -46,7 +46,7 @@ export const OfflineIndicator: React.FC = () => {
             {/* Toast de reconnexion */}
             {isOnline && wasOffline && (
                 <div className="fixed top-4 right-4 z-[100] animate-slide-in">
-                    <div className="bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
+                    <div className="bg-primary-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
                         <Wifi className="w-5 h-5" />
                         <span className="font-medium">Connexion rétablie</span>
                         <RefreshCw className="w-4 h-4 animate-spin" />
@@ -58,7 +58,7 @@ export const OfflineIndicator: React.FC = () => {
             {isOffline && (
                 <div className="fixed bottom-4 right-4 z-[99]">
                     <div className={clsx(
-                        "bg-slate-800 text-white px-4 py-2 rounded-full shadow-lg",
+                        "bg-primary-600 text-white px-4 py-2 rounded-full shadow-lg",
                         "flex items-center gap-2 text-sm font-medium"
                     )}>
                         <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit2, Trash2, MoreVertical } from 'lucide-react';
 import type { Animal } from '../../types';
-import logo from '../../assets/logo.jpg';
+import logo from '../../assets/logo.png';
 import { Badge } from '../ui/Badge';
 import { CertificationBadge } from '../ui/CertificationBadge';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -81,7 +81,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
     return (
         <>
             <Link to={`/herd/${animal.id}`} className="block group relative">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="bg-white dark:bg-primary-600 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300">
                     <div className="relative aspect-square overflow-hidden">
                         <img
                             src={animal.photoUrl || logo}
@@ -119,7 +119,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
                                 </button>
 
                                 {showMenu && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 overflow-hidden">
+                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-primary-600 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 overflow-hidden">
                                         <button
                                             onClick={handleEdit}
                                             className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-slate-700 dark:text-slate-200"
