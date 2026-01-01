@@ -1,5 +1,7 @@
-import type { PedigreeData, LayoutConfig, LayoutResult, LayoutNode, LayoutEdge } from '../types/pedigree';
+import type { PedigreeData, LayoutConfig, LayoutResult, LayoutNode, LayoutEdge, PedigreeSubject } from '../types/pedigree';
+import type { Animal } from '../types';
 import { groupByGeneration } from './pedigreeValidator';
+import { buildPedigreeGraph, getAncestors, getDescendants, getVisibleNodes } from './pedigreeGraph';
 
 /**
  * Default layout configuration - VERTICAL
@@ -97,6 +99,110 @@ export function computeLayout(
             maxY: Math.max(...ys) + config.nodeHeight,
         },
     };
+}
+
+/**
+ * V1.1: Compute layout for multiple selected animals
+ * Builds a forest layout with visible nodes based on selection
+ */
+export function computeMultiRootLayout(
+    selection: Set<string>,
+    allAnimals: Animal[],
+    maxGenerations: number = 5,
+    config: LayoutConfig = DEFAULT_LAYOUT_CONFIG
+): LayoutResult {
+    // Build graph
+    const graph = buildPedigreeGraph(allAnimals);
+
+    // Get visible nodes based on selection
+    const visibleIds = getVisibleNodes(selection, graph, maxGenerations, true);
+
+    // Filter animals to visible ones
+    const visibleAnimals = allAnimals.filter(a => visibleIds.has(a.id));
+
+    // Convert to PedigreeSubject format
+    const subjects: PedigreeSubject[] = visibleAnimals.map(animal => ({
+        id: animal.id,
+        name: animal.name,
+        sex: animal.gender === 'Male' ? 'M' : 'F',
+        photoUrl: animal.photoUrl,
+        tagId: animal.tagId,
+        birthDate: animal.birthDate,
+        fatherId: animal.sireId,
+        motherId: animal.damId,
+        generation: calculateRelativeGeneration(animal.id, selection, graph),
+    }));
+
+    // Use standard layout algorithm
+    return computeLayout({ subjects }, config);
+}
+
+/**
+ * Calculate generation number relative to selection
+ * Selected animals are generation 0
+ * Ancestors are positive (1, 2, 3...)
+ * Descendants are negative (-1, -2, -3...)
+ */
+function calculateRelativeGeneration(
+    animalId: string,
+    selection: Set<string>,
+    graph: ReturnType<typeof buildPedigreeGraph>
+): number {
+    // If selected, generation 0
+    if (selection.has(animalId)) return 0;
+
+    // Check if it's an ancestor of any selected
+    for (const selectedId of selection) {
+        const ancestors = getAncestors(selectedId, graph, 10);
+        if (ancestors.has(animalId)) {
+            // Calculate how many generations up
+            return calculateGenerationDistance(selectedId, animalId, graph, 'up');
+        }
+    }
+
+    // Check if it's a descendant of any selected
+    for (const selectedId of selection) {
+        const descendants = getDescendants(selectedId, graph, 10);
+        if (descendants.has(animalId)) {
+            // Calculate how many generations down (negative)
+            return -calculateGenerationDistance(selectedId, animalId, graph, 'down');
+        }
+    }
+
+    // Shouldn't happen if visibleNodes is correct
+    return 0;
+}
+
+/**
+ * Calculate generation distance between two animals
+ */
+function calculateGenerationDistance(
+    fromId: string,
+    toId: string,
+    graph: ReturnType<typeof buildPedigreeGraph>,
+    direction: 'up' | 'down'
+): number {
+    const queue: Array<{ id: string; distance: number }> = [{ id: fromId, distance: 0 }];
+    const visited = new Set<string>();
+
+    while (queue.length > 0) {
+        const { id, distance } = queue.shift()!;
+
+        if (id === toId) return distance;
+        if (visited.has(id)) continue;
+        visited.add(id);
+
+        // Traverse in the specified direction
+        const nextIds = direction === 'up'
+            ? graph.ancestors.get(id) || new Set()
+            : graph.descendants.get(id) || new Set();
+
+        for (const nextId of nextIds) {
+            queue.push({ id: nextId, distance: distance + 1 });
+        }
+    }
+
+    return 0; // Not found
 }
 
 /**

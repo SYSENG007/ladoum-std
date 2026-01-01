@@ -12,6 +12,8 @@ interface UseZoomPanResult {
     };
     reset: () => void;
     fitToView: (bounds: { minX: number; maxX: number; minY: number; maxY: number }) => void;
+    zoomIn: () => void;
+    zoomOut: () => void;
 }
 
 /**
@@ -152,6 +154,52 @@ export function useZoomPan(
         });
     }, [svgRef]);
 
+    /**
+     * Zoom in - centered on viewport center
+     */
+    const zoomIn = useCallback(() => {
+        const svg = svgRef.current;
+        if (!svg) return;
+
+        const rect = svg.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const newScale = Math.min(5, transform.scale * 1.2);
+        const scaleFactor = newScale / transform.scale;
+        const newX = centerX - (centerX - transform.x) * scaleFactor;
+        const newY = centerY - (centerY - transform.y) * scaleFactor;
+
+        setTransform({
+            x: newX,
+            y: newY,
+            scale: newScale,
+        });
+    }, [transform, svgRef]);
+
+    /**
+     * Zoom out - centered on viewport center
+     */
+    const zoomOut = useCallback(() => {
+        const svg = svgRef.current;
+        if (!svg) return;
+
+        const rect = svg.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const newScale = Math.max(0.1, transform.scale / 1.2);
+        const scaleFactor = newScale / transform.scale;
+        const newX = centerX - (centerX - transform.x) * scaleFactor;
+        const newY = centerY - (centerY - transform.y) * scaleFactor;
+
+        setTransform({
+            x: newX,
+            y: newY,
+            scale: newScale,
+        });
+    }, [transform, svgRef]);
+
     return {
         transform,
         handlers: {
@@ -163,5 +211,7 @@ export function useZoomPan(
         },
         reset,
         fitToView,
+        zoomIn,
+        zoomOut,
     };
 }

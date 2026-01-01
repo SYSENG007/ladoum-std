@@ -138,10 +138,14 @@ service cloud.firestore {
       // Read: must be member of the farm that owns this animal
       allow read: if isAuthenticated() && isFarmMember(resource.data.farmId);
       
-      // Create: must be authenticated and farmId must match user's farm
-      allow create: if isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId;
+      // Create: must be authenticated and either:
+      // 1. farmId matches user's farm, OR
+      // 2. User is a member of the specified farm (allows creating external animals)
+      allow create: if isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId) ||
+        isFarmMember(request.resource.data.farmId)
+      );
       
       // Update: must be member of the farm and farmId cannot be changed
       allow update: if isAuthenticated() && 
@@ -157,9 +161,12 @@ service cloud.firestore {
     match /tasks/{taskId} {
       allow read: if isAuthenticated() && isFarmMember(resource.data.farmId);
       
-      allow create: if isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId;
+      // Create: must be authenticated and user must be member of the farm
+      allow create: if isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId) ||
+        isFarmMember(request.resource.data.farmId)
+      );
       
       allow update: if isAuthenticated() && 
         isFarmMember(resource.data.farmId) &&
@@ -173,9 +180,12 @@ service cloud.firestore {
     match /inventory/{itemId} {
       allow read: if isAuthenticated() && isFarmMember(resource.data.farmId);
       
-      allow create: if isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId;
+      // Create: must be authenticated and user must be member of the farm
+      allow create: if isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId) ||
+        isFarmMember(request.resource.data.farmId)
+      );
       
       allow update: if isAuthenticated() && 
         isFarmMember(resource.data.farmId) &&
@@ -189,9 +199,12 @@ service cloud.firestore {
     match /transactions/{transactionId} {
       allow read: if isAuthenticated() && isFarmMember(resource.data.farmId);
       
-      allow create: if isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId;
+      // Create: must be authenticated and user must be member of the farm
+      allow create: if isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         request.resource.data.farmId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.farmId) ||
+        isFarmMember(request.resource.data.farmId)
+      );
       
       allow update: if isAuthenticated() && 
         isFarmMember(resource.data.farmId) &&

@@ -5,8 +5,8 @@ import { computeLayout, DEFAULT_LAYOUT_CONFIG } from '../../utils/pedigreeLayout
 import { validatePedigree } from '../../utils/pedigreeValidator';
 import { useZoomPan } from '../../hooks/useZoomPan';
 import { PedigreeNode, PedigreeNodeDefs } from './PedigreeNode';
-import { ZoomControls } from './ZoomControls';
 import { AddParentModal } from './AddParentModal';
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
 import type { Animal } from '../../types';
 import type { LayoutNode } from '../../types/pedigree';
 
@@ -17,6 +17,10 @@ interface FamilyTreeProps {
 export const FamilyTree: React.FC<FamilyTreeProps> = ({ rootAnimal }) => {
     const { animals, refreshAnimals } = useAnimals();
     const svgRef = useRef<SVGSVGElement>(null);
+
+    // Configuration state
+    const [maxGenerations, setMaxGenerations] = useState(5);
+    const [maxAncestors, setMaxAncestors] = useState(3);
 
     // Modal state for adding parents
     const [showAddParentModal, setShowAddParentModal] = useState(false);
@@ -40,7 +44,7 @@ export const FamilyTree: React.FC<FamilyTreeProps> = ({ rootAnimal }) => {
         return computeLayout(pedigreeData, DEFAULT_LAYOUT_CONFIG);
     }, [pedigreeData]);
 
-    const { transform, handlers, reset, fitToView } = useZoomPan(svgRef as React.RefObject<SVGSVGElement>);
+    const { transform, handlers, reset, fitToView, zoomIn, zoomOut } = useZoomPan(svgRef as React.RefObject<SVGSVGElement>);
 
     useEffect(() => {
         if (layout && layout.nodes.length > 0 && svgRef.current) {
@@ -65,20 +69,13 @@ export const FamilyTree: React.FC<FamilyTreeProps> = ({ rootAnimal }) => {
     const handleModalSuccess = () => {
         setShowAddParentModal(false);
         setParentContext(null);
-        refreshAnimals(); // Refresh to show updated pedigree
+        refreshAnimals();
     };
 
     if (!layout || layout.nodes.length === 0) {
         return (
-            <div style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#f1f5f9'
-            }}>
-                <div style={{ color: '#64748b' }}>Aucun sujet à afficher</div>
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+                <div className="text-slate-500">Aucun sujet à afficher</div>
             </div>
         );
     }
@@ -86,38 +83,61 @@ export const FamilyTree: React.FC<FamilyTreeProps> = ({ rootAnimal }) => {
     const { nodes, edges, bounds } = layout;
 
     return (
-        <div style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: '#f1f5f9'
-        }}>
-            {/* SVG area */}
-            <div style={{
-                position: 'relative',
-                flex: 1,
-                overflow: 'hidden'
-            }}>
-                <div className="absolute top-4 right-4 z-10">
-                    <ZoomControls
-                        onReset={reset}
-                        onFit={() => fitToView(bounds)}
-                        currentZoom={transform.scale}
-                    />
+        <div className="absolute inset-0 flex flex-col bg-slate-100">
+            {/* TOP BAR */}
+            <div className="flex-shrink-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+                {/* Left: Subject Selector */}
+                <div className="flex items-center gap-3">
+                    <select
+                        className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        value={rootAnimal.id}
+                        disabled
+                    >
+                        <option value={rootAnimal.id}>{rootAnimal.name}</option>
+                    </select>
                 </div>
 
+                {/* Right: Zoom Controls */}
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-slate-600 min-w-[3rem] text-right">
+                        {Math.round(transform.scale * 100)}%
+                    </span>
+                    <button
+                        onClick={() => zoomOut()}
+                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        title="Zoom arrière"
+                    >
+                        <ZoomOut className="w-5 h-5 text-slate-600" />
+                    </button>
+                    <button
+                        onClick={() => zoomIn()}
+                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        title="Zoom avant"
+                    >
+                        <ZoomIn className="w-5 h-5 text-slate-600" />
+                    </button>
+                    <button
+                        onClick={() => fitToView(bounds)}
+                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 flex items-center gap-2"
+                    >
+                        <Maximize2 className="w-4 h-4" />
+                        Fit All
+                    </button>
+                    <button
+                        onClick={reset}
+                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 flex items-center gap-2"
+                    >
+                        <RotateCcw className="w-4 h-4" />
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            {/* CANVAS SVG */}
+            <div className="relative flex-1 overflow-hidden">
                 <svg
                     ref={svgRef}
-                    style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        cursor: 'grab',
-                        display: 'block'
-                    }}
+                    className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
                     {...handlers}
                 >
                     <PedigreeNodeDefs />
@@ -151,29 +171,54 @@ export const FamilyTree: React.FC<FamilyTreeProps> = ({ rootAnimal }) => {
                 </svg>
             </div>
 
-            {/* Legend bar - fixed height at bottom */}
-            <div style={{
-                flexShrink: 0,
-                height: '48px',
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(8px)',
-                borderTop: '1px solid #e2e8f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '1.5rem',
-                fontSize: '0.75rem'
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: '#dbeafe', border: '2px solid #60a5fa' }}></div>
-                    <span style={{ color: '#475569' }}>Mâle</span>
+            {/* BOTTOM BAR */}
+            <div className="flex-shrink-0 h-14 bg-white border-t border-slate-200 flex items-center justify-between px-6">
+                {/* Left: Legend */}
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-blue-100 border-2 border-blue-400"></div>
+                        <span className="text-sm text-slate-600">Mâle</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-pink-100 border-2 border-pink-400"></div>
+                        <span className="text-sm text-slate-600">Femelle</span>
+                    </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: '#fce7f3', border: '2px solid #f472b6' }}></div>
-                    <span style={{ color: '#475569' }}>Femelle</span>
+
+                {/* Center: Generations Slider */}
+                <div className="flex items-center gap-3">
+                    <label className="text-sm font-medium text-slate-600">
+                        Générations:
+                    </label>
+                    <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={maxGenerations}
+                        onChange={(e) => setMaxGenerations(Number(e.target.value))}
+                        className="w-32 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                    />
+                    <span className="text-sm font-medium text-slate-700 min-w-[1.5rem]">
+                        {maxGenerations}
+                    </span>
                 </div>
-                <div style={{ color: '#64748b' }}>
-                    Molette : Zoom • Drag : Déplacer
+
+                {/* Right: Ancestors Slider */}
+                <div className="flex items-center gap-3">
+                    <label className="text-sm font-medium text-slate-600">
+                        Ancêtres:
+                    </label>
+                    <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        value={maxAncestors}
+                        onChange={(e) => setMaxAncestors(Number(e.target.value))}
+                        className="w-32 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                    />
+                    <span className="text-sm font-medium text-slate-700 min-w-[1.5rem]">
+                        {maxAncestors}
+                    </span>
                 </div>
             </div>
 
