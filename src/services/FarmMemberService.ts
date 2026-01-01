@@ -52,15 +52,38 @@ export const FarmMemberService = {
 
     /**
      * Récupérer tous les membres d'une ferme
+     * Enrichit automatiquement avec photoUrl depuis UserProfile
      */
     async getMembers(farmId: string): Promise<FarmMember[]> {
         const membersRef = collection(db, FARMS_COLLECTION, farmId, MEMBERS_SUBCOLLECTION);
         const snapshot = await getDocs(membersRef);
 
-        return snapshot.docs.map(doc => ({
+        const members = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         })) as FarmMember[];
+
+        // Enrichir avec photoUrl depuis UserProfile
+        const enrichedMembers = await Promise.all(members.map(async (member) => {
+            try {
+                const userProfileRef = doc(db, 'users', member.userId);
+                const userProfileSnap = await getDoc(userProfileRef);
+
+                if (userProfileSnap.exists()) {
+                    const userProfile = userProfileSnap.data();
+                    return {
+                        ...member,
+                        photoUrl: userProfile.photoUrl || member.photoUrl,
+                        displayName: userProfile.displayName || member.displayName
+                    };
+                }
+            } catch (error) {
+                console.error(`[FarmMemberService] Error fetching UserProfile for ${member.userId}:`, error);
+            }
+            return member;
+        }));
+
+        return enrichedMembers;
     },
 
     /**

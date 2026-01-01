@@ -2,37 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { useFarm } from '../context/FarmContext';
 import { UserService } from '../services/UserService';
-import { FarmService } from '../services/FarmService';
+import { FarmMemberService } from '../services/FarmMemberService';
 import { StaffService } from '../services/StaffService';
 import { AccountService } from '../services/AccountService';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { InviteMemberModal } from '../components/staff/InviteMemberModal';
 import {
-    Mail,
-    Phone,
-    LogOut,
-    Building2,
-    ChevronRight,
-    Bell,
-    Settings,
-    Shield,
-    Users,
-    UserPlus,
-    Crown,
-    Briefcase,
-    Wrench,
-    Edit2,
-    Save,
-    Trash2,
-    AlertTriangle,
-    Share2,
-    Copy,
-    X
+    Trash2, LogOut, ChevronRight, Settings, Bell, Shield, Edit2,
+    Save, Mail, Phone, UserPlus, Crown,
+    AlertTriangle, X, Copy, Share2, Users, Briefcase, Wrench
 } from 'lucide-react';
-import type { Farm, FarmMember } from '../types/farm';
+import type { FarmMember } from '../types/farm';
 import type { StaffInvitation } from '../types/staff';
+import { ProfilePhotoCircle } from '../components/profile/ProfilePhotoCircle';
+import { FarmLogoCircle } from '../components/profile/FarmLogoCircle';
+import { UserAvatar } from '../components/ui/UserAvatar';
 import clsx from 'clsx';
 
 type StaffRole = 'manager' | 'worker';
@@ -45,9 +32,9 @@ const roleLabels: Record<StaffRole, { label: string; icon: React.ElementType; co
 export const Profile: React.FC = () => {
     const navigate = useNavigate();
     const { user, userProfile, logout, refreshUserProfile } = useAuth();
+    const { currentFarm } = useFarm();
     useData(); // Keep hook for context but data refresh handled elsewhere
 
-    const [farms, setFarms] = useState<Farm[]>([]);
     const [farmMembers, setFarmMembers] = useState<FarmMember[]>([]);
     const [pendingInvitations, setPendingInvitations] = useState<StaffInvitation[]>([]);
     const [loading, setLoading] = useState(false);
@@ -64,46 +51,43 @@ export const Profile: React.FC = () => {
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [deletingAccount, setDeletingAccount] = useState(false);
 
-    // Charger les fermes et membres
+    // Charger les fermes et membres via currentFarm du contexte
     useEffect(() => {
-        const loadData = async () => {
-            if (!user) return;
+        const loadFarmData = async () => {
+            if (!currentFarm?.id) return;
+
             try {
-                // Try to load user's farms
-                try {
-                    const userFarms = await FarmService.getByUserId(user.uid);
-                    setFarms(userFarms);
-                } catch (farmError: any) {
-                    // If permission error, silently continue (user might not have farms yet)
-                    if (farmError.code !== 'permission-denied') {
-                        console.error('Error loading farms:', farmError);
+                // Charger les membres de la bergerie active
+                if (currentFarm.members) {
+                    setFarmMembers(currentFarm.members);
+                } else {
+                    // Fallback si members n'est pas peuplé dans l'objet farm
+                    try {
+                        const members = await FarmMemberService.getMembers(currentFarm.id);
+                        setFarmMembers(members);
+                    } catch (e) {
+                        console.error('Error loading members fallback', e);
                     }
                 }
 
-                // Charger les membres de la bergerie
-                if (userProfile?.farmId) {
-                    const activeFarm = farms.find(f => f.id === userProfile.farmId);
-                    if (activeFarm?.members) {
-                        setFarmMembers(activeFarm.members);
-                    }
-
-                    // Charger les invitations en attente (only for owners)
-                    try {
-                        const invitations = await StaffService.getPendingInvitations(userProfile.farmId);
-                        setPendingInvitations(invitations);
-                    } catch (invError: any) {
-                        // Silently ignore if user doesn't have permission (not owner)
-                        if (invError.code !== 'permission-denied') {
-                            console.error('Error loading invitations:', invError);
-                        }
+                // Charger les invitations en attente (only for owners/managers with permission)
+                // On vérifie grossièrement si user est owner ou si pas d'erreur permission
+                try {
+                    const invitations = await StaffService.getPendingInvitations(currentFarm.id);
+                    setPendingInvitations(invitations);
+                } catch (invError: any) {
+                    // Silently ignore if user doesn't have permission
+                    if (invError.code !== 'permission-denied') {
+                        // console.error('Error loading invitations:', invError);
                     }
                 }
             } catch (err) {
-                console.error('Error loading data:', err);
+                console.error('Error loading farm data:', err);
             }
         };
-        loadData();
-    }, [user, userProfile?.farmId]);
+
+        loadFarmData();
+    }, [currentFarm]);
 
     // Set edit form values
     useEffect(() => {
@@ -126,18 +110,12 @@ export const Profile: React.FC = () => {
         try {
             const result = await AccountService.deleteAccount(user.uid);
             if (result.success) {
-                // Success - user is now logged out automatically
                 console.log('Account deleted successfully');
-                // Close modal and they'll be redirected by auth context
                 setShowDeleteModal(false);
             } else {
-                // Show error - keep modal open
                 setDeletingAccount(false);
-
-                // Check if it's the reauthentication error
                 if (result.message.includes('déconnecter puis vous reconnecter') ||
                     result.message.includes('recent')) {
-                    // Show in modal with logout button
                     const shouldLogout = window.confirm(
                         `Pour des raisons de sécurité, vous devez vous reconnecter récemment avant de supprimer votre compte.\n\nVoulez-vous vous déconnecter maintenant pour vous reconnecter ?`
                     );
@@ -147,7 +125,6 @@ export const Profile: React.FC = () => {
                         navigate('/login');
                     }
                 } else {
-                    // Other errors
                     alert(result.message);
                     setShowDeleteModal(false);
                 }
@@ -177,7 +154,7 @@ export const Profile: React.FC = () => {
         }
     };
 
-    const activeFarm = farms.find(f => f.id === userProfile?.farmId);
+    const activeFarm = currentFarm;
     const isOwner = activeFarm?.ownerId === user?.uid;
 
     return (
@@ -191,9 +168,7 @@ export const Profile: React.FC = () => {
             {/* User Info Card */}
             <Card className="p-6">
                 <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                        {userProfile?.displayName?.charAt(0).toUpperCase() || 'U'}
-                    </div>
+                    <ProfilePhotoCircle />
 
                     {isEditingProfile ? (
                         <div className="flex-1 space-y-3">
@@ -260,19 +235,12 @@ export const Profile: React.FC = () => {
             <Card className="p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-slate-900">Bergerie Active</h3>
-                    {farms.length > 1 && (
-                        <span className="text-sm text-slate-500">
-                            {farms.length} bergeries
-                        </span>
-                    )}
                 </div>
 
                 {activeFarm ? (
                     <div className="bg-slate-100 border border-primary-400 rounded-xl p-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center">
-                                <Building2 className="w-6 h-6 text-white" />
-                            </div>
+                            <FarmLogoCircle />
                             <div className="flex-1">
                                 <h4 className="font-semibold text-slate-900">{activeFarm.name}</h4>
                                 {activeFarm.location && (
@@ -307,9 +275,11 @@ export const Profile: React.FC = () => {
                     <div className="space-y-2">
                         {/* Owner */}
                         <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
-                            <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center text-white font-medium">
-                                {userProfile?.displayName?.charAt(0).toUpperCase() || 'U'}
-                            </div>
+                            <UserAvatar
+                                photoUrl={userProfile?.photoUrl}
+                                displayName={userProfile?.displayName}
+                                size="md"
+                            />
                             <div className="flex-1">
                                 <p className="font-medium text-slate-900">{userProfile?.displayName}</p>
                                 <p className="text-xs text-slate-500">{user?.email}</p>
@@ -328,9 +298,11 @@ export const Profile: React.FC = () => {
                                     key={member.id || member.userId}
                                     className="flex items-center gap-3 p-3 rounded-lg border border-slate-200"
                                 >
-                                    <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-600 font-medium">
-                                        {member.displayName?.charAt(0).toUpperCase() || '?'}
-                                    </div>
+                                    <UserAvatar
+                                        photoUrl={member.photoUrl}
+                                        displayName={member.displayName}
+                                        size="md"
+                                    />
                                     <div className="flex-1">
                                         <p className="font-medium text-slate-900">{member.displayName || 'Membre'}</p>
                                         <p className="text-xs text-slate-500">{member.email}</p>

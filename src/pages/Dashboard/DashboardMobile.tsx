@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useFarm } from '../../context/FarmContext';
 import { useData } from '../../context/DataContext';
 import { useTranslation } from '../../context/SettingsContext';
+import { UserAvatar } from '../../components/ui/UserAvatar';
 import { Card } from '../../components/ui/Card';
 import { NotificationCenter } from '../../components/notifications/NotificationCenter';
 import {
@@ -27,21 +28,14 @@ export const DashboardMobile: React.FC = () => {
     const { animals } = useAnimals();
     const { tasks } = useTasks();
     const { lowStockItems } = useInventory();
-    const { user, userProfile } = useAuth();
+    const { userProfile } = useAuth();
     const { currentFarm } = useFarm();
     const { transactions } = useData();
     const { t } = useTranslation();
 
     const [carouselFilter, setCarouselFilter] = useState<CarouselFilter>('all');
 
-    const userInitials = useMemo(() => {
-        if (!userProfile?.displayName) return user?.email?.charAt(0).toUpperCase() || 'U';
-        const names = userProfile.displayName.split(' ');
-        if (names.length >= 2) {
-            return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
-        }
-        return userProfile.displayName.charAt(0).toUpperCase();
-    }, [userProfile?.displayName, user?.email]);
+
 
     const stats = useMemo(() => {
         const nonExternalAnimals = animals.filter(a => a.status !== 'External');
@@ -106,9 +100,13 @@ export const DashboardMobile: React.FC = () => {
                     <NotificationCenter />
                     <button
                         onClick={() => navigate('/profile')}
-                        className="w-11 h-11 bg-gradient-to-br from-primary-600 to-primary-700 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+                        className="hover:opacity-80 transition-opacity"
                     >
-                        {userInitials}
+                        <UserAvatar
+                            photoUrl={userProfile?.photoUrl}
+                            displayName={userProfile?.displayName}
+                            size="md"
+                        />
                     </button>
                 </div>
             </div>
@@ -116,9 +114,17 @@ export const DashboardMobile: React.FC = () => {
             {/* Farm Card - Clean horizontal design */}
             <Card className="p-4 mb-3 flex-shrink-0">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
-                        {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
-                    </div>
+                    {currentFarm?.logoUrl ? (
+                        <img
+                            src={currentFarm.logoUrl}
+                            alt={currentFarm.name}
+                            className="w-12 h-12 rounded-xl object-cover shadow-md border border-slate-200 bg-white"
+                        />
+                    ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
+                            {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
+                        </div>
+                    )}
                     <div className="flex-1">
                         <h2 className="font-bold text-lg text-text-primary mb-1">{currentFarm?.name || t('dashboard.myFarm')}</h2>
                         <p className="text-sm text-text-muted leading-snug">{t('dashboard.subtitle')}</p>

@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useAnimals } from '../../hooks/useAnimals';
 import { usePedigreeSelection } from '../../hooks/usePedigreeSelection';
 import { buildPedigreeGraph, findCommonAncestors, getVisibleNodes } from '../../utils/pedigreeGraph';
 import { computeMultiRootLayout, DEFAULT_LAYOUT_CONFIG } from '../../utils/pedigreeLayout';
+import type { LayoutResult } from '../../types/pedigree';
 import { PedigreeCanvas } from './PedigreeCanvas';
 import { SelectionControls } from './SelectionControls';
 
@@ -37,9 +38,24 @@ export const PedigreeViewer: React.FC = () => {
         return getVisibleNodes(selection, graph, 5, true);
     }, [selection, graph]);
 
-    // Compute layout
-    const layout = useMemo(() => {
-        return computeMultiRootLayout(selection, animals, 5, DEFAULT_LAYOUT_CONFIG);
+    // Compute layout with ELK (async)
+    const [layout, setLayout] = useState<LayoutResult | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function computeLayout() {
+            const result = await computeMultiRootLayout(selection, animals, 5, DEFAULT_LAYOUT_CONFIG);
+            if (!cancelled) {
+                setLayout(result);
+            }
+        }
+
+        computeLayout();
+
+        return () => {
+            cancelled = true;
+        };
     }, [selection, animals]);
 
     // Handle node click
@@ -52,6 +68,15 @@ export const PedigreeViewer: React.FC = () => {
             selectOne(nodeId);
         }
     };
+
+    // Show loading if layout not ready
+    if (!layout) {
+        return (
+            <div className="relative w-full h-full flex items-center justify-center">
+                <div className="text-slate-500">Calcul du layout...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative w-full h-full flex flex-col">

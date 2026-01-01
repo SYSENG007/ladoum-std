@@ -6,6 +6,7 @@
 export interface Farm {
     id: string;
     name: string;
+    logoUrl?: string;          // Logo de la bergerie
     location?: string;
     ownerId: string;
     memberIds: string[];       // NEW: Array of member UIDs for permission checks

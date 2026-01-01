@@ -4,6 +4,7 @@ import { useFarm } from '../../context/FarmContext';
 import { useAnimals } from '../../hooks/useAnimals';
 import { useTranslation } from '../../context/SettingsContext';
 import { FarmMemberService } from '../../services/FarmMemberService';
+import { UserAvatar } from '../ui/UserAvatar';
 import type { Task } from '../../types';
 import type { FarmMember } from '../../types/farm';
 import clsx from 'clsx';
@@ -97,13 +98,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     };
 
     const dueInfo = getDueDateLabel();
-
-    // Get initials for avatar fallback
-    const getInitials = (name: string) => {
-        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    };
-
-
 
     return (
         <div
@@ -242,11 +236,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                             {visibleAssignees.map((assignee, idx) => (
                                 <div
                                     key={assignee.userId}
-                                    className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xs font-bold shadow-sm border-2 border-white"
                                     title={assignee.displayName}
                                     style={{ zIndex: visibleAssignees.length - idx }}
                                 >
-                                    {getInitials(assignee.displayName || 'U')}
+                                    <UserAvatar
+                                        photoUrl={assignee.photoUrl}
+                                        displayName={assignee.displayName}
+                                        size="sm"
+                                        className="border-2 border-white shadow-sm"
+                                    />
                                 </div>
                             ))}
                             {remaining > 0 && (

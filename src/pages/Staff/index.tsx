@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Calendar, Clock, Star, Plus, Crown, Wrench, Mail, MoreVertical, Check, Copy, Share2, X } from 'lucide-react';
+import { UserAvatar } from '../../components/ui/UserAvatar';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { InviteMemberModal } from '../../components/staff/InviteMemberModal';
@@ -212,9 +213,11 @@ export const Staff: React.FC = () => {
                             {members.map((member, idx) => (
                                 <Card key={member.userId || idx} className="p-4">
                                     <div className="flex items-start gap-4">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-slate-800 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold">
-                                            {member.displayName?.charAt(0) || 'M'}
-                                        </div>
+                                        <UserAvatar
+                                            photoUrl={member.photoUrl}
+                                            displayName={member.displayName}
+                                            size="lg"
+                                        />
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <h3 className="font-semibold text-slate-900 truncate">{member.displayName}</h3>

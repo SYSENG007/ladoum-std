@@ -13,6 +13,7 @@ import {
     ChevronRight,
     ChevronLeft
 } from 'lucide-react';
+import { UserAvatar } from '../../components/ui/UserAvatar';
 import clsx from 'clsx';
 
 type CarouselFilter = 'all' | 'males' | 'females' | 'certified' | 'recent';
@@ -20,21 +21,14 @@ type CarouselFilter = 'all' | 'males' | 'females' | 'certified' | 'recent';
 export const DashboardDesktop: React.FC = () => {
     const navigate = useNavigate();
     const { animals } = useAnimals();
-    const { user, userProfile } = useAuth();
+    const { userProfile } = useAuth();
     const { currentFarm } = useFarm();
     const { t } = useTranslation();
 
     const [carouselFilter, setCarouselFilter] = useState<CarouselFilter>('all');
     const [carouselIndex, setCarouselIndex] = useState(0);
 
-    const userInitials = useMemo(() => {
-        if (!userProfile?.displayName) return user?.email?.charAt(0).toUpperCase() || 'U';
-        const names = userProfile.displayName.split(' ');
-        if (names.length >= 2) {
-            return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
-        }
-        return userProfile.displayName.charAt(0).toUpperCase();
-    }, [userProfile?.displayName, user?.email]);
+
 
     const stats = useMemo(() => {
         const nonExternalAnimals = animals.filter(a => a.status !== 'External');
@@ -83,9 +77,17 @@ export const DashboardDesktop: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6 flex-shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                        {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
-                    </div>
+                    {currentFarm?.logoUrl ? (
+                        <img
+                            src={currentFarm.logoUrl}
+                            alt={currentFarm.name}
+                            className="w-11 h-11 rounded-xl object-cover shadow-sm border border-slate-200 bg-white"
+                        />
+                    ) : (
+                        <div className="w-11 h-11 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                            {currentFarm?.name?.charAt(0).toUpperCase() || 'B'}
+                        </div>
+                    )}
                     <div>
                         <h1 className="text-xl font-bold text-slate-900">{currentFarm?.name || t('dashboard.myFarm')}</h1>
                         <p className="text-sm text-slate-500">{t('dashboard.subtitle')}</p>
@@ -96,28 +98,32 @@ export const DashboardDesktop: React.FC = () => {
                     <button onClick={() => navigate('/profile')} className="flex items-center gap-3 hover:bg-white/50 rounded-xl px-3 py-2 transition-colors">
                         <div className="text-right">
                             <p className="text-sm font-semibold text-slate-900">{userProfile?.displayName || t('dashboard.user')}</p>
-                            <p className="text-xs text-slate-500">{getRoleName(userProfile?.role)}</p>
+                            <p className="text-xs text-slate-500">
+                                {getRoleName(currentFarm?.members?.find(m => m.userId === userProfile?.id)?.role || userProfile?.role)}
+                            </p>
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                            {userInitials}
-                        </div>
+                        <UserAvatar
+                            photoUrl={userProfile?.photoUrl}
+                            displayName={userProfile?.displayName}
+                            size="md"
+                        />
                     </button>
                 </div>
-            </div>
+            </div >
 
             {/* Main Content - Flex row, no scroll */}
-            <div className="flex gap-6 flex-1 min-h-0 overflow-hidden">
+            < div className="flex gap-6 flex-1 min-h-0 overflow-hidden" >
                 {/* Left Side */}
-                <div className="flex-1 flex flex-col gap-5 min-w-0 overflow-hidden">
+                < div className="flex-1 flex flex-col gap-5 min-w-0 overflow-hidden" >
                     {/* KPI Row - ExpertCard (2 cols) + Total Sujets (1 col) */}
-                    <div className="grid grid-cols-3 gap-4 flex-shrink-0">
+                    < div className="grid grid-cols-3 gap-4 flex-shrink-0" >
                         {/* ExpertCard - Certification Progress (spans 2 columns) */}
-                        <div className="col-span-2">
+                        < div className="col-span-2" >
                             <ExpertCard animals={animals} />
-                        </div>
+                        </div >
 
                         {/* Total Sujets Card */}
-                        <Card className="p-5 cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between" onClick={() => navigate('/herd')}>
+                        < Card className="p-5 cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between" onClick={() => navigate('/herd')}>
                             <div className="flex items-start justify-between">
                                 <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary-100">
                                     <Users className="w-5 h-5 text-primary-600" />
@@ -131,11 +137,11 @@ export const DashboardDesktop: React.FC = () => {
                                     <span className="text-pink-600 font-medium">♀ {stats.females} {t('dashboard.females')}</span>
                                 </div>
                             </div>
-                        </Card>
-                    </div>
+                        </Card >
+                    </div >
 
                     {/* Sujets en Vedette */}
-                    <div className="flex flex-col overflow-hidden">
+                    < div className="flex flex-col overflow-hidden" >
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2 flex-shrink-0">
                             <div className="flex items-center gap-3">
                                 <h2 className="text-lg font-bold text-slate-900">{t('dashboard.featuredAnimals')}</h2>
@@ -203,14 +209,14 @@ export const DashboardDesktop: React.FC = () => {
                                 <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </div >
+                </div >
 
                 {/* Right Side - RemindersCard */}
-                <div className="w-96 flex-shrink-0">
+                < div className="w-96 flex-shrink-0" >
                     <RemindersCard animals={animals} />
-                </div>
-            </div>
-        </div>
+                </div >
+            </div >
+        </div >
     );
 };

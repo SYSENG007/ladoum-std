@@ -2,9 +2,10 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useAnimals } from '../../hooks/useAnimals';
 import { useZoomPan } from '../../hooks/useZoomPan';
 import { PedigreeNode, PedigreeNodeDefs } from './PedigreeNode';
-import { ZoomIn, ZoomOut, Maximize2, RotateCcw, ChevronDown } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, ChevronDown, Download } from 'lucide-react';
 import { getNodeOpacity, getEdgeOpacity, getHighlightedEdges } from '../../utils/pedigreeHighlight';
 import type { LayoutResult } from '../../types/pedigree';
+import domtoimage from 'dom-to-image-more';
 
 interface PedigreeCanvasProps {
     layout: LayoutResult;
@@ -26,10 +27,38 @@ export const PedigreeCanvas: React.FC<PedigreeCanvasProps> = ({
     onNodeClick,
 }) => {
     const svgRef = useRef<SVGSVGElement>(null!);
+    const canvasContainerRef = useRef<HTMLDivElement>(null);
     const { animals } = useAnimals();
-    const { transform, handlers, reset, fitToView, zoomIn, zoomOut } = useZoomPan(svgRef);
+    const { transform, handlers, fitToView, zoomIn, zoomOut } = useZoomPan(svgRef);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [exporting, setExporting] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Export image handler - using dom-to-image for proper SVG/font/image capture
+    const handleExportImage = async () => {
+        if (!canvasContainerRef.current) return;
+        setExporting(true);
+
+        try {
+            const dataUrl = await domtoimage.toPng(canvasContainerRef.current, {
+                quality: 1.0,
+                bgcolor: '#f1f5f9',
+                style: {
+                    transform: 'scale(1)',
+                    transformOrigin: 'top left',
+                },
+            });
+
+            const link = document.createElement('a');
+            link.download = `pedigree-${new Date().toISOString().split('T')[0]}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error('Error exporting image:', error);
+        } finally {
+            setExporting(false);
+        }
+    };
 
     // Fit to view when layout changes
     useEffect(() => {
@@ -152,41 +181,46 @@ export const PedigreeCanvas: React.FC<PedigreeCanvasProps> = ({
                     )}
                 </div>
 
-                <span className="text-sm font-medium text-slate-600 min-w-[3rem] text-right">
-                    {Math.round(transform.scale * 100)}%
-                </span>
-                <button
-                    onClick={() => zoomOut()}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                    title="Zoom arrière"
-                >
-                    <ZoomOut className="w-5 h-5 text-slate-600" />
-                </button>
-                <button
-                    onClick={() => zoomIn()}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                    title="Zoom avant"
-                >
-                    <ZoomIn className="w-5 h-5 text-slate-600" />
-                </button>
-                <button
-                    onClick={() => fitToView(bounds)}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 flex items-center gap-2"
-                >
-                    <Maximize2 className="w-4 h-4" />
-                    Fit All
-                </button>
-                <button
-                    onClick={reset}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 flex items-center gap-2"
-                >
-                    <RotateCcw className="w-4 h-4" />
-                    Reset
-                </button>
+                {/* Right: Zoom Controls + Fit All + Export */}
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => zoomOut()}
+                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        title="Zoom arrière"
+                    >
+                        <ZoomOut className="w-5 h-5 text-slate-600" />
+                    </button>
+                    <span className="text-sm font-medium text-slate-600 min-w-[3rem] text-center">
+                        {Math.round(transform.scale * 100)}%
+                    </span>
+                    <button
+                        onClick={() => zoomIn()}
+                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        title="Zoom avant"
+                    >
+                        <ZoomIn className="w-5 h-5 text-slate-600" />
+                    </button>
+                    <button
+                        onClick={() => fitToView(bounds)}
+                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 flex items-center gap-2"
+                    >
+                        <Maximize2 className="w-4 h-4" />
+                        Fit All
+                    </button>
+                    <button
+                        onClick={handleExportImage}
+                        disabled={exporting}
+                        className="px-3 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+                        title="Télécharger image"
+                    >
+                        <Download className="w-4 h-4" />
+                        {exporting ? 'Export...' : 'Image'}
+                    </button>
+                </div>
             </div>
 
             {/* CANVAS SVG */}
-            <div className="relative flex-1 overflow-hidden">
+            <div ref={canvasContainerRef} className="relative flex-1 overflow-hidden">
                 <svg
                     ref={svgRef}
                     className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"

@@ -10,13 +10,48 @@ import { buildPedigreeGraph, getAncestors, getDescendants, getVisibleNodes } fro
 export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
     nodeWidth: 200,
     nodeHeight: 140,
-    generationGap: 200,  // Vertical gap between generations
-    siblingGap: 30,      // Horizontal gap between siblings
+    generationGap: 250,  // Increased vertical gap between generations
+    siblingGap: 80,      // Increased horizontal gap between siblings (was 30)
     direction: 'vertical',
 };
 
 /**
+ * Sort siblings to minimize edge crossings
+ * Groups children by their parent pairs to keep families together
+ */
+function sortSiblingsByParents(subjects: PedigreeSubject[]): PedigreeSubject[] {
+    // Create a key for each parent pair
+    const getParentKey = (s: PedigreeSubject) => {
+        const father = s.fatherId || 'none';
+        const mother = s.motherId || 'none';
+        return `${father}-${mother}`;
+    };
+
+    // Group by parent pairs
+    const groups = new Map<string, PedigreeSubject[]>();
+    subjects.forEach(subject => {
+        const key = getParentKey(subject);
+        if (!groups.has(key)) {
+            groups.set(key, []);
+        }
+        groups.get(key)!.push(subject);
+    });
+
+    // Flatten groups back to array, keeping families together
+    const sorted: PedigreeSubject[] = [];
+    groups.forEach(group => {
+        // Sort within group by name for consistency
+        group.sort((a, b) => a.name.localeCompare(b.name));
+        sorted.push(...group);
+    });
+
+    return sorted;
+}
+
+
+/**
  * Compute VERTICAL layout for bidirectional pedigree
+ * Uses barycentric (bottom-up) algorithm to minimize edge crossings
  * - Ancestors: top (Y increases upward with generation)
  * - Subject: center (generation 0)
  * - Descendants: bottom (Y decreases with negative generation)
@@ -28,29 +63,121 @@ export function computeLayout(
     const { subjects } = data;
     const groups = groupByGeneration(subjects);
 
-    // Calculate positions for each generation
-    const nodes: LayoutNode[] = [];
-    const generations = Array.from(groups.keys()).sort((a, b) => b - a); // Sort descending: highest gen (ancestors) first
+    // Track x positions for each node
+    const xPositions = new Map<string, number>();
 
-    generations.forEach(gen => {
+    // Sort generations from bottom to top (descendants first, then ancestors)
+    const generations = Array.from(groups.keys()).sort((a, b) => a - b);
+
+    // Build parent-child relationships
+    const childrenMap = new Map<string, string[]>(); // parentId -> childIds[]
+    subjects.forEach(subject => {
+        if (subject.fatherId) {
+            if (!childrenMap.has(subject.fatherId)) {
+                childrenMap.set(subject.fatherId, []);
+            }
+            childrenMap.get(subject.fatherId)!.push(subject.id);
+        }
+        if (subject.motherId) {
+            if (!childrenMap.has(subject.motherId)) {
+                childrenMap.set(subject.motherId, []);
+            }
+            childrenMap.get(subject.motherId)!.push(subject.id);
+        }
+    });
+
+    // Position nodes generation by generation (bottom to top)
+    let currentX = 0;
+    generations.forEach((gen, genIndex) => {
         const genSubjects = groups.get(gen)!;
 
-        // Y position: higher generations (ancestors) at top, lower (descendants) at bottom
-        // gen positive = ancestors (move up), gen negative = descendants (move down)
+        if (genIndex === 0) {
+            // Lowest generation: position left to right with grouping by parents
+            const sortedSubjects = sortSiblingsByParents(genSubjects);
+            sortedSubjects.forEach(subject => {
+                xPositions.set(subject.id, currentX);
+                currentX += config.nodeWidth + config.siblingGap;
+            });
+        } else {
+            // Higher generations: center parents above their children
+            // First, calculate ideal positions for all parents
+            const parentPositions: Array<{ subject: PedigreeSubject; idealX: number }> = [];
+
+            genSubjects.forEach(parent => {
+                const children = childrenMap.get(parent.id) || [];
+
+                if (children.length > 0) {
+                    // Get children positions
+                    const childPositions = children
+                        .map(childId => xPositions.get(childId))
+                        .filter(pos => pos !== undefined) as number[];
+
+                    if (childPositions.length > 0) {
+                        // Center parent on average of children positions
+                        const avgX = childPositions.reduce((sum, x) => sum + x, 0) / childPositions.length;
+                        parentPositions.push({ subject: parent, idealX: avgX });
+                    } else {
+                        // No positioned children, place at end
+                        parentPositions.push({ subject: parent, idealX: currentX });
+                        currentX += config.nodeWidth + config.siblingGap;
+                    }
+                } else {
+                    // No children (root ancestor), place at end
+                    parentPositions.push({ subject: parent, idealX: currentX });
+                    currentX += config.nodeWidth + config.siblingGap;
+                }
+            });
+
+            // Sort parents by their ideal X position to minimize crossings
+            parentPositions.sort((a, b) => a.idealX - b.idealX);
+
+            // Assign final positions with overlap resolution
+            parentPositions.forEach((item, index) => {
+                if (index === 0) {
+                    xPositions.set(item.subject.id, item.idealX);
+                } else {
+                    const prevSubject = parentPositions[index - 1].subject;
+                    const prevX = xPositions.get(prevSubject.id)!;
+                    const minX = prevX + config.nodeWidth + config.siblingGap;
+
+                    // Use ideal position if it doesn't overlap, otherwise push right
+                    const finalX = Math.max(item.idealX, minX);
+                    xPositions.set(item.subject.id, finalX);
+                }
+            });
+        }
+    });
+
+    // Resolve overlaps within each generation
+    generations.forEach(gen => {
+        const genSubjects = groups.get(gen)!;
+        resolveOverlaps(genSubjects, xPositions, config);
+    });
+
+    // Create layout nodes with calculated positions
+    const nodes: LayoutNode[] = [];
+    generations.forEach(gen => {
+        const genSubjects = groups.get(gen)!;
         const y = -gen * config.generationGap;
 
-        // X position: center subjects horizontally
-        const totalWidth = genSubjects.length * config.nodeWidth + (genSubjects.length - 1) * config.siblingGap;
-        let currentX = -totalWidth / 2;
-
         genSubjects.forEach(subject => {
+            const x = xPositions.get(subject.id) || 0;
             nodes.push({
                 ...subject,
-                x: currentX,
+                x,
                 y,
             });
-            currentX += config.nodeWidth + config.siblingGap;
         });
+    });
+
+    // Center the entire tree
+    const allX = Array.from(xPositions.values());
+    const minX = Math.min(...allX);
+    const maxX = Math.max(...allX);
+    const centerOffset = -(minX + maxX) / 2;
+
+    nodes.forEach(node => {
+        node.x += centerOffset;
     });
 
     // Create lookup for positioned nodes
@@ -64,11 +191,14 @@ export function computeLayout(
         if (childNode.fatherId) {
             const fatherNode = nodeMap.get(childNode.fatherId);
             if (fatherNode) {
+                console.log(`🔗 Edge: ${fatherNode.name} (father) → ${childNode.name} (child)`);
                 edges.push({
                     from: fatherNode.id,
                     to: childNode.id,
                     path: createVerticalEdgePath(fatherNode, childNode, config),
                 });
+            } else {
+                console.warn(`⚠️ Father not found: ${childNode.name} has fatherId=${childNode.fatherId} but node doesn't exist`);
             }
         }
 
@@ -76,14 +206,20 @@ export function computeLayout(
         if (childNode.motherId) {
             const motherNode = nodeMap.get(childNode.motherId);
             if (motherNode) {
+                console.log(`🔗 Edge: ${motherNode.name} (mother) → ${childNode.name} (child)`);
                 edges.push({
                     from: motherNode.id,
                     to: childNode.id,
                     path: createVerticalEdgePath(motherNode, childNode, config),
                 });
+            } else {
+                console.warn(`⚠️ Mother not found: ${childNode.name} has motherId=${childNode.motherId} but node doesn't exist`);
             }
         }
     });
+
+    console.log(`📊 Total edges created: ${edges.length}`);
+    console.log(`📊 Total nodes: ${nodes.length}`);
 
     // Calculate bounds
     const xs = nodes.map(n => n.x);
@@ -102,15 +238,48 @@ export function computeLayout(
 }
 
 /**
- * V1.1: Compute layout for multiple selected animals
- * Builds a forest layout with visible nodes based on selection
+ * Resolve overlaps between nodes in same generation
+ * Ensures minimum spacing while preserving relative order
  */
-export function computeMultiRootLayout(
+function resolveOverlaps(
+    subjects: PedigreeSubject[],
+    xPositions: Map<string, number>,
+    config: LayoutConfig
+): void {
+    // Sort by current x position
+    const sorted = [...subjects].sort((a, b) => {
+        const xA = xPositions.get(a.id) || 0;
+        const xB = xPositions.get(b.id) || 0;
+        return xA - xB;
+    });
+
+    // Ensure minimum spacing
+    const minSpacing = config.nodeWidth + config.siblingGap;
+
+    for (let i = 1; i < sorted.length; i++) {
+        const prevX = xPositions.get(sorted[i - 1].id)!;
+        const currX = xPositions.get(sorted[i].id)!;
+
+        if (currX < prevX + minSpacing) {
+            // Overlap detected, push right
+            xPositions.set(sorted[i].id, prevX + minSpacing);
+        }
+    }
+}
+
+/**
+ * V1.1: Compute layout for multiple selected animals
+ * Uses ELK.js for professional graph layout (PRD requirement)
+ */
+export async function computeMultiRootLayout(
     selection: Set<string>,
     allAnimals: Animal[],
     maxGenerations: number = 5,
     config: LayoutConfig = DEFAULT_LAYOUT_CONFIG
-): LayoutResult {
+): Promise<LayoutResult> {
+    // Import ELK layout function
+    const { computeLayoutWithELK } = await import('./pedigreeLayoutELK');
+
     // Build graph
     const graph = buildPedigreeGraph(allAnimals);
 
@@ -120,28 +289,12 @@ export function computeMultiRootLayout(
     // Filter animals to visible ones
     const visibleAnimals = allAnimals.filter(a => visibleIds.has(a.id));
 
-    // If no selection, find root animals (those without parents) to use as reference
-    const roots = selection.size === 0
-        ? new Set(allAnimals.filter(a => !a.sireId && !a.damId).map(a => a.id))
-        : selection;
+    console.log(`🎯 Computing ELK layout for ${visibleAnimals.length} animals`);
 
-    // Convert to PedigreeSubject format
-    const subjects: PedigreeSubject[] = visibleAnimals.map(animal => ({
-        id: animal.id,
-        name: animal.name,
-        sex: animal.gender === 'Male' ? 'M' : 'F',
-        photoUrl: animal.photoUrl,
-        tagId: animal.tagId,
-        birthDate: animal.birthDate,
-        fatherId: animal.sireId,
-        motherId: animal.damId,
-        generation: calculateRelativeGeneration(animal.id, roots, graph),
-    }));
-
-    // Use standard layout algorithm
-    const rootSubjectId = roots.size > 0 ? Array.from(roots)[0] : subjects[0]?.id || '';
-    return computeLayout({ subjects, rootSubjectId }, config);
+    // Use ELK.js for layout computation (PRD requirement)
+    return await computeLayoutWithELK(visibleAnimals, config);
 }
+
 
 /**
  * Calculate generation number relative to selection/roots

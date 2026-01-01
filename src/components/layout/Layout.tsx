@@ -1,19 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { OnboardingTour } from '../onboarding/OnboardingTour';
+import { useSidebar } from '../../context/SidebarContext';
 import clsx from 'clsx';
 
 export const Layout: React.FC = () => {
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const { isCollapsed, toggleSidebar } = useSidebar();
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100">
-            <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+            <Sidebar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
 
             {/* Main Content Area */}
-            <main className={clsx("min-h-screen pb-20 md:pb-0 transition-all duration-300", isSidebarCollapsed ? "md:ml-20" : "md:ml-64")}>
+            <main className={clsx("min-h-screen pb-20 md:pb-0 transition-all duration-300", isCollapsed ? "md:ml-20" : "md:ml-64")}>
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
                     <Outlet />
                 </div>

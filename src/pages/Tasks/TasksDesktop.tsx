@@ -16,6 +16,7 @@ import { TaskService } from '../../services/TaskService';
 import { FarmMemberService } from '../../services/FarmMemberService';
 import type { TaskStatus, Task } from '../../types';
 import type { FarmMember } from '../../types/farm';
+import { UserAvatar } from '../../components/ui/UserAvatar';
 import clsx from 'clsx';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 
@@ -261,11 +262,15 @@ export const TasksDesktop: React.FC = () => {
                                                                         {assignees.slice(0, 3).map((assignee, idx) => (
                                                                             <div
                                                                                 key={assignee.userId}
-                                                                                className="w-5 h-5 rounded-full bg-gradient-to-br from-slate-600 to-slate-900 flex items-center justify-center text-white text-[9px] font-bold border-2 border-white shadow-sm"
                                                                                 title={assignee.displayName}
                                                                                 style={{ zIndex: 10 - idx }}
                                                                             >
-                                                                                {(assignee.displayName || 'U').charAt(0).toUpperCase()}
+                                                                                <UserAvatar
+                                                                                    photoUrl={assignee.photoUrl}
+                                                                                    displayName={assignee.displayName}
+                                                                                    size="xs"
+                                                                                    className="border-2 border-white shadow-sm"
+                                                                                />
                                                                             </div>
                                                                         ))}
                                                                         {assignees.length > 3 && (
