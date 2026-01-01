@@ -1,7 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { useAnimals } from '../../hooks/useAnimals';
 import { useZoomPan } from '../../hooks/useZoomPan';
 import { PedigreeNode, PedigreeNodeDefs } from './PedigreeNode';
-import { ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw, ChevronDown } from 'lucide-react';
 import { getNodeOpacity, getEdgeOpacity, getHighlightedEdges } from '../../utils/pedigreeHighlight';
 import type { LayoutResult } from '../../types/pedigree';
 
@@ -25,7 +26,10 @@ export const PedigreeCanvas: React.FC<PedigreeCanvasProps> = ({
     onNodeClick,
 }) => {
     const svgRef = useRef<SVGSVGElement>(null!);
+    const { animals } = useAnimals();
     const { transform, handlers, reset, fitToView, zoomIn, zoomOut } = useZoomPan(svgRef);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Fit to view when layout changes
     useEffect(() => {
@@ -37,12 +41,34 @@ export const PedigreeCanvas: React.FC<PedigreeCanvasProps> = ({
         }
     }, [layout, fitToView]);
 
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+
+        if (showDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [showDropdown]);
+
     // Calculate highlighted edges
     const highlightedEdges = getHighlightedEdges(selection, visibleNodes, {
         descendants: new Map(),
         ancestors: new Map(),
         allIds: new Set(),
     });
+
+    // Get selected animals names
+    const selectedAnimals = animals.filter(a => selection.has(a.id));
+    const dropdownLabel = selection.size === 0
+        ? 'Tous les animaux'
+        : selection.size === 1
+            ? selectedAnimals[0]?.name || '1 sélectionné'
+            : `${selection.size} sélectionnés`;
 
     if (!layout || layout.nodes.length === 0) {
         return (
@@ -58,49 +84,105 @@ export const PedigreeCanvas: React.FC<PedigreeCanvasProps> = ({
         <div className="absolute inset-0 flex flex-col bg-slate-100">
             {/* TOP BAR */}
             <div className="flex-shrink-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
-                {/* Left: View Mode Info */}
-                <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-slate-700">
-                        {selection.size === 0 && 'Vue globale'}
-                        {selection.size === 1 && 'Vue individuelle'}
-                        {selection.size > 1 && `Vue groupée (${selection.size})`}
-                    </span>
+                {/* Left: Animal Selector Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                    <button
+                        onClick={() => setShowDropdown(!showDropdown)}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg hover:border-slate-400 transition-colors"
+                    >
+                        <span className="text-sm font-medium text-slate-700">
+                            {dropdownLabel}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {showDropdown && (
+                        <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-slate-200 z-50 max-h-96 overflow-hidden flex flex-col">
+                            {/* Header */}
+                            <div className="p-3 border-b border-slate-200">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-medium text-slate-600 uppercase">
+                                        Sélectionner des animaux
+                                    </span>
+                                    {selection.size > 0 && (
+                                        <button
+                                            onClick={() => {
+                                                animals.forEach(a => onNodeClick(a.id, false));
+                                                setShowDropdown(false);
+                                            }}
+                                            className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                                        >
+                                            Tout désélectionner
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Animals List */}
+                            <div className="overflow-y-auto flex-1">
+                                {animals.map(animal => (
+                                    <label
+                                        key={animal.id}
+                                        className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer transition-colors"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selection.has(animal.id)}
+                                            onChange={() => onNodeClick(animal.id, true)}
+                                            className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-2 focus:ring-primary-500"
+                                        />
+                                        <img
+                                            src={animal.photoUrl}
+                                            alt={animal.name}
+                                            className="w-8 h-8 rounded-full object-cover"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-medium text-slate-900 truncate">
+                                                {animal.name}
+                                            </div>
+                                            <div className="text-xs text-slate-500">
+                                                {animal.tagId}
+                                            </div>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Right: Zoom Controls */}
-                <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-slate-600 min-w-[3rem] text-right">
-                        {Math.round(transform.scale * 100)}%
-                    </span>
-                    <button
-                        onClick={() => zoomOut()}
-                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                        title="Zoom arrière"
-                    >
-                        <ZoomOut className="w-5 h-5 text-slate-600" />
-                    </button>
-                    <button
-                        onClick={() => zoomIn()}
-                        className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                        title="Zoom avant"
-                    >
-                        <ZoomIn className="w-5 h-5 text-slate-600" />
-                    </button>
-                    <button
-                        onClick={() => fitToView(bounds)}
-                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 flex items-center gap-2"
-                    >
-                        <Maximize2 className="w-4 h-4" />
-                        Fit All
-                    </button>
-                    <button
-                        onClick={reset}
-                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 flex items-center gap-2"
-                    >
-                        <RotateCcw className="w-4 h-4" />
-                        Reset
-                    </button>
-                </div>
+                <span className="text-sm font-medium text-slate-600 min-w-[3rem] text-right">
+                    {Math.round(transform.scale * 100)}%
+                </span>
+                <button
+                    onClick={() => zoomOut()}
+                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                    title="Zoom arrière"
+                >
+                    <ZoomOut className="w-5 h-5 text-slate-600" />
+                </button>
+                <button
+                    onClick={() => zoomIn()}
+                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                    title="Zoom avant"
+                >
+                    <ZoomIn className="w-5 h-5 text-slate-600" />
+                </button>
+                <button
+                    onClick={() => fitToView(bounds)}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 flex items-center gap-2"
+                >
+                    <Maximize2 className="w-4 h-4" />
+                    Fit All
+                </button>
+                <button
+                    onClick={reset}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium text-slate-700 flex items-center gap-2"
+                >
+                    <RotateCcw className="w-4 h-4" />
+                    Reset
+                </button>
             </div>
 
             {/* CANVAS SVG */}

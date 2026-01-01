@@ -120,6 +120,11 @@ export function computeMultiRootLayout(
     // Filter animals to visible ones
     const visibleAnimals = allAnimals.filter(a => visibleIds.has(a.id));
 
+    // If no selection, find root animals (those without parents) to use as reference
+    const roots = selection.size === 0
+        ? new Set(allAnimals.filter(a => !a.sireId && !a.damId).map(a => a.id))
+        : selection;
+
     // Convert to PedigreeSubject format
     const subjects: PedigreeSubject[] = visibleAnimals.map(animal => ({
         id: animal.id,
@@ -130,47 +135,68 @@ export function computeMultiRootLayout(
         birthDate: animal.birthDate,
         fatherId: animal.sireId,
         motherId: animal.damId,
-        generation: calculateRelativeGeneration(animal.id, selection, graph),
+        generation: calculateRelativeGeneration(animal.id, roots, graph),
     }));
 
     // Use standard layout algorithm
-    const rootSubjectId = selection.size > 0 ? Array.from(selection)[0] : subjects[0]?.id || '';
+    const rootSubjectId = roots.size > 0 ? Array.from(roots)[0] : subjects[0]?.id || '';
     return computeLayout({ subjects, rootSubjectId }, config);
 }
 
 /**
- * Calculate generation number relative to selection
- * Selected animals are generation 0
+ * Calculate generation number relative to selection/roots
+ * Selected animals (or roots if no selection) are generation 0
  * Ancestors are positive (1, 2, 3...)
  * Descendants are negative (-1, -2, -3...)
  */
 function calculateRelativeGeneration(
     animalId: string,
-    selection: Set<string>,
+    referenceSet: Set<string>, // Either selection or roots
     graph: ReturnType<typeof buildPedigreeGraph>
 ): number {
-    // If selected, generation 0
-    if (selection.has(animalId)) return 0;
+    // If in reference set (selected or root), generation 0
+    if (referenceSet.has(animalId)) return 0;
 
-    // Check if it's an ancestor of any selected
-    for (const selectedId of selection) {
-        const ancestors = getAncestors(selectedId, graph, 10);
+    // Check if it's an ancestor of any reference animal
+    for (const refId of referenceSet) {
+        const ancestors = getAncestors(refId, graph, 10);
         if (ancestors.has(animalId)) {
             // Calculate how many generations up
-            return calculateGenerationDistance(selectedId, animalId, graph, 'up');
+            return calculateGenerationDistance(refId, animalId, graph, 'up');
         }
     }
 
-    // Check if it's a descendant of any selected
-    for (const selectedId of selection) {
-        const descendants = getDescendants(selectedId, graph, 10);
+    // Check if it's a descendant of any reference animal
+    for (const refId of referenceSet) {
+        const descendants = getDescendants(refId, graph, 10);
         if (descendants.has(animalId)) {
             // Calculate how many generations down (negative)
-            return -calculateGenerationDistance(selectedId, animalId, graph, 'down');
+            return -calculateGenerationDistance(refId, animalId, graph, 'down');
         }
     }
 
-    // Shouldn't happen if visibleNodes is correct
+    // If not related to any reference animal, calculate from closest root
+    // Find the closest ancestor that is a root
+    let currentId = animalId;
+    let depth = 0;
+    const visited = new Set<string>();
+
+    while (currentId && !visited.has(currentId)) {
+        visited.add(currentId);
+
+        // Check if this is a root (no parents)
+        const parents = graph.ancestors.get(currentId);
+        if (!parents || parents.size === 0) {
+            // This is a root, return negative depth (descendant)
+            return -depth;
+        }
+
+        // Move up to first parent
+        const firstParent = Array.from(parents)[0];
+        currentId = firstParent;
+        depth++;
+    }
+
     return 0;
 }
 

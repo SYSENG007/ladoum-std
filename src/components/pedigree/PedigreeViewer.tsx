@@ -54,7 +54,7 @@ export const PedigreeViewer: React.FC = () => {
     };
 
     return (
-        <div className="absolute inset-0 flex flex-col">
+        <div className="relative w-full h-full flex flex-col">
             {/* Selection Controls Overlay */}
             <SelectionControls
                 selection={selection}
