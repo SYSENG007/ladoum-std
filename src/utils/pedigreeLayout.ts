@@ -1,7 +1,7 @@
 import type { PedigreeData, LayoutConfig, LayoutResult, LayoutNode, LayoutEdge, PedigreeSubject } from '../types/pedigree';
 import type { Animal } from '../types';
 import { groupByGeneration } from './pedigreeValidator';
-import { buildPedigreeGraph, getAncestors, getDescendants, getVisibleNodes } from './pedigreeGraph';
+import { buildPedigreeGraph, getVisibleNodes } from './pedigreeGraph';
 
 /**
  * Default layout configuration - VERTICAL
@@ -296,94 +296,7 @@ export async function computeMultiRootLayout(
 }
 
 
-/**
- * Calculate generation number relative to selection/roots
- * Selected animals (or roots if no selection) are generation 0
- * Ancestors are positive (1, 2, 3...)
- * Descendants are negative (-1, -2, -3...)
- */
-function calculateRelativeGeneration(
-    animalId: string,
-    referenceSet: Set<string>, // Either selection or roots
-    graph: ReturnType<typeof buildPedigreeGraph>
-): number {
-    // If in reference set (selected or root), generation 0
-    if (referenceSet.has(animalId)) return 0;
 
-    // Check if it's an ancestor of any reference animal
-    for (const refId of referenceSet) {
-        const ancestors = getAncestors(refId, graph, 10);
-        if (ancestors.has(animalId)) {
-            // Calculate how many generations up
-            return calculateGenerationDistance(refId, animalId, graph, 'up');
-        }
-    }
-
-    // Check if it's a descendant of any reference animal
-    for (const refId of referenceSet) {
-        const descendants = getDescendants(refId, graph, 10);
-        if (descendants.has(animalId)) {
-            // Calculate how many generations down (negative)
-            return -calculateGenerationDistance(refId, animalId, graph, 'down');
-        }
-    }
-
-    // If not related to any reference animal, calculate from closest root
-    // Find the closest ancestor that is a root
-    let currentId = animalId;
-    let depth = 0;
-    const visited = new Set<string>();
-
-    while (currentId && !visited.has(currentId)) {
-        visited.add(currentId);
-
-        // Check if this is a root (no parents)
-        const parents = graph.ancestors.get(currentId);
-        if (!parents || parents.size === 0) {
-            // This is a root, return negative depth (descendant)
-            return -depth;
-        }
-
-        // Move up to first parent
-        const firstParent = Array.from(parents)[0];
-        currentId = firstParent;
-        depth++;
-    }
-
-    return 0;
-}
-
-/**
- * Calculate generation distance between two animals
- */
-function calculateGenerationDistance(
-    fromId: string,
-    toId: string,
-    graph: ReturnType<typeof buildPedigreeGraph>,
-    direction: 'up' | 'down'
-): number {
-    const queue: Array<{ id: string; distance: number }> = [{ id: fromId, distance: 0 }];
-    const visited = new Set<string>();
-
-    while (queue.length > 0) {
-        const { id, distance } = queue.shift()!;
-
-        if (id === toId) return distance;
-        if (visited.has(id)) continue;
-        visited.add(id);
-
-        // Traverse in the specified direction
-        const nextIds = direction === 'up'
-            ? graph.ancestors.get(id) || new Set()
-            : graph.descendants.get(id) || new Set();
-
-        for (const nextId of nextIds) {
-            queue.push({ id: nextId, distance: distance + 1 });
-        }
-    }
-
-    return 0; // Not found
-}
 
 /**
  * Create SVG path from parent to child (VERTICAL layout)
