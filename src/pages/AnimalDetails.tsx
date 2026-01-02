@@ -21,6 +21,14 @@ import clsx from 'clsx';
 import type { AnimalStatus, Task } from '../types';
 import { AddTaskModal } from '../components/tasks/AddTaskModal';
 
+// V1.2: Morphometric scoring imports
+import { useMorphometricScore } from '../hooks/useMorphometricScore';
+import { ScoreBadge } from '../components/morphometric/ScoreBadge';
+import { PercentileBar } from '../components/morphometric/PercentileBar';
+import { ConformationCard } from '../components/morphometric/ConformationCard';
+import { ExpertModePanel } from '../components/morphometric/ExpertModePanel';
+import { Eye, EyeOff } from 'lucide-react';
+
 const statusOptions: { value: AnimalStatus; label: string; color: string }[] = [
     { value: 'Active', label: 'Actif', color: 'bg-green-100 text-green-700' },
     { value: 'Sold', label: 'Vendu', color: 'bg-secondary-100 text-primary-700' },
@@ -46,6 +54,12 @@ export const AnimalDetails: React.FC = () => {
     // Tasks state
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+
+    // V1.2: Expert mode state
+    const [expertMode, setExpertMode] = useState(false);
+
+    // V1.2: Load morphometric scoring
+    const { score: morphScore, herdStats, percentiles, loading: scoreLoading } = useMorphometricScore(animal);
 
     // Fetch tasks when animal is loaded
     React.useEffect(() => {
@@ -120,6 +134,15 @@ export const AnimalDetails: React.FC = () => {
                     <span>Retour au troupeau</span>
                 </Link>
                 <div className="flex gap-2">
+                    {/* V1.2: Expert Mode Toggle */}
+                    <Button
+                        variant={expertMode ? 'primary' : 'outline'}
+                        size="sm"
+                        icon={expertMode ? EyeOff : Eye}
+                        onClick={() => setExpertMode(!expertMode)}
+                    >
+                        {expertMode ? 'Mode Standard' : 'Mode Expert'}
+                    </Button>
                     <Button variant="outline" icon={Share2}>Partager</Button>
                     <Button variant="outline" icon={Download}>PDF</Button>
                 </div>
@@ -140,6 +163,16 @@ export const AnimalDetails: React.FC = () => {
                                 <div className="flex items-center gap-3 mb-1">
                                     <h1 className="text-3xl font-bold text-slate-900">{animal.name}</h1>
                                     <Badge variant="neutral">{animal.breed}</Badge>
+
+                                    {/* V1.2: Morphometric Score Badge */}
+                                    {morphScore && !scoreLoading && (
+                                        <ScoreBadge
+                                            score={morphScore.globalScore}
+                                            classification={morphScore.classification}
+                                            percentile={morphScore.percentile}
+                                            showTooltip
+                                        />
+                                    )}
 
                                     {/* Status Dropdown */}
                                     <div className="relative">
@@ -197,43 +230,57 @@ export const AnimalDetails: React.FC = () => {
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">MASSE</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-2xl font-bold text-slate-900">
-                                        {lastMeasurement?.weight || animal.weight || '-'}
-                                    </span>
-                                    <span className="text-sm font-medium text-slate-500">kg</span>
+                                    <span className="text-2xl font-bold text-slate-900">{lastMeasurement?.weight || '-'}</span>
+                                    <span className="text-sm text-slate-500">kg</span>
                                 </div>
+                                {/* V1.2: Percentile indicator */}
+                                {percentiles?.mass && (
+                                    <PercentileBar percentile={percentiles.mass} compact />
+                                )}
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">HAUTEUR (HG)</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">HG</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-2xl font-bold text-slate-900">
-                                        {lastMeasurement?.height_hg || animal.height || '-'}
-                                    </span>
-                                    <span className="text-sm font-medium text-slate-500">cm</span>
+                                    <span className="text-2xl font-bold text-slate-900">{lastMeasurement?.height_hg || '-'}</span>
+                                    <span className="text-sm text-slate-500">cm</span>
                                 </div>
+                                {percentiles?.height && (
+                                    <PercentileBar percentile={percentiles.height} compact />
+                                )}
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">POITRINE (TP)</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">TP</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-2xl font-bold text-slate-900">
-                                        {lastMeasurement?.chest_tp || animal.chestGirth || '-'}
-                                    </span>
-                                    <span className="text-sm font-medium text-slate-500">cm</span>
+                                    <span className="text-2xl font-bold text-slate-900">{lastMeasurement?.chest_tp || '-'}</span>
+                                    <span className="text-sm text-slate-500">cm</span>
                                 </div>
+                                {percentiles?.chest && (
+                                    <PercentileBar percentile={percentiles.chest} compact />
+                                )}
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">LONGUEUR (LCS)</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">LCS</p>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-2xl font-bold text-slate-900">
-                                        {lastMeasurement?.length_lcs || animal.length || '-'}
-                                    </span>
-                                    <span className="text-sm font-medium text-slate-500">cm</span>
+                                    <span className="text-2xl font-bold text-slate-900">{lastMeasurement?.length_lcs || '-'}</span>
+                                    <span className="text-sm text-slate-500">cm</span>
                                 </div>
+                                {percentiles?.length && (
+                                    <PercentileBar percentile={percentiles.length} compact />
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* V1.2: CONFORMATION MORPHOLOGIQUE - Central Component */}
+            {morphScore && herdStats && !scoreLoading && (
+                <ConformationCard
+                    score={morphScore}
+                    animal={animal}
+                    herdStats={herdStats}
+                />
+            )}
 
             {/* 2. DASHBOARD GRID */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
@@ -247,16 +294,21 @@ export const AnimalDetails: React.FC = () => {
                                 <span className="p-1 bg-green-100 text-green-600 rounded">📈</span>
                                 Croissance
                             </h3>
-                            <Badge variant="success" className="text-xs">+2.5% vs mois dernier</Badge>
+                            <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => setIsMeasurementModalOpen(true)}
+                                className="text-xs"
+                            >
+                                + Mesure
+                            </Button>
                         </div>
-                        <div className="w-full h-[250px] min-h-0">
+                        <div className="w-full h-[350px] min-h-0">
                             <MorphometricChart measurements={animal.measurements || []} />
                         </div>
                         <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-50 text-xs">
                             <span className="text-slate-500">Objectif: 700 kg</span>
-                            <button onClick={() => setIsMeasurementModalOpen(true)} className="text-primary-600 font-medium hover:underline">
-                                + Mesure
-                            </button>
+                            <Badge variant="success">+2.5% vs mois dernier</Badge>
                         </div>
                     </Card>
 
@@ -298,6 +350,11 @@ export const AnimalDetails: React.FC = () => {
                 </div>
 
             </div>
+
+            {/* V1.2: EXPERT MODE PANEL */}
+            {expertMode && morphScore && (
+                <ExpertModePanel score={morphScore} />
+            )}
 
             {/* MODALS */}
             <EditAnimalModal

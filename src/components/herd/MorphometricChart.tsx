@@ -80,7 +80,7 @@ export const MorphometricChart: React.FC<MorphometricChartProps> = ({ measuremen
         }));
 
     return (
-        <Card className="h-[450px]">
+        <Card className="h-full">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-slate-900">Courbes de Croissance</h3>
                 {growthTrend && (
@@ -108,7 +108,7 @@ export const MorphometricChart: React.FC<MorphometricChartProps> = ({ measuremen
                     </div>
                 )}
             </div>
-            <div className="h-[360px] w-full">
+            <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={formattedData}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />

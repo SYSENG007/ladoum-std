@@ -30,6 +30,7 @@ const HERITABILITY = {
  * Get the latest morphometric measurements from an animal
  */
 export function getLatestMeasurements(animal: Animal): {
+    weight: number;
     hg: number;
     lcs: number;
     tp: number;
@@ -37,14 +38,16 @@ export function getLatestMeasurements(animal: Animal): {
     if (animal.measurements && animal.measurements.length > 0) {
         const latest = animal.measurements[animal.measurements.length - 1];
         return {
+            weight: latest.weight,
             hg: latest.height_hg,
             lcs: latest.length_lcs,
             tp: latest.chest_tp
         };
     }
 
-    if (animal.height && animal.length && animal.chestGirth) {
+    if (animal.weight && animal.height && animal.length && animal.chestGirth) {
         return {
+            weight: animal.weight,
             hg: animal.height,
             lcs: animal.length,
             tp: animal.chestGirth

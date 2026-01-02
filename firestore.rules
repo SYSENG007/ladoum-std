@@ -262,5 +262,11 @@ service cloud.firestore {
       allow read: if true; // Public
       allow write: if false; // Admin only
     }
+    
+    // V1.2: Herd Statistics Cache
+    match /herd_statistics/{farmId} {
+      allow read: if isAuthenticated() && isFarmMember(farmId);
+      allow write: if isAuthenticated() && isFarmMember(farmId);
+    }
   }
 }
