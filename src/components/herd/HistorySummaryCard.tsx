@@ -1,6 +1,5 @@
 import React from 'react';
 import { History, Circle } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { Card } from '../ui/Card';
 import type { Animal } from '../../types';
 
@@ -34,21 +33,18 @@ export const HistorySummaryCard: React.FC<HistorySummaryCardProps> = ({ animal }
         }))
     ];
 
-    // 2. Sort by date desc
+    // 2. Sort by date desc - limit to 3 for height control
     const sortedEvents = allEvents
         .sort((a, b) => b.date.getTime() - a.date.getTime())
-        .slice(0, 4); // Keep top 4
+        .slice(0, 3); // Reduced to 3 for consistent card height
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card className="h-full flex flex-col min-h-[320px]">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-amber-600">
                     <History className="w-5 h-5" />
                     <h3 className="font-bold text-slate-900">Historique Récent</h3>
                 </div>
-                <Link to="#" className="text-xs font-medium text-slate-400 hover:text-slate-600">
-                    Tout voir
-                </Link>
             </div>
 
             <div className="space-y-6 relative">

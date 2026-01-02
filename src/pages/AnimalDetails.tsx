@@ -126,10 +126,10 @@ export const AnimalDetails: React.FC = () => {
             </div>
 
             {/* 1. HERO SECTION (Identity & Key Metrics) */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <div className="flex flex-col md:flex-row gap-8 items-start">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-6">
+                <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
                     {/* Photo */}
-                    <div className="w-32 h-32 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
                         <img src={animal.photoUrl} alt={animal.name} className="w-full h-full object-cover" />
                     </div>
 
@@ -156,7 +156,7 @@ export const AnimalDetails: React.FC = () => {
                                             <ChevronDown className="w-3 h-3" />
                                         </button>
                                         {isStatusDropdownOpen && (
-                                            <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-20 min-w-[140px]">
+                                            <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-30 min-w-[140px]">
                                                 {statusOptions.map(option => (
                                                     <button
                                                         key={option.value}
@@ -193,7 +193,7 @@ export const AnimalDetails: React.FC = () => {
                         </div>
 
                         {/* Metrics Grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-100">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6 pt-4 md:pt-6 border-t border-slate-100">
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">MASSE</p>
                                 <div className="flex items-baseline gap-1">
@@ -236,7 +236,7 @@ export const AnimalDetails: React.FC = () => {
             </div>
 
             {/* 2. DASHBOARD GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
 
                 {/* COLUMN 1: PRODUCTION & NUTRITION */}
                 <div className="space-y-6">

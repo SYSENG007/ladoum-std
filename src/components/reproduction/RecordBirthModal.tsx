@@ -123,7 +123,7 @@ export const RecordBirthModal: React.FC<RecordBirthModalProps> = ({
                 // Générer un TagID unique (simpliste pour l'exemple)
                 const tagId = `${mother.farmId?.substring(0, 3).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
-                const newLambId = await AnimalService.add({
+                const newLambRef = await AnimalService.add({
                     farmId: mother.farmId,
                     name: lamb.name,
                     tagId,
@@ -142,7 +142,7 @@ export const RecordBirthModal: React.FC<RecordBirthModalProps> = ({
                     healthRecords: [],
                 });
 
-                offspringIds.push(newLambId);
+                offspringIds.push(newLambRef.id);
             }
 
             // 3. Enregistrer l'événement Birth

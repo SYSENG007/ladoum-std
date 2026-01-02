@@ -21,21 +21,21 @@ export const HealthSummaryCard: React.FC<HealthSummaryCardProps> = ({
     const isSick = records.some(r => r.type === 'Treatment' && new Date(r.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
     const statusColor = isSick ? 'text-orange-500' : 'text-green-500';
 
-    // Filter upcoming health tasks
+    // Filter upcoming health tasks - limit to 2 for height consistency
     const upcomingTasks = tasks
         .filter(t => t.type === 'Health' && t.status !== 'Done')
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .slice(0, 3); // Show top 3
+        .slice(0, 2); // Reduced to 2 for better height control
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card className="h-full flex flex-col min-h-[320px]">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-rose-600">
                     <Activity className="w-5 h-5" />
                     <h3 className="font-bold text-slate-900">Santé & Soins</h3>
                 </div>
                 {/* Actions */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     <Button
                         size="sm"
                         variant="ghost"

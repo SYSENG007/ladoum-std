@@ -33,7 +33,7 @@ export const PedigreeSummaryCard: React.FC<PedigreeSummaryCardProps> = ({ animal
     }, [animal.sireId, animal.damId]);
 
     return (
-        <Card className="h-full flex flex-col relative group">
+        <Card className="h-full flex flex-col relative group min-h-[320px]">
             <Link to="/pedigree" className="absolute top-4 right-4 text-slate-400 hover:text-primary-600 transition-colors">
                 <Maximize2 className="w-5 h-5" />
             </Link>
@@ -84,9 +84,10 @@ export const PedigreeSummaryCard: React.FC<PedigreeSummaryCardProps> = ({ animal
                 </div>
             </div>
 
+            {/* Footer - removed hardcoded genetic score */}
             <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-                <p className="text-sm text-slate-500">
-                    Score génétique global: <span className="font-bold text-slate-900 italic">ISU 145 (+2.1)</span>
+                <p className="text-xs text-slate-500 italic">
+                    Cliquez sur l'icône en haut à droite pour voir l'arbre complet
                 </p>
             </div>
         </Card>

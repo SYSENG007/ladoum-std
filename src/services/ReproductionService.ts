@@ -10,7 +10,7 @@
  * - Weaning: Sevrage
  */
 
-import { collection, addDoc, getDocs, query, where, orderBy, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { ReproductionEvent } from '../types';
 

@@ -11,7 +11,7 @@ export const NutritionSummaryCard: React.FC<NutritionSummaryCardProps> = ({ plan
     if (!plan) return null;
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card className="h-full flex flex-col min-h-[280px]">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-amber-600">
                     <Utensils className="w-5 h-5" />

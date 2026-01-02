@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Heart } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { ReproductionService } from '../../services/ReproductionService';
@@ -14,7 +14,7 @@ interface RecordMatingModalProps {
     animal: Animal;
 }
 
-export const RecordMatingModal: React.FC<RecordMatingModal Props> = ({
+export const RecordMatingModal: React.FC<RecordMatingModalProps> = ({
     isOpen,
     onClose,
     onSuccess,
@@ -156,8 +156,8 @@ export const RecordMatingModal: React.FC<RecordMatingModal Props> = ({
                                     type="button"
                                     onClick={() => setMatingType(type)}
                                     className={`p-3 rounded-xl border-2 transition-all ${matingType === type
-                                            ? 'border-rose-500 bg-rose-50 text-rose-700'
-                                            : 'border-slate-200 hover:border-slate-300'
+                                        ? 'border-rose-500 bg-rose-50 text-rose-700'
+                                        : 'border-slate-200 hover:border-slate-300'
                                         }`}
                                 >
                                     <span className="text-sm font-medium">

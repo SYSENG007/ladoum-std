@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Heart } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { HeatCyclePredictor } from '../reproduction/HeatCyclePredictor';
 import type { Animal } from '../../types';
@@ -9,14 +9,64 @@ interface ReproductionCardProps {
 }
 
 export const ReproductionCard: React.FC<ReproductionCardProps> = ({ animal }) => {
-    // Only relevant for females
-    if (animal.gender !== 'Female') return null;
-
-    // 1. Determine Pregnancy Status
-    // Look for last Mating event that is NOT followed by Birth or Abortion
-    // This is a simplified logic, ideally verified by Ultrasound
     const sortedRepro = [...(animal.reproductionRecords || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+    // MALE REPRODUCTION STATS
+    if (animal.gender === 'Male') {
+        // Count total matings (as sire)
+        const matingCount = sortedRepro.filter(r => r.type === 'Mating').length;
+        const lastMating = sortedRepro.find(r => r.type === 'Mating');
+
+        // Count known offspring (assuming we track births linked to this sire)
+        // For now, we can approximate by counting births in records if they track sireId
+        const offspringCount = sortedRepro.filter(r => r.type === 'Birth').length;
+
+        return (
+            <Card className="h-full flex flex-col min-h-[280px]">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2 text-amber-600">
+                        <Heart className="w-5 h-5" />
+                        <h3 className="font-bold text-slate-900">Reproduction</h3>
+                    </div>
+                </div>
+
+                <div className="flex-1 flex flex-col justify-center space-y-4">
+                    {lastMating ? (
+                        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                            <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2">Dernière Saillie</p>
+                            <p className="font-bold text-slate-900 mb-1">
+                                {new Date(lastMating.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </p>
+                            {lastMating.mateId && (
+                                <p className="text-sm text-slate-600">
+                                    Partenaire: {lastMating.mateId}
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-center">
+                            <p className="text-sm text-slate-500 italic">Aucune saillie enregistrée</p>
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-auto">
+                    <div className="bg-slate-50 p-4 rounded-xl">
+                        <p className="text-xs text-slate-500 mb-1">Saillies</p>
+                        <p className="font-bold text-slate-900 text-2xl">
+                            {matingCount || 0}
+                        </p>
+                    </div>
+                    <div className="bg-slate-50 p-4 rounded-xl">
+                        <p className="text-xs text-slate-500 mb-1">Descendants</p>
+                        <p className="font-bold text-slate-900 text-2xl">{offspringCount || 0}</p>
+                    </div>
+                </div>
+            </Card>
+        );
+    }
+
+    // FEMALE REPRODUCTION STATS
     const lastEvent = sortedRepro[0];
     const isPotentiallyPregnant = lastEvent?.type === 'Mating' || (lastEvent?.type === 'Ultrasound' && lastEvent?.ultrasoundResult === 'Positive');
 
@@ -37,7 +87,7 @@ export const ReproductionCard: React.FC<ReproductionCardProps> = ({ animal }) =>
     const intervalDays = lastBirth ? Math.ceil((new Date().getTime() - new Date(lastBirth.date).getTime()) / (1000 * 60 * 60 * 24)) : null;
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card className="h-full flex flex-col min-h-[280px]">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-amber-600">
                     <Calendar className="w-5 h-5" />

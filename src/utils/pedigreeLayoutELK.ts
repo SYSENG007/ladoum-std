@@ -130,6 +130,8 @@ export async function computeLayoutWithELK(
                 if (!animal || !animal.sireId || !localGraph.allIds.has(animal.sireId)) {
                     return current; // Found a root or unknown sire
                 }
+                // Prevent unused variable warning
+                void parentIds;
                 current = animal.sireId;
             }
         };
