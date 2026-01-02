@@ -236,10 +236,10 @@ export function calculateConfidence(
  * Generate automatic morphological summary text
  */
 export function generateMorphologicalSummary(
-    score: number,
+    _score: number,
     classification: MorphometricClass,
     breakdown: MorphometricScore['breakdown'],
-    animal: Animal
+    _animal: Animal
 ): string {
     const parts: string[] = [];
 
