@@ -5,7 +5,7 @@ import logo from '../../assets/logo.png';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings, useTranslation } from '../../context/SettingsContext';
-import { FarmSwitcher } from '../farm/FarmSwitcher';
+
 
 // Navigation items with translation keys
 const NAV_ITEMS = [
@@ -63,11 +63,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) 
                             <span className="text-lg font-bold text-slate-800 dark:text-white truncate">Ladoum STD</span>
                         </div>
                     )}
-                </div>
-
-                {/* Farm Switcher */}
-                <div className="px-3 py-2">
-                    <FarmSwitcher collapsed={isCollapsed} />
                 </div>
 
                 <nav className="flex-1 px-3 py-4 space-y-2">

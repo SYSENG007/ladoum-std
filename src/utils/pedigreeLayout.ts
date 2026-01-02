@@ -292,7 +292,7 @@ export async function computeMultiRootLayout(
     console.log(`🎯 Computing ELK layout for ${visibleAnimals.length} animals`);
 
     // Use ELK.js for layout computation (PRD requirement)
-    return await computeLayoutWithELK(visibleAnimals, config);
+    return await computeLayoutWithELK(visibleAnimals, config, selection);
 }
 
 

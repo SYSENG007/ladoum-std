@@ -10,24 +10,7 @@ import { EditAnimalModal } from './EditAnimalModal';
 import { AnimalService } from '../../services/AnimalService';
 import { useToast } from '../../context/ToastContext';
 
-// Calculate age from birth date
-const calculateAge = (birthDate: string): string => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-
-    const ageInMonths = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
-
-    if (ageInMonths < 12) {
-        return `${ageInMonths} mois`;
-    } else {
-        const years = Math.floor(ageInMonths / 12);
-        const months = ageInMonths % 12;
-        if (months === 0) {
-            return `${years} an${years > 1 ? 's' : ''}`;
-        }
-        return `${years} an${years > 1 ? 's' : ''} ${months}m`;
-    }
-};
+import { calculateDetailedAge } from '../../utils/dateUtils';
 
 interface AnimalCardProps {
     animal: Animal;
@@ -145,7 +128,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, onUpdate }) => {
                                 <p className="font-bold text-lg leading-tight">{animal.name}</p>
                                 {animal.birthDate && (
                                     <span className="text-xs opacity-90 font-medium bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
-                                        {calculateAge(animal.birthDate)}
+                                        {calculateDetailedAge(animal.birthDate).ageString}
                                     </span>
                                 )}
                             </div>

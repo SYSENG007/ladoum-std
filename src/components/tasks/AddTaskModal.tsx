@@ -13,9 +13,10 @@ interface AddTaskModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    preselectedAnimalId?: string;
 }
 
-export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSuccess }) => {
+export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onSuccess, preselectedAnimalId }) => {
     const { currentFarm } = useFarm();
     const { animals } = useAnimals();
     const [members, setMembers] = useState<FarmMember[]>([]);
@@ -27,7 +28,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
         priority: 'Medium' as TaskPriority,
         type: 'General' as TaskType,
         assignedTo: [] as string[], // Support multi-assignment
-        relatedAnimalId: ''
+        relatedAnimalId: preselectedAnimalId || ''
     });
 
     const [loading, setLoading] = useState(false);
@@ -55,6 +56,12 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
     }, [currentFarm?.id]);
 
     // Quick task templates
+    useEffect(() => {
+        if (isOpen && preselectedAnimalId) {
+            setFormData(prev => ({ ...prev, relatedAnimalId: preselectedAnimalId }));
+        }
+    }, [isOpen, preselectedAnimalId]);
+
     const taskTemplates = [
         {
             title: 'Vaccination Clavelée',
@@ -406,7 +413,11 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onS
                                 <select
                                     value={formData.relatedAnimalId}
                                     onChange={(e) => setFormData({ ...formData, relatedAnimalId: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all"
+                                    className={clsx(
+                                        "w-full px-4 py-3 rounded-xl bg-surface-input border border-border-default text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-slate-800 focus:border-transparent transition-all",
+                                        preselectedAnimalId && "bg-slate-100 opacity-70 cursor-not-allowed"
+                                    )}
+                                    disabled={!!preselectedAnimalId}
                                 >
                                     <option value="">Aucun animal spécifique</option>
                                     {animals.map(animal => (

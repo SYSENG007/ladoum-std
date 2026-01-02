@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Share2, Download, Edit, LayoutDashboard, Activity, Utensils, GitFork, Ruler, Weight, History, ChevronDown, Check, Calendar as CalendarIcon, Cake } from 'lucide-react';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import { ArrowLeft, Share2, Download, Edit, ChevronDown, Cake, Check } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { Card } from '../components/ui/Card';
 import { MorphometricChart } from '../components/herd/MorphometricChart';
-import { CertificationBadge } from '../components/ui/CertificationBadge';
-import { HealthTab } from '../components/herd/HealthTab';
-import { NutritionTab } from '../components/herd/NutritionTab';
-import { TimelineTab } from '../components/herd/TimelineTab';
-import { HeatCyclePredictor } from '../components/reproduction/HeatCyclePredictor';
+import { NutritionSummaryCard } from '../components/herd/NutritionSummaryCard';
+import { HealthSummaryCard } from '../components/herd/HealthSummaryCard';
+import { ReproductionCard } from '../components/herd/ReproductionCard';
+import { PedigreeSummaryCard } from '../components/herd/PedigreeSummaryCard';
+import { HistorySummaryCard } from '../components/herd/HistorySummaryCard';
 import { EditAnimalModal } from '../components/herd/EditAnimalModal';
 import { AddMeasurementModal } from '../components/herd/AddMeasurementModal';
+import { AddHealthEventModal } from '../components/herd/AddHealthEventModal';
 import { AnimalService } from '../services/AnimalService';
+import { TaskService } from '../services/TaskService';
 import { useAnimal } from '../hooks/useAnimal';
 import { useToast } from '../context/ToastContext';
 import clsx from 'clsx';
-
-type AnimalStatus = 'Active' | 'Sold' | 'Deceased';
+import type { AnimalStatus, Task } from '../types';
+import { AddTaskModal } from '../components/tasks/AddTaskModal';
 
 const statusOptions: { value: AnimalStatus; label: string; color: string }[] = [
     { value: 'Active', label: 'Actif', color: 'bg-green-100 text-green-700' },
@@ -25,54 +27,42 @@ const statusOptions: { value: AnimalStatus; label: string; color: string }[] = [
     { value: 'Deceased', label: 'Décédé', color: 'bg-slate-100 text-slate-700' },
 ];
 
-// Calculate detailed age from birth date
-const calculateDetailedAge = (birthDate: string): { years: number; months: number; days: number; totalMonths: number; ageString: string } => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-
-    let years = today.getFullYear() - birth.getFullYear();
-    let months = today.getMonth() - birth.getMonth();
-    let days = today.getDate() - birth.getDate();
-
-    // Adjust for negative days
-    if (days < 0) {
-        months--;
-        const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-        days += lastMonth.getDate();
-    }
-
-    // Adjust for negative months
-    if (months < 0) {
-        years--;
-        months += 12;
-    }
-
-    const totalMonths = years * 12 + months;
-
-    // Build age string
-    let ageString = '';
-    if (years > 0) {
-        ageString += `${years} an${years > 1 ? 's' : ''}`;
-    }
-    if (months > 0) {
-        ageString += (ageString ? ' ' : '') + `${months} mois`;
-    }
-    if (years === 0 && months === 0) {
-        ageString = `${days} jour${days > 1 ? 's' : ''}`;
-    }
-
-    return { years, months, days, totalMonths, ageString };
-};
+import { calculateDetailedAge } from '../utils/dateUtils';
 
 export const AnimalDetails: React.FC = () => {
     const { id } = useParams();
     const { animal, error, loading, refresh } = useAnimal(id);
     const toast = useToast();
-    const [activeTab, setActiveTab] = useState<'overview' | 'health' | 'nutrition' | 'pedigree' | 'history'>('overview');
+
+    // Modal states
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isMeasurementModalOpen, setIsMeasurementModalOpen] = useState(false);
+    const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
+
+    // UI states
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+    // Tasks state
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+
+    // Fetch tasks when animal is loaded
+    React.useEffect(() => {
+        const fetchTasks = async () => {
+            if (animal?.farmId) {
+                try {
+                    const allTasks = await TaskService.getAll(animal.farmId);
+                    // Filter tasks for this animal
+                    const animalTasks = allTasks.filter(t => t.animalId === animal.id);
+                    setTasks(animalTasks);
+                } catch (e) {
+                    console.error('Error fetching tasks', e);
+                }
+            }
+        };
+        fetchTasks();
+    }, [animal?.farmId, animal?.id, isAddTaskModalOpen]); // Refresh when modal closes (simple way)
 
     const handleStatusChange = async (newStatus: AnimalStatus) => {
         if (!animal || animal.status === newStatus) {
@@ -94,7 +84,6 @@ export const AnimalDetails: React.FC = () => {
         }
     };
 
-    // Show loading state while fetching
     if (loading) {
         return (
             <div className="p-12 text-center">
@@ -104,7 +93,6 @@ export const AnimalDetails: React.FC = () => {
         );
     }
 
-    // Show error only after loading is complete
     if (error || !animal) {
         return (
             <div className="p-12 text-center">
@@ -121,17 +109,10 @@ export const AnimalDetails: React.FC = () => {
         : null;
 
     const currentStatus = statusOptions.find(s => s.value === animal.status) || statusOptions[0];
-
-    const tabs = [
-        { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
-        { id: 'history', label: 'Historique', icon: History },
-        { id: 'health', label: 'Santé', icon: Activity },
-        { id: 'nutrition', label: 'Nutrition', icon: Utensils },
-        { id: 'pedigree', label: 'Généalogie', icon: GitFork },
-    ] as const;
+    const age = animal.birthDate ? calculateDetailedAge(animal.birthDate) : null;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-12">
             {/* Header / Nav */}
             <div className="flex items-center justify-between">
                 <Link to="/herd" className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors">
@@ -141,300 +122,228 @@ export const AnimalDetails: React.FC = () => {
                 <div className="flex gap-2">
                     <Button variant="outline" icon={Share2}>Partager</Button>
                     <Button variant="outline" icon={Download}>PDF</Button>
-                    <Button icon={Edit} onClick={() => setIsEditModalOpen(true)}>Modifier</Button>
                 </div>
             </div>
 
-            {/* Animal Header Card (Always Visible) */}
-            <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm flex flex-col md:flex-row">
-                <div className="md:w-1/4 h-64 md:h-auto relative">
-                    <img src={animal.photoUrl} alt={animal.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="p-6 md:p-8 flex-1">
-                    <div className="flex items-start justify-between mb-4">
-                        <div>
-                            <div className="flex items-center gap-4 mb-2 flex-wrap">
-                                <h1 className="text-3xl font-bold text-slate-900">{animal.name}</h1>
-                                {animal.certification && (
-                                    <CertificationBadge level={animal.certification.level} size="md" />
-                                )}
-                                <Badge variant={animal.gender === 'Male' ? 'info' : 'success'}>
-                                    {animal.gender === 'Male' ? 'Mâle' : 'Femelle'}
-                                </Badge>
+            {/* 1. HERO SECTION (Identity & Key Metrics) */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                    {/* Photo */}
+                    <div className="w-32 h-32 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                        <img src={animal.photoUrl} alt={animal.name} className="w-full h-full object-cover" />
+                    </div>
 
-                                {/* Status Dropdown */}
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                                        disabled={isUpdatingStatus}
-                                        className={clsx(
-                                            "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                                            currentStatus.color,
-                                            "hover:opacity-80 cursor-pointer"
+                    {/* Identity */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-4">
+                            <div>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <h1 className="text-3xl font-bold text-slate-900">{animal.name}</h1>
+                                    <Badge variant="neutral">{animal.breed}</Badge>
+
+                                    {/* Status Dropdown */}
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                                            disabled={isUpdatingStatus}
+                                            className={clsx(
+                                                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide transition-all",
+                                                currentStatus.color,
+                                                "hover:opacity-80 disabled:opacity-50"
+                                            )}
+                                        >
+                                            {currentStatus.label}
+                                            <ChevronDown className="w-3 h-3" />
+                                        </button>
+                                        {isStatusDropdownOpen && (
+                                            <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-20 min-w-[140px]">
+                                                {statusOptions.map(option => (
+                                                    <button
+                                                        key={option.value}
+                                                        onClick={() => handleStatusChange(option.value)}
+                                                        className={clsx(
+                                                            "w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-slate-50 flex items-center justify-between gap-2",
+                                                            animal.status === option.value && "bg-slate-50"
+                                                        )}
+                                                    >
+                                                        <span className={clsx("px-2 py-0.5 rounded-full text-xs", option.color)}>
+                                                            {option.label}
+                                                        </span>
+                                                        {animal.status === option.value && <Check className="w-4 h-4 text-green-600" />}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         )}
-                                    >
-                                        {isUpdatingStatus ? 'Mise à jour...' : currentStatus.label}
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
-
-                                    {isStatusDropdownOpen && (
-                                        <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-20 min-w-[140px]">
-                                            {statusOptions.map(option => (
-                                                <button
-                                                    key={option.value}
-                                                    onClick={() => handleStatusChange(option.value)}
-                                                    className={clsx(
-                                                        "w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-slate-50 flex items-center justify-between gap-2",
-                                                        animal.status === option.value && "bg-slate-50"
-                                                    )}
-                                                >
-                                                    <span className={clsx("px-2 py-0.5 rounded-full text-xs", option.color)}>
-                                                        {option.label}
-                                                    </span>
-                                                    {animal.status === option.value && (
-                                                        <Check className="w-4 h-4 text-green-600" />
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <p className="text-slate-500 font-mono text-lg">{animal.tagId}</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
-                        {/* HG - Hauteur Garrot */}
-                        <div>
-                            <p className="text-sm text-slate-500 mb-1">HG (Hauteur)</p>
-                            <div className="flex items-center gap-2">
-                                <Ruler className="w-5 h-5 text-primary-600" />
-                                <span className="text-xl font-bold text-slate-900">
-                                    {lastMeasurement?.height_hg ? `${lastMeasurement.height_hg} cm` : (animal.height ? `${animal.height} cm` : '-')}
-                                </span>
-                            </div>
-                        </div>
-                        {/* LCS - Longueur Corps */}
-                        <div>
-                            <p className="text-sm text-slate-500 mb-1">LCS (Longueur)</p>
-                            <span className="text-xl font-bold text-slate-900">
-                                {lastMeasurement?.length_lcs ? `${lastMeasurement.length_lcs} cm` : (animal.length ? `${animal.length} cm` : '-')}
-                            </span>
-                        </div>
-                        {/* TP - Tour Poitrine */}
-                        <div>
-                            <p className="text-sm text-slate-500 mb-1">TP (Poitrine)</p>
-                            <span className="text-xl font-bold text-slate-900">
-                                {lastMeasurement?.chest_tp ? `${lastMeasurement.chest_tp} cm` : (animal.chestGirth ? `${animal.chestGirth} cm` : '-')}
-                            </span>
-                        </div>
-                        {/* Masse */}
-                        <div>
-                            <p className="text-sm text-slate-500 mb-1">Masse</p>
-                            <div className="flex items-center gap-2">
-                                <Weight className="w-5 h-5 text-primary-600" />
-                                <span className="text-xl font-bold text-slate-900">
-                                    {lastMeasurement?.weight ? `${lastMeasurement.weight} kg` : (animal.weight ? `${animal.weight} kg` : '-')}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Birth Date & Age Details */}
-                        {animal.birthDate && (() => {
-                            const birthDate = new Date(animal.birthDate);
-                            const age = calculateDetailedAge(animal.birthDate);
-                            return (
-                                <div className="md:col-span-2">
-                                    <p className="text-sm text-slate-500 mb-1">Date de naissance & Âge</p>
-                                    <div className="flex items-start gap-3">
-                                        <CalendarIcon className="w-5 h-5 text-primary-600 mt-0.5" />
-                                        <div>
-                                            <p className="text-lg font-bold text-slate-900">
-                                                {birthDate.toLocaleDateString('fr-FR', {
-                                                    day: 'numeric',
-                                                    month: 'long',
-                                                    year: 'numeric'
-                                                })}
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <Cake className="w-4 h-4 text-slate-900" />
-                                                <p className="text-sm font-semibold text-slate-900">
-                                                    {age.ageString}
-                                                </p>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
-                            );
-                        })()}
-                    </div>
 
-                    {/* Add Measurement Button */}
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                        <button
-                            onClick={() => setIsMeasurementModalOpen(true)}
-                            className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 transition-colors"
-                        >
-                            <Ruler className="w-4 h-4" />
-                            Ajouter une mesure
-                        </button>
+                                <div className="flex items-center gap-4 text-slate-500 text-sm">
+                                    <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">{animal.tagId}</span>
+                                    <span>•</span>
+                                    <span>{animal.gender === 'Male' ? 'Mâle' : 'Femelle'}</span>
+                                    <span>•</span>
+                                    <div className="flex items-center gap-1">
+                                        <Cake className="w-3 h-3" />
+                                        <span>{age?.ageString || 'Âge inconnu'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Button icon={Edit} onClick={() => setIsEditModalOpen(true)}>Modifier</Button>
+                        </div>
+
+                        {/* Metrics Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-100">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">MASSE</p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-2xl font-bold text-slate-900">
+                                        {lastMeasurement?.weight || animal.weight || '-'}
+                                    </span>
+                                    <span className="text-sm font-medium text-slate-500">kg</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">HAUTEUR (HG)</p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-2xl font-bold text-slate-900">
+                                        {lastMeasurement?.height_hg || animal.height || '-'}
+                                    </span>
+                                    <span className="text-sm font-medium text-slate-500">cm</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">POITRINE (TP)</p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-2xl font-bold text-slate-900">
+                                        {lastMeasurement?.chest_tp || animal.chestGirth || '-'}
+                                    </span>
+                                    <span className="text-sm font-medium text-slate-500">cm</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">LONGUEUR (LCS)</p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-2xl font-bold text-slate-900">
+                                        {lastMeasurement?.length_lcs || animal.length || '-'}
+                                    </span>
+                                    <span className="text-sm font-medium text-slate-500">cm</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Tabs Navigation */}
-            <div className="flex gap-2 overflow-x-auto pb-2 border-b border-slate-200">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={clsx(
-                            "flex items-center gap-2 px-4 py-3 rounded-t-xl font-medium transition-colors whitespace-nowrap",
-                            activeTab === tab.id
-                                ? "bg-white text-primary-700 border-b-2 border-primary-600"
-                                : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-                        )}
-                    >
-                        <tab.icon className="w-4 h-4" />
-                        {tab.label}
-                    </button>
-                ))}
+            {/* 2. DASHBOARD GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+
+                {/* COLUMN 1: PRODUCTION & NUTRITION */}
+                <div className="space-y-6">
+                    {/* Growth Chart */}
+                    <Card className="flex flex-col">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                                <span className="p-1 bg-green-100 text-green-600 rounded">📈</span>
+                                Croissance
+                            </h3>
+                            <Badge variant="success" className="text-xs">+2.5% vs mois dernier</Badge>
+                        </div>
+                        <div className="w-full h-[250px] min-h-0">
+                            <MorphometricChart measurements={animal.measurements || []} />
+                        </div>
+                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-50 text-xs">
+                            <span className="text-slate-500">Objectif: 700 kg</span>
+                            <button onClick={() => setIsMeasurementModalOpen(true)} className="text-primary-600 font-medium hover:underline">
+                                + Mesure
+                            </button>
+                        </div>
+                    </Card>
+
+                    {/* Nutrition */}
+                    <div>
+                        <NutritionSummaryCard plan={animal.nutritionPlan} />
+                    </div>
+                </div>
+
+                {/* COLUMN 2: HEALTH & HISTORY */}
+                <div className="space-y-6">
+                    {/* Health Status */}
+                    <div>
+                        <HealthSummaryCard
+                            records={animal.healthRecords}
+                            tasks={tasks}
+                            onAddEvent={() => setIsHealthModalOpen(true)}
+                            onPlanTask={() => setIsAddTaskModalOpen(true)}
+                        />
+                    </div>
+
+                    {/* Recent History */}
+                    <div>
+                        <HistorySummaryCard animal={animal} />
+                    </div>
+                </div>
+
+                {/* COLUMN 3: REPRODUCTION & PEDIGREE */}
+                <div className="space-y-6">
+                    {/* Reproduction */}
+                    <div>
+                        <ReproductionCard animal={animal} />
+                    </div>
+
+                    {/* Pedigree */}
+                    <div>
+                        <PedigreeSummaryCard animal={animal} />
+                    </div>
+                </div>
+
             </div>
 
-            {/* Tab Content */}
-            <div className="min-h-[400px]">
-                {activeTab === 'overview' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2 space-y-8">
-                            {/* Growth Chart */}
-                            {animal.measurements && animal.measurements.length > 0 ? (
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-900 mb-4">Courbe de Croissance</h2>
-                                    <div className="h-[300px] w-full">
-                                        <MorphometricChart measurements={animal.measurements} />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="p-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center text-slate-500">
-                                    Pas de données de croissance disponibles.
-                                </div>
-                            )}
-
-                            {/* Certification Details */}
-                            {animal.certification && (
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-900 mb-4">Certification</h2>
-                                    <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-start justify-between">
-                                        <div>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="font-bold text-lg text-slate-900">Certificat {animal.certification.level}</h3>
-                                                <Badge variant="success">Validé</Badge>
-                                            </div>
-                                            <p className="text-slate-500 text-sm mb-4">
-                                                Délivré par {animal.certification.authority}
-                                            </p>
-                                            <div className="flex gap-6 text-sm">
-                                                <div>
-                                                    <p className="text-slate-400">Date d'émission</p>
-                                                    <p className="font-medium text-slate-900">{animal.certification.date}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-slate-400">Expire le</p>
-                                                    <p className="font-medium text-slate-900">{animal.certification.expiryDate}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <CertificationBadge level={animal.certification.level} size="lg" />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="space-y-6">
-                            {/* Heat Cycle Prediction for Females */}
-                            {animal.gender === 'Female' && (
-                                <HeatCyclePredictor animal={animal} compact />
-                            )}
-
-                            {/* Upcoming Events */}
-                            <Card>
-                                <h3 className="font-bold text-slate-900 mb-4">Prochains événements</h3>
-                                <div className="space-y-4">
-                                    {animal.healthRecords?.filter(r => r.nextDueDate)
-                                        .slice(0, 3)
-                                        .map(record => (
-                                            <div key={record.id} className="flex gap-3 items-start">
-                                                <div className="w-2 h-2 rounded-full bg-primary-500 mt-2" />
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-900">{record.type}</p>
-                                                    <p className="text-xs text-slate-500">{record.nextDueDate}</p>
-                                                </div>
-                                            </div>
-                                        )) || (
-                                            <p className="text-sm text-slate-400 italic">Aucun événement à venir</p>
-                                        )}
-                                </div>
-                            </Card>
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'history' && (
-                    <TimelineTab animal={animal} />
-                )}
-
-                {activeTab === 'health' && (
-                    <HealthTab
-                        records={animal.healthRecords}
-                        animal={animal}
-                        onUpdate={() => window.location.reload()}
-                    />
-                )}
-
-                {activeTab === 'nutrition' && (
-                    <NutritionTab plan={animal.nutritionPlan} />
-                )}
-
-                {activeTab === 'pedigree' && (
-                    <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                        <GitFork className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                        <p className="text-slate-500">Arbre généalogique interactif (Voir page Pédigrées)</p>
-                        <Link to="/pedigree" className="text-primary-600 font-medium hover:underline mt-2 inline-block">
-                            Accéder aux Pédigrées
-                        </Link>
-                    </div>
-                )}
-            </div>
-
-            {/* Edit Animal Modal */}
+            {/* MODALS */}
             <EditAnimalModal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
-                onSuccess={() => {
-                    setIsEditModalOpen(false);
-                    refresh();
-                }}
+                onSuccess={() => { setIsEditModalOpen(false); refresh(); }}
                 animal={animal}
             />
-
-            {/* Add Measurement Modal */}
             <AddMeasurementModal
                 isOpen={isMeasurementModalOpen}
                 onClose={() => setIsMeasurementModalOpen(false)}
-                onSuccess={() => {
-                    setIsMeasurementModalOpen(false);
-                    refresh();
-                }}
+                onSuccess={() => { setIsMeasurementModalOpen(false); refresh(); }}
                 animal={animal}
             />
+            <AddHealthEventModal
+                isOpen={isHealthModalOpen}
+                onClose={() => setIsHealthModalOpen(false)}
+                onSuccess={() => { refresh(); }} // Don't close here, wait for user action in success step
+                animal={animal}
+                onPlanFollowUp={() => {
+                    setIsHealthModalOpen(false);
+                    setIsAddTaskModalOpen(true);
+                }}
+                onConsultVet={() => {
+                    setIsHealthModalOpen(false);
+                    // Navigate to teleconsultation or show toast for now
+                    toast.info("Redirection vers la téléconsultation...");
+                    // In a real app: navigate(`/teleconsultation?animalId=${animal.id}`)
+                    window.location.href = '/teleconsultation';
+                }}
+            />
+            <AddTaskModal
+                isOpen={isAddTaskModalOpen}
+                onClose={() => setIsAddTaskModalOpen(false)}
+                onSuccess={() => {
+                    setIsAddTaskModalOpen(false);
+                    toast.success('Tâche planifiée avec succès');
+                    // Refresh tasks handled by dependency on isAddTaskModalOpen in useEffect, or we can manually call fetchTasks if we extracted it.
+                    // For now, useEffect dependency is fine or we can trigger a refresh.
+                }}
+                preselectedAnimalId={animal.id}
+            />
 
-            {/* Close dropdown when clicking outside */}
+            {/* Click outside handler for dropdown */}
             {isStatusDropdownOpen && (
-                <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setIsStatusDropdownOpen(false)}
-                />
+                <div className="fixed inset-0 z-10" onClick={() => setIsStatusDropdownOpen(false)} />
             )}
         </div>
     );

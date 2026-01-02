@@ -246,8 +246,8 @@ export const PedigreeCanvas: React.FC<PedigreeCanvasProps> = ({
                                     <path
                                         key={`${edge.from}-${edge.to}`}
                                         d={edge.path}
-                                        stroke="#94a3b8"
-                                        strokeWidth="2"
+                                        stroke={edge.color || "#94a3b8"}
+                                        strokeWidth={edge.color ? "3" : "2"}
                                         fill="none"
                                         opacity={opacity}
                                         className="transition-opacity duration-300"

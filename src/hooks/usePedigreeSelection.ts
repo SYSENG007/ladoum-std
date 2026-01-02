@@ -1,50 +1,28 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
-export type SelectionMode = 'none' | 'single' | 'multiple';
+export type SelectionMode = 'none' | 'single' | 'multi';
 
-interface UsePedigreeSelectionResult {
+export interface UsePedigreeSelectionResult {
     selection: Set<string>;
     selectionMode: SelectionMode;
     selectOne: (id: string) => void;
-    selectMultiple: (ids: string[]) => void;
     toggleSelection: (id: string) => void;
     clearSelection: () => void;
-    isSelected: (id: string) => boolean;
 }
 
-/**
- * Hook for managing pedigree node selection
- * Supports single selection (click) and multi-selection (Ctrl+click)
- */
-export function usePedigreeSelection(): UsePedigreeSelectionResult {
+export const usePedigreeSelection = (): UsePedigreeSelectionResult => {
     const [selection, setSelection] = useState<Set<string>>(new Set());
 
-    /**
-     * Determine current selection mode based on selection size
-     */
-    const selectionMode: SelectionMode =
-        selection.size === 0 ? 'none' :
-            selection.size === 1 ? 'single' :
-                'multiple';
+    const selectionMode = useMemo((): SelectionMode => {
+        if (selection.size === 0) return 'none';
+        if (selection.size === 1) return 'single';
+        return 'multi';
+    }, [selection.size]);
 
-    /**
-     * Select a single animal (clears previous selection)
-     */
     const selectOne = useCallback((id: string) => {
         setSelection(new Set([id]));
     }, []);
 
-    /**
-     * Select multiple animals at once
-     */
-    const selectMultiple = useCallback((ids: string[]) => {
-        setSelection(new Set(ids));
-    }, []);
-
-    /**
-     * Toggle an animal in/out of selection
-     * Used for Ctrl+click multi-select
-     */
     const toggleSelection = useCallback((id: string) => {
         setSelection(prev => {
             const newSelection = new Set(prev);
@@ -57,27 +35,15 @@ export function usePedigreeSelection(): UsePedigreeSelectionResult {
         });
     }, []);
 
-    /**
-     * Clear all selection (returns to global view)
-     */
     const clearSelection = useCallback(() => {
         setSelection(new Set());
     }, []);
-
-    /**
-     * Check if an animal is selected
-     */
-    const isSelected = useCallback((id: string) => {
-        return selection.has(id);
-    }, [selection]);
 
     return {
         selection,
         selectionMode,
         selectOne,
-        selectMultiple,
         toggleSelection,
         clearSelection,
-        isSelected,
     };
-}
+};

@@ -79,6 +79,39 @@ export type ReproductiveStatus =
     | 'Lactating'
     | 'Resting';
 
+// Comprehensive Reproduction Event (NEW - for service-based event tracking)
+export interface ReproductionEvent {
+    id: string;
+    farmId?: string;
+    animalId: string;       // Female animal
+    type: 'Heat' | 'Mating' | 'Pregnancy' | 'Birth' | 'Abortion' | 'Weaning';
+    date: string;
+    notes?: string;
+    createdAt?: string;
+    updatedAt?: string;
+
+    // Heat specific
+    intensity?: 'Low' | 'Medium' | 'High';
+    duration?: number; // hours
+
+    // Mating specific
+    maleId?: string;
+    matingType?: 'Natural' | 'AI'; // Artificial Insemination
+
+    // Pregnancy specific
+    confirmedDate?: string;
+    confirmationMethod?: 'Ultrasound' | 'Observation';
+    expectedDueDate?: string;
+
+    // Birth specific
+    litterSize?: number;
+    offspringIds?: string[];
+    complications?: string;
+
+    // Weaning specific
+    weaningWeight?: number; // kg (aggregate or individual)
+}
+
 // Gestation prediction result
 export interface GestationPrediction {
     expectedBirthDate: string;
@@ -139,6 +172,8 @@ export interface TransactionRecord {
     notes?: string;
 }
 
+export type AnimalStatus = 'Active' | 'Sold' | 'Deceased' | 'External';
+
 export interface Animal {
     id: string;
     farmId?: string; // Multi-farm support
@@ -148,7 +183,7 @@ export interface Animal {
     gender: 'Male' | 'Female';
     birthDate: string;
     breed: string;
-    status: 'Active' | 'Sold' | 'Deceased' | 'External';
+    status: AnimalStatus;
     weight: number; // kg
     height: number; // cm
     length: number; // cm

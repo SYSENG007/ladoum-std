@@ -35,6 +35,7 @@ export interface LayoutEdge {
     from: string;  // parent ID
     to: string;    // child ID
     path: string;  // SVG path definition
+    color?: string; // Optional color for lineage distinction
 }
 
 export interface LayoutResult {

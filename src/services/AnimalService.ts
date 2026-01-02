@@ -65,5 +65,15 @@ export const AnimalService = {
     async delete(id: string) {
         const docRef = doc(db, COLLECTION_NAME, id);
         return deleteDoc(docRef);
+    },
+
+    // Get a single animal by ID
+    async get(id: string): Promise<Animal | null> {
+        const docRef = doc(db, COLLECTION_NAME, id);
+        const docSnap = await import('firebase/firestore').then(mod => mod.getDoc(docRef));
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() } as Animal;
+        }
+        return null;
     }
 };
